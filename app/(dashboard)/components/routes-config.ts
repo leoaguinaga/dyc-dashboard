@@ -37,8 +37,6 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/dashboard',
         label: 'Dashboard',
         icon: Home,
-        disabled: true,
-        sprint: 'S3',
         roles: ['supervisor', 'logistica', 'gerencia', 'administrador'],
       },
       {
@@ -128,8 +126,6 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Reportes',
         icon: BarChart2,
         roles: ['administrador', 'gerencia'],
-        disabled: true,
-        sprint: 'S6',
       },
     ],
   },

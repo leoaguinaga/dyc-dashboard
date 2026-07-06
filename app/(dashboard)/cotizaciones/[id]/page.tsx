@@ -4,7 +4,7 @@ import { ArrowLeft, Building2, Package, Users } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { cn } from '@/lib/utils'
 import { InviteProveedorForm } from './components/InviteProveedorForm'
-import { CotizacionCard } from './components/CotizacionCard'
+import { CotizacionesTabs } from './components/CotizacionesTabs'
 import { AdjudicacionMatrix } from './components/AdjudicacionMatrix'
 import { SolicitudActions } from './components/SolicitudActions'
 import type { SolicitudCotizacion, Proveedor, EstadoSolicitud, OrdenCompra } from '@/types/api'
@@ -175,16 +175,11 @@ export default async function SolicitudDetailPage({ params }: Props) {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {s.cotizaciones.map((cot) => (
-                <CotizacionCard
-                  key={cot.id}
-                  cotizacion={cot}
-                  solicitudItems={s.items}
-                  canApprove={puedeAprobar}
-                />
-              ))}
-            </div>
+            <CotizacionesTabs
+              cotizaciones={s.cotizaciones}
+              solicitudItems={s.items}
+              canApprove={puedeAprobar}
+            />
           )}
         </div>
       </div>

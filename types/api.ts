@@ -24,7 +24,7 @@ export type EstadoSolicitud =
   | 'borrador' | 'enviada' | 'cotizada'
   | 'seleccionada' | 'aprobada_solicitante' | 'aprobada_gerencia'
   | 'cancelada';
-export type EstadoCotizacion = 'pendiente' | 'recibida' | 'aprobada' | 'rechazada';
+export type EstadoCotizacion = 'pendiente' | 'recibida' | 'aprobada' | 'rechazada' | 'sin_respuesta';
 export type EstadoOrdenCompra = 'borrador' | 'emitida' | 'recibida_parcial' | 'recibida' | 'cancelada';
 export type EstadoPago = 'pendiente' | 'pagado' | 'cancelado';
 export type EstadoPagoEfectivo = EstadoPago | 'vencido';
@@ -405,4 +405,63 @@ export interface ResumenPagos {
   totalVencido: number;
   proximos7dias: number;
   pagadoMes: number;
+}
+
+export interface ReporteGastoPorProyecto {
+  proyecto: { id: string; codigo: string | null; nombre: string };
+  totalOcs: number;
+  montoTotal: number;
+}
+
+export interface ReporteOcsPorProveedor {
+  proveedor: { id: string; razonSocial: string };
+  totalOcs: number;
+  montoTotal: number;
+}
+
+export interface ReportePagosPorPeriodo {
+  periodo: string;
+  pagado: number;
+  pendiente: number;
+  vencido: number;
+}
+
+export interface DashboardResumen {
+  proyectos: {
+    total: number;
+    porEstado: Record<EstadoProyecto, number>;
+    hitosProximos7dias: number;
+    hitosIncumplidos: number;
+  };
+  requerimientos: {
+    tendenciaSemanal: { semana: string; creados: number; aprobados: number }[];
+    pendientesAprobacion: number;
+    urgentesPendientes: number;
+    tiempoPromedioAprobacionDias: number | null;
+  };
+  cotizaciones: {
+    funnelPorEstado: { etapa: string; value: number }[];
+    solicitudesEnCurso: number;
+    estancadasMas5Dias: number;
+    ahorroAdjudicacion: number;
+  };
+  ordenesCompra: {
+    montoPorMes: { mes: string; monto: number }[];
+    emitidasNoRecibidas: number;
+    entregaVencida: number;
+  };
+  inventario: {
+    itemsActivos: number;
+    itemsPorTipo: { consumible: number; activo: number };
+    almacenesActivos: number;
+    almacenesPorTipo: { fijo: number; temporal: number };
+  };
+}
+
+export interface DashboardFinanzas {
+  totalPendiente: number;
+  totalVencido: number;
+  proximos7dias: number;
+  pagadoMes: number;
+  montoPorMes: { mes: string; pagado: number; pendiente: number; vencido: number }[];
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, ClipboardEdit } from 'lucide-react'
+import { CheckCircle2, ClipboardEdit, UserX } from 'lucide-react'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { cn, formatDateOnly } from '@/lib/utils'
@@ -14,6 +14,7 @@ const ESTADO_LABEL: Record<EstadoCotizacion, string> = {
   recibida: 'Recibida',
   aprobada: 'Aprobada',
   rechazada: 'Rechazada',
+  sin_respuesta: 'Sin respuesta',
 }
 
 const ESTADO_CLASS: Record<EstadoCotizacion, string> = {
@@ -21,6 +22,7 @@ const ESTADO_CLASS: Record<EstadoCotizacion, string> = {
   recibida: 'bg-amber-500/15 text-amber-600',
   aprobada: 'bg-chart-2/15 text-chart-2',
   rechazada: 'bg-destructive/10 text-destructive',
+  sin_respuesta: 'bg-orange-500/15 text-orange-600',
 }
 
 function fmtPEN(value: string | number) {
@@ -37,12 +39,15 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
   const router = useRouter()
   const [showReceive, setShowReceive] = useState(false)
   const [approving, setApproving] = useState(false)
+  const [markingNoResponse, setMarkingNoResponse] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const total = cotizacion.items.reduce(
     (sum, it) => sum + parseFloat(it.precioUnit) * parseFloat(it.cantidad),
     0,
   )
+
+  const puedeRegistrarRespuesta = cotizacion.estado === 'pendiente' || cotizacion.estado === 'sin_respuesta'
 
   async function handleAprobar() {
     setApproving(true)
@@ -54,6 +59,19 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
       setError(err instanceof Error ? err.message : 'Error al aprobar')
     } finally {
       setApproving(false)
+    }
+  }
+
+  async function handleNoRespondio() {
+    setMarkingNoResponse(true)
+    setError(null)
+    try {
+      await api.patch(`/solicitudes-cotizacion/cotizaciones/${cotizacion.id}/sin-respuesta`, {})
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al marcar sin respuesta')
+    } finally {
+      setMarkingNoResponse(false)
     }
   }
 
@@ -79,7 +97,11 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
         <p className="text-sm text-muted-foreground py-2">Esperando respuesta del proveedor.</p>
       )}
 
-      {showReceive && cotizacion.estado === 'pendiente' && (
+      {cotizacion.estado === 'sin_respuesta' && !showReceive && (
+        <p className="text-sm text-orange-600 py-2">El proveedor no respondió a la solicitud.</p>
+      )}
+
+      {showReceive && puedeRegistrarRespuesta && (
         <ReceiveCotizacionForm
           cotizacionId={cotizacion.id}
           solicitudItems={solicitudItems}
@@ -165,10 +187,22 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
 
       {/* Actions */}
       <div className="flex items-center gap-2 pt-1">
-        {cotizacion.estado === 'pendiente' && !showReceive && (
+        {puedeRegistrarRespuesta && !showReceive && (
           <Button variant="outline" size="sm" onClick={() => setShowReceive(true)}>
             <ClipboardEdit className="size-3.5" />
             Registrar respuesta
+          </Button>
+        )}
+        {cotizacion.estado === 'pendiente' && !showReceive && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNoRespondio}
+            disabled={markingNoResponse}
+            className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+          >
+            <UserX className="size-3.5" />
+            {markingNoResponse ? 'Marcando…' : 'No respondió'}
           </Button>
         )}
         {cotizacion.estado === 'recibida' && canApprove && (

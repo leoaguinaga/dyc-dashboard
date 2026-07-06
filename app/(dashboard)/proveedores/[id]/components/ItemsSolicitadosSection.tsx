@@ -5,10 +5,11 @@ import { UNIDAD_ABBR } from '@/lib/inventario'
 import type { ItemSolicitadoProveedor, EstadoCotizacion } from '@/types/api'
 
 const ESTADO_STYLES: Record<EstadoCotizacion, { label: string; cn: string }> = {
-  pendiente:  { label: 'Pendiente',  cn: 'bg-muted text-muted-foreground' },
-  recibida:   { label: 'Recibida',   cn: 'bg-chart-2/15 text-chart-2' },
-  aprobada:   { label: 'Aprobada',   cn: 'bg-chart-2/15 text-chart-2' },
-  rechazada:  { label: 'Rechazada',  cn: 'bg-destructive/10 text-destructive' },
+  pendiente:      { label: 'Pendiente',     cn: 'bg-muted text-muted-foreground' },
+  recibida:       { label: 'Recibida',      cn: 'bg-chart-2/15 text-chart-2' },
+  aprobada:       { label: 'Aprobada',      cn: 'bg-chart-2/15 text-chart-2' },
+  rechazada:      { label: 'Rechazada',     cn: 'bg-destructive/10 text-destructive' },
+  sin_respuesta:  { label: 'Sin respuesta', cn: 'bg-orange-500/15 text-orange-600' },
 }
 
 function fmt(val: string) {

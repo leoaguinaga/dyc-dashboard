@@ -19,29 +19,30 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
-
-// Mock estático — solo para validar layout visual, sin datos reales aún.
-
-const proyectosEstadoData = [
-  { estado: 'Ejecución', value: 8, fill: 'var(--color-ejecucion)' },
-  { estado: 'Planificación', value: 4, fill: 'var(--color-planificacion)' },
-  { estado: 'Cierre', value: 2, fill: 'var(--color-cierre)' },
-]
+import type { DashboardFinanzas, DashboardResumen } from '@/types/api'
 
 const proyectosEstadoConfig = {
   value: { label: 'Proyectos' },
   ejecucion: { label: 'Ejecución', color: 'var(--chart-1)' },
   planificacion: { label: 'Planificación', color: 'var(--chart-3)' },
   cierre: { label: 'Cierre', color: 'var(--chart-5)' },
+  liquidada: { label: 'Liquidada', color: 'var(--chart-2)' },
 } satisfies ChartConfig
 
-export function ProyectosEstadoChart() {
+export function ProyectosEstadoChart({ porEstado }: { porEstado: DashboardResumen['proyectos']['porEstado'] }) {
+  const data = [
+    { estado: 'Ejecución', key: 'ejecucion', value: porEstado.ejecucion, fill: 'var(--color-ejecucion)' },
+    { estado: 'Planificación', key: 'planificacion', value: porEstado.planificacion, fill: 'var(--color-planificacion)' },
+    { estado: 'Cierre', key: 'cierre', value: porEstado.cierre, fill: 'var(--color-cierre)' },
+    { estado: 'Liquidada', key: 'liquidada', value: porEstado.liquidada, fill: 'var(--color-liquidada)' },
+  ].filter((d) => d.value > 0)
+
   return (
     <ChartContainer config={proyectosEstadoConfig} className="mx-auto aspect-square max-h-[220px]">
       <PieChart>
         <ChartTooltip content={<ChartTooltipContent nameKey="estado" hideLabel />} />
-        <Pie data={proyectosEstadoData} dataKey="value" nameKey="estado" innerRadius={55} strokeWidth={4}>
-          {proyectosEstadoData.map((entry) => (
+        <Pie data={data} dataKey="value" nameKey="estado" innerRadius={55} strokeWidth={4}>
+          {data.map((entry) => (
             <Cell key={entry.estado} fill={entry.fill} />
           ))}
         </Pie>
@@ -51,26 +52,15 @@ export function ProyectosEstadoChart() {
   )
 }
 
-const requerimientosTrendData = [
-  { semana: 'S1', creados: 9, aprobados: 6 },
-  { semana: 'S2', creados: 11, aprobados: 8 },
-  { semana: 'S3', creados: 7, aprobados: 7 },
-  { semana: 'S4', creados: 14, aprobados: 9 },
-  { semana: 'S5', creados: 10, aprobados: 10 },
-  { semana: 'S6', creados: 12, aprobados: 8 },
-  { semana: 'S7', creados: 8, aprobados: 6 },
-  { semana: 'S8', creados: 12, aprobados: 11 },
-]
-
 const requerimientosTrendConfig = {
   creados: { label: 'Creados', color: 'var(--chart-1)' },
   aprobados: { label: 'Aprobados', color: 'var(--chart-2)' },
 } satisfies ChartConfig
 
-export function RequerimientosTrendChart() {
+export function RequerimientosTrendChart({ data }: { data: DashboardResumen['requerimientos']['tendenciaSemanal'] }) {
   return (
     <ChartContainer config={requerimientosTrendConfig} className="aspect-auto h-[220px] w-full">
-      <AreaChart data={requerimientosTrendData} margin={{ left: 0, right: 12 }}>
+      <AreaChart data={data} margin={{ left: 0, right: 12 }}>
         <CartesianGrid vertical={false} />
         <XAxis dataKey="semana" tickLine={false} axisLine={false} tickMargin={8} />
         <ChartTooltip content={<ChartTooltipContent />} />
@@ -92,22 +82,23 @@ export function RequerimientosTrendChart() {
   )
 }
 
-const cotizacionesFunnelData = [
-  { etapa: 'Borrador', value: 12 },
-  { etapa: 'Enviada', value: 9 },
-  { etapa: 'Cotizada', value: 7 },
-  { etapa: 'Seleccionada', value: 5 },
-  { etapa: 'Aprobada', value: 4 },
-]
-
 const cotizacionesFunnelConfig = {
   value: { label: 'Solicitudes', color: 'var(--chart-1)' },
 } satisfies ChartConfig
 
-export function CotizacionesFunnelChart() {
+const ETAPA_LABEL: Record<string, string> = {
+  borrador: 'Borrador',
+  enviada: 'Enviada',
+  cotizada: 'Cotizada',
+  seleccionada: 'Seleccionada',
+  aprobada: 'Aprobada',
+}
+
+export function CotizacionesFunnelChart({ data }: { data: DashboardResumen['cotizaciones']['funnelPorEstado'] }) {
+  const chartData = data.map((d) => ({ ...d, etapa: ETAPA_LABEL[d.etapa] ?? d.etapa }))
   return (
     <ChartContainer config={cotizacionesFunnelConfig} className="aspect-auto h-[220px] w-full">
-      <BarChart data={cotizacionesFunnelData} layout="vertical" margin={{ left: 8 }}>
+      <BarChart data={chartData} layout="vertical" margin={{ left: 8 }}>
         <CartesianGrid horizontal={false} />
         <XAxis type="number" hide />
         <ChartTooltip content={<ChartTooltipContent />} />
@@ -117,23 +108,14 @@ export function CotizacionesFunnelChart() {
   )
 }
 
-const ordenesMontoData = [
-  { mes: 'Feb', monto: 98000 },
-  { mes: 'Mar', monto: 121000 },
-  { mes: 'Abr', monto: 87000 },
-  { mes: 'May', monto: 145000 },
-  { mes: 'Jun', monto: 133000 },
-  { mes: 'Jul', monto: 182400 },
-]
-
 const ordenesMontoConfig = {
   monto: { label: 'Monto emitido', color: 'var(--chart-1)' },
 } satisfies ChartConfig
 
-export function OrdenesCompraMontoChart() {
+export function OrdenesCompraMontoChart({ data }: { data: DashboardResumen['ordenesCompra']['montoPorMes'] }) {
   return (
     <ChartContainer config={ordenesMontoConfig} className="aspect-auto h-[220px] w-full">
-      <BarChart data={ordenesMontoData} margin={{ left: 0, right: 12 }}>
+      <BarChart data={data} margin={{ left: 0, right: 12 }}>
         <CartesianGrid vertical={false} />
         <XAxis dataKey="mes" tickLine={false} axisLine={false} tickMargin={8} />
         <ChartTooltip content={<ChartTooltipContent />} />
@@ -143,25 +125,16 @@ export function OrdenesCompraMontoChart() {
   )
 }
 
-const finanzasData = [
-  { mes: 'Feb', pagado: 90000, pendiente: 20000, vencido: 4000 },
-  { mes: 'Mar', pagado: 105000, pendiente: 18000, vencido: 6000 },
-  { mes: 'Abr', pagado: 80000, pendiente: 24000, vencido: 9000 },
-  { mes: 'May', pagado: 120000, pendiente: 30000, vencido: 5000 },
-  { mes: 'Jun', pagado: 110000, pendiente: 27000, vencido: 8000 },
-  { mes: 'Jul', pagado: 145600, pendiente: 96150, vencido: 12300 },
-]
-
 const finanzasConfig = {
   pagado: { label: 'Pagado', color: 'var(--chart-2)' },
   pendiente: { label: 'Pendiente', color: 'var(--chart-3)' },
   vencido: { label: 'Vencido', color: 'var(--chart-4)' },
 } satisfies ChartConfig
 
-export function FinanzasChart() {
+export function FinanzasChart({ data }: { data: DashboardFinanzas['montoPorMes'] }) {
   return (
     <ChartContainer config={finanzasConfig} className="aspect-auto h-[220px] w-full">
-      <BarChart data={finanzasData} margin={{ left: 0, right: 12 }}>
+      <BarChart data={data} margin={{ left: 0, right: 12 }}>
         <CartesianGrid vertical={false} />
         <XAxis dataKey="mes" tickLine={false} axisLine={false} tickMargin={8} />
         <ChartTooltip content={<ChartTooltipContent />} />
@@ -174,24 +147,24 @@ export function FinanzasChart() {
   )
 }
 
-const inventarioTipoData = [
-  { tipo: 'Consumible', value: 142, fill: 'var(--color-consumible)' },
-  { tipo: 'Activo', value: 44, fill: 'var(--color-activo)' },
-]
-
 const inventarioTipoConfig = {
   value: { label: 'Ítems' },
   consumible: { label: 'Consumible', color: 'var(--chart-1)' },
   activo: { label: 'Activo', color: 'var(--chart-5)' },
 } satisfies ChartConfig
 
-export function InventarioTipoChart() {
+export function InventarioTipoChart({ itemsPorTipo }: { itemsPorTipo: DashboardResumen['inventario']['itemsPorTipo'] }) {
+  const data = [
+    { tipo: 'Consumible', value: itemsPorTipo.consumible, fill: 'var(--color-consumible)' },
+    { tipo: 'Activo', value: itemsPorTipo.activo, fill: 'var(--color-activo)' },
+  ].filter((d) => d.value > 0)
+
   return (
     <ChartContainer config={inventarioTipoConfig} className="mx-auto aspect-square max-h-[220px]">
       <PieChart>
         <ChartTooltip content={<ChartTooltipContent nameKey="tipo" hideLabel />} />
-        <Pie data={inventarioTipoData} dataKey="value" nameKey="tipo" innerRadius={55} strokeWidth={4}>
-          {inventarioTipoData.map((entry) => (
+        <Pie data={data} dataKey="value" nameKey="tipo" innerRadius={55} strokeWidth={4}>
+          {data.map((entry) => (
             <Cell key={entry.tipo} fill={entry.fill} />
           ))}
         </Pie>
