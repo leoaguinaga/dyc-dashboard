@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import type { Pago } from '@/types/api'
-import { cn } from '@/lib/utils'
+import { cn, formatDateOnly } from '@/lib/utils'
 
 const ESTADO_LABEL: Record<Pago['estadoEfectivo'], string> = {
   pendiente: 'Pendiente',
@@ -55,7 +55,7 @@ export async function PagosTable() {
               <td className="px-4 py-3">
                 <div className="flex items-center gap-1.5">
                   {p.estadoEfectivo === 'vencido' && <AlertTriangle className="size-3.5 text-destructive" />}
-                  {new Date(p.fechaProgramada).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  {formatDateOnly(p.fechaProgramada)}
                 </div>
               </td>
               <td className="px-4 py-3">

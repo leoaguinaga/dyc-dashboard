@@ -282,6 +282,13 @@ export interface ItemSolicitadoProveedor extends CotizacionItem {
   };
 }
 
+export interface CotizacionCondicionPago {
+  id: string;
+  cotizacionId: string;
+  porcentaje: string;
+  fecha: string;
+}
+
 export interface Cotizacion {
   id: string;
   solicitudId: string;
@@ -292,6 +299,7 @@ export interface Cotizacion {
   fechaEntrega?: string;
   validezDias?: number;
   condicionesServicio?: string;
+  condicionesPago: CotizacionCondicionPago[];
   condicionPago?: string;
   nota?: string;
   creadoEn: string;

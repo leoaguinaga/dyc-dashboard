@@ -7,7 +7,7 @@ import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { cn, formatDateOnly } from '@/lib/utils'
 import type { OrdenCompra, Pago } from '@/types/api'
 
 interface Props {
@@ -33,9 +33,7 @@ function fmtMoney(n: string | number) {
   return `S/ ${Number(n).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+const fmtDate = formatDateOnly
 
 export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
   const { data: session } = useSession()

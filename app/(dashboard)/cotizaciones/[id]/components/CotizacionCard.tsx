@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { CheckCircle2, ClipboardEdit } from 'lucide-react'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { cn, formatDateOnly } from '@/lib/utils'
 import { ReceiveCotizacionForm } from './ReceiveCotizacionForm'
 import type { Cotizacion, SolicitudItem, EstadoCotizacion } from '@/types/api'
 
@@ -129,10 +129,10 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
         </div>
       )}
 
-      {(cotizacion.fechaEntrega || cotizacion.validezDias || cotizacion.condicionesServicio || cotizacion.condicionPago || cotizacion.nota) && (
+      {(cotizacion.fechaEntrega || cotizacion.validezDias || cotizacion.condicionesServicio || cotizacion.condicionesPago.length > 0 || cotizacion.condicionPago || cotizacion.nota) && (
         <div className="space-y-1 text-xs text-muted-foreground border-t border-border pt-2">
           {cotizacion.fechaEntrega && (
-            <p>Entrega: <span className="font-medium text-foreground">{new Date(cotizacion.fechaEntrega).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}</span></p>
+            <p>Entrega: <span className="font-medium text-foreground">{formatDateOnly(cotizacion.fechaEntrega)}</span></p>
           )}
           {cotizacion.validezDias && (
             <p>Validez: <span className="font-medium text-foreground">{cotizacion.validezDias} días</span></p>
@@ -140,8 +140,18 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
           {cotizacion.condicionesServicio && (
             <p>Condiciones: <span className="text-foreground">{cotizacion.condicionesServicio}</span></p>
           )}
+          {cotizacion.condicionesPago.length > 0 && (
+            <p>
+              Forma de pago:{' '}
+              <span className="font-medium text-foreground">
+                {cotizacion.condicionesPago
+                  .map((c) => `${c.porcentaje}% (${formatDateOnly(c.fecha)})`)
+                  .join(' + ')}
+              </span>
+            </p>
+          )}
           {cotizacion.condicionPago && (
-            <p>Condición de pago: <span className="text-foreground">{cotizacion.condicionPago}</span></p>
+            <p>Otras condiciones de pago: <span className="text-foreground">{cotizacion.condicionPago}</span></p>
           )}
           {cotizacion.nota && (
             <p className="italic">&ldquo;{cotizacion.nota}&rdquo;</p>
