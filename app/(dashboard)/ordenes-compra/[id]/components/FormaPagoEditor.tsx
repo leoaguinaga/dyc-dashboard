@@ -6,8 +6,17 @@ import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Pencil, Check, X } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Pencil, Check, X, Info } from 'lucide-react'
 import type { OrdenCompra } from '@/types/api'
+
+const DETRACCION_REFERENCIA = [
+  { codigo: '030', concepto: 'Contratos de construcción', pct: '4%' },
+  { codigo: '019', concepto: 'Arrendamiento de bienes (maquinaria/equipo)', pct: '10%' },
+  { codigo: '012', concepto: 'Intermediación laboral y tercerización', pct: '12%' },
+  { codigo: '022', concepto: 'Otros servicios empresariales', pct: '12%' },
+  { codigo: '027', concepto: 'Transporte de carga', pct: '4%' },
+]
 
 interface Props {
   ocId: string
@@ -218,7 +227,38 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
           />
         </div>
         <div>
-          <label className={labelCn}>Detracción (%)</label>
+          <div className="mb-1 flex items-center gap-1">
+            <label className="text-xs text-muted-foreground">Detracción (%)</label>
+            <Popover>
+              <PopoverTrigger className="text-muted-foreground hover:text-foreground">
+                <Info className="size-3" />
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <p className="text-xs font-medium text-foreground">Referencia SUNAT (SPOT) para construcción</p>
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-muted-foreground">
+                      <th className="text-left font-normal">Cód.</th>
+                      <th className="text-left font-normal">Concepto</th>
+                      <th className="text-right font-normal">%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {DETRACCION_REFERENCIA.map((row) => (
+                      <tr key={row.codigo} className="border-t border-border/50">
+                        <td className="py-1 pr-1 text-muted-foreground">{row.codigo}</td>
+                        <td className="py-1 pr-1">{row.concepto}</td>
+                        <td className="py-1 text-right font-medium">{row.pct}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="text-[11px] text-muted-foreground">
+                  Aplica a operaciones mayores a S/ 700 (transporte: S/ 400). Verificar código exacto según R.S. 183-2004/SUNAT.
+                </p>
+              </PopoverContent>
+            </Popover>
+          </div>
           <Input
             type="number"
             min={0}

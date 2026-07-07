@@ -249,7 +249,7 @@ export function CreateProyectoForm({ clientes, trabajadores, proyectos }: Props)
                 <Input
                   value={form.codigo}
                   onChange={(e) => set('codigo', e.target.value)}
-                  placeholder="Ej. PRY-2025-001"
+                  placeholder="Ej. 001-ING-26"
                 />
               </div>
               <div>

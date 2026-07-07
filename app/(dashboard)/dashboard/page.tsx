@@ -31,14 +31,7 @@ function FinanzasSkeleton() {
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-10">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Resumen general</h1>
-        <p className="text-sm text-muted-foreground">
-          Vista consolidada de obras, compras y pagos.
-        </p>
-      </div>
-
+    <div className="space-y-3">
       <Suspense fallback={<ResumenSkeleton />}>
         <DashboardResumenSection />
       </Suspense>

@@ -17,14 +17,7 @@ function SectionSkeleton() {
 
 export default function ReportesPage() {
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Reportes</h1>
-        <p className="text-sm text-muted-foreground">
-          Reportes predefinidos de gasto, proveedores y pagos.
-        </p>
-      </div>
-
+    <div className="space-y-3">
       <Suspense fallback={<SectionSkeleton />}>
         <GastoPorProyectoSection />
       </Suspense>
