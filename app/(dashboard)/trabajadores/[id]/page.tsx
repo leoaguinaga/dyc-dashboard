@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, HardHat, Mail, Phone, Briefcase, ShieldCheck, ShieldOff, CalendarDays, Pencil } from 'lucide-react'
+import { ArrowLeft, HardHat, Mail, Phone, Briefcase, ShieldCheck, ShieldOff, CalendarDays, Pencil, Landmark, CreditCard } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -97,10 +97,16 @@ export default async function TrabajadorDetailPage({ params }: Props) {
             {t.email && (
               <InfoRow icon={<Mail className="size-4" />} label="Email" value={t.email} />
             )}
+            {t.banco && (
+              <InfoRow icon={<Landmark className="size-4" />} label="Banco" value={t.banco} />
+            )}
+            {t.numeroCuenta && (
+              <InfoRow icon={<CreditCard className="size-4" />} label="N° de cuenta / CCI" value={t.numeroCuenta} mono />
+            )}
             {t.creadoEn && (
               <InfoRow icon={<CalendarDays className="size-4" />} label="Alta" value={fmt(t.creadoEn)} />
             )}
-            {!t.cargo && !t.telefono && !t.email && (
+            {!t.cargo && !t.telefono && !t.email && !t.banco && !t.numeroCuenta && (
               <p className="text-muted-foreground">Sin información adicional</p>
             )}
           </dl>

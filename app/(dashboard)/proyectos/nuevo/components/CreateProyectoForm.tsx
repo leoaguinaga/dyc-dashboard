@@ -315,7 +315,12 @@ export function CreateProyectoForm({ clientes, trabajadores, proyectos }: Props)
               </label>
               <Select value={form.parentId} onValueChange={(v) => set('parentId', v ?? '')}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sin proyecto padre" />
+                  <SelectValue placeholder="Sin proyecto padre">
+                    {(value: string) => {
+                      const p = proyectos.find((pr) => pr.id === value)
+                      return p ? `${p.codigo ? `${p.codigo} — ` : ''}${p.nombre}` : 'Sin proyecto padre'
+                    }}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {proyectos.filter((p) => !p.parentId).map((p) => (

@@ -137,6 +137,8 @@ export interface Trabajador {
   cargo?: string;
   telefono?: string;
   email?: string;
+  banco?: string;
+  numeroCuenta?: string;
   activo: boolean;
   creadoEn?: string;
   userId?: string;
@@ -207,6 +209,12 @@ export interface CatalogoProductoProveedor {
   actualizadoEn: string;
 }
 
+export interface RequerimientoItemArchivo {
+  id: string;
+  nombre: string;
+  url: string;
+}
+
 export interface RequerimientoItem {
   id: string;
   requerimientoId: string;
@@ -214,6 +222,7 @@ export interface RequerimientoItem {
   cantidad: string;
   unidad: UnidadMedida;
   nota?: string;
+  archivos?: RequerimientoItemArchivo[];
 }
 
 export interface Requerimiento {

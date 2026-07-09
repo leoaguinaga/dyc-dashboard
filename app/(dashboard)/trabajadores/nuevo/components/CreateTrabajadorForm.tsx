@@ -106,6 +106,8 @@ type FormState = {
   cargo: string
   telefono: string
   email: string
+  banco: string
+  numeroCuenta: string
   activo: boolean
   crearUsuario: boolean
   role: Role | ''
@@ -119,6 +121,8 @@ const initial: FormState = {
   cargo: '',
   telefono: '',
   email: '',
+  banco: '',
+  numeroCuenta: '',
   activo: true,
   crearUsuario: false,
   role: '',
@@ -187,6 +191,8 @@ export function CreateTrabajadorForm() {
     if (form.cargo) payload.cargo = form.cargo.trim()
     if (form.telefono) payload.telefono = form.telefono.trim()
     if (form.email) payload.email = form.email.trim()
+    if (form.banco) payload.banco = form.banco.trim()
+    if (form.numeroCuenta) payload.numeroCuenta = form.numeroCuenta.trim()
     if (form.crearUsuario) {
       payload.crearUsuario = true
       payload.role = form.role
@@ -324,6 +330,30 @@ export function CreateTrabajadorForm() {
                 <SelectItem value="inactivo">Inactivo</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </div>
+      </section>
+
+      {/* Datos bancarios */}
+      <section className="space-y-4">
+        <h2 className={sectionTitleCn}>Datos bancarios</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelCn}>Banco</label>
+            <Input
+              value={form.banco}
+              onChange={(e) => set('banco', e.target.value)}
+              placeholder="Ej. BCP"
+            />
+          </div>
+          <div>
+            <label className={labelCn}>N° de cuenta / CCI</label>
+            <Input
+              value={form.numeroCuenta}
+              onChange={(e) => set('numeroCuenta', e.target.value)}
+              placeholder="Ej. 1934198421091"
+              className="font-mono"
+            />
           </div>
         </div>
       </section>

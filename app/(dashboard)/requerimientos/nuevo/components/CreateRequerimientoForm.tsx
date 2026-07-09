@@ -12,12 +12,13 @@ import { useSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 import { UNIDAD_OPTIONS } from '@/lib/inventario'
 import type { Proyecto, Role, TipoRequerimiento } from '@/types/api'
+import { EspecificacionModal, type EspecificacionData } from './EspecificacionModal'
 
 interface LineaItem {
   descripcion: string
   cantidad: string
   unidad: string
-  nota: string
+  especificacion: EspecificacionData | null
 }
 
 interface Props {
@@ -26,26 +27,26 @@ interface Props {
 
 const labelCn = 'mb-1.5 block text-sm font-medium'
 const sectionTitleCn = 'text-xs font-medium uppercase tracking-wide text-muted-foreground'
-const emptyLinea = (): LineaItem => ({ descripcion: '', cantidad: '', unidad: 'und', nota: '' })
+const emptyLinea = (): LineaItem => ({ descripcion: '', cantidad: '', unidad: 'und', especificacion: null })
 
 const TIPO_LABELS: Record<TipoRequerimiento, string> = {
-  civil:          'Req. Civil',
-  electrico:      'Req. Eléctrico',
-  seguridad:      'Req. Seguridad',
+  civil: 'Req. Civil',
+  electrico: 'Req. Eléctrico',
+  seguridad: 'Req. Seguridad',
   administrativo: 'Req. Administrativo',
 }
 
 // Which tipos each role is allowed to create (must match backend ROLE_TIPOS)
 const ROLE_TIPOS: Partial<Record<Role, TipoRequerimiento[]>> = {
-  supervisor:           ['civil'],
-  supervisor_civil:     ['civil'],
+  supervisor: ['civil'],
+  supervisor_civil: ['civil'],
   supervisor_electrico: ['electrico'],
-  pdr:                  ['seguridad'],
-  ing_civil:            ['civil'],
-  ing_electrico:        ['electrico'],
-  jefe_sig:             ['seguridad'],
-  logistica:            ['civil', 'electrico', 'seguridad', 'administrativo'],
-  administrador:        ['civil', 'electrico', 'seguridad', 'administrativo'],
+  pdr: ['seguridad'],
+  ing_civil: ['civil'],
+  ing_electrico: ['electrico'],
+  jefe_sig: ['seguridad'],
+  logistica: ['civil', 'electrico', 'seguridad', 'administrativo'],
+  administrador: ['civil', 'electrico', 'seguridad', 'administrativo'],
 }
 
 export function CreateRequerimientoForm({ proyectos }: Props) {
@@ -67,10 +68,15 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [specModalIndex, setSpecModalIndex] = useState<number | null>(null)
 
-  function updateLinea(i: number, field: keyof LineaItem, value: string) {
+  function updateLinea(i: number, field: 'descripcion' | 'cantidad' | 'unidad', value: string) {
     setLineas((prev) => prev.map((l, idx) => (idx === i ? { ...l, [field]: value } : l)))
     setErrors((prev) => { const next = { ...prev }; delete next[`linea_${i}_${field}`]; return next })
+  }
+
+  function setLineaEspecificacion(i: number, especificacion: EspecificacionData | null) {
+    setLineas((prev) => prev.map((l, idx) => (idx === i ? { ...l, especificacion } : l)))
   }
 
   function validate() {
@@ -105,7 +111,8 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
           descripcion: l.descripcion.trim(),
           cantidad: parseFloat(l.cantidad),
           unidad: l.unidad,
-          nota: l.nota.trim() || undefined,
+          nota: l.especificacion?.descripcion || undefined,
+          archivos: l.especificacion?.archivos ?? [],
         })),
       })
 
@@ -147,7 +154,11 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
             </label>
             <Select value={proyectoId} onValueChange={(v) => { setProyectoId(v ?? ''); setErrors((p) => { const n = { ...p }; delete n.proyectoId; return n }) }}>
               <SelectTrigger className={cn('w-full', errors.proyectoId && 'border-destructive')}>
-                <SelectValue placeholder="Selecciona un proyecto…" />
+                <SelectValue>
+                  {(value: string | null) =>
+                    proyectos.find((p) => p.id === value)?.nombre ?? 'Selecciona un proyecto…'
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {proyectos.map((p) => (
@@ -173,7 +184,9 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
             ) : (
               <Select value={tipo} onValueChange={(v) => setTipo(v as TipoRequerimiento)}>
                 <SelectTrigger className={cn('w-full', errors.tipo && 'border-destructive')}>
-                  <SelectValue />
+                  <SelectValue>
+                    {(value: TipoRequerimiento | null) => (value ? TIPO_LABELS[value] : '')}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {allowedTipos.map((t) => (
@@ -235,7 +248,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
             <p className="text-xs text-muted-foreground font-medium">Descripción</p>
             <p className="text-xs text-muted-foreground font-medium">Cantidad</p>
             <p className="text-xs text-muted-foreground font-medium">Unidad</p>
-            <p className="text-xs text-muted-foreground font-medium">Nota (opcional)</p>
+            <p className="text-xs text-muted-foreground font-medium">Especificaciones</p>
             <div />
           </div>
 
@@ -279,11 +292,15 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
                 </SelectContent>
               </Select>
 
-              <Input
-                value={linea.nota}
-                onChange={(e) => updateLinea(i, 'nota', e.target.value)}
-                placeholder="Especificación…"
-              />
+              <button
+                type="button"
+                onClick={() => setSpecModalIndex(i)}
+                className="flex h-8 items-center rounded-lg border border-dashed border-border px-2.5 text-left text-xs text-muted-foreground hover:border-ring hover:text-foreground transition-colors duration-[120ms] truncate"
+              >
+                {linea.especificacion
+                  ? `Especificación · ${linea.especificacion.archivos.length} archivo(s)`
+                  : '+ Agregar espec'}
+              </button>
 
               <button
                 type="button"
@@ -291,7 +308,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
                 disabled={lineas.length === 1}
                 className="mt-1 flex size-8 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors duration-[120ms] disabled:pointer-events-none disabled:opacity-30"
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3.5 mb-3.5" />
               </button>
             </div>
           ))}
@@ -334,6 +351,16 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
           {loading ? 'Enviando…' : 'Crear y enviar'}
         </Button>
       </div>
+
+      <EspecificacionModal
+        open={specModalIndex !== null}
+        onOpenChange={(o) => !o && setSpecModalIndex(null)}
+        initial={specModalIndex !== null ? lineas[specModalIndex].especificacion : null}
+        onSave={(data) => {
+          setLineaEspecificacion(specModalIndex!, data)
+          setSpecModalIndex(null)
+        }}
+      />
     </form>
   )
 }

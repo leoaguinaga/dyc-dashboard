@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
+import { cn, formatDateOnly } from '@/lib/utils'
 import type { Proyecto } from '@/types/api'
 
 type EstadoFilter = 'todos' | Proyecto['estado']
@@ -179,6 +179,8 @@ export function ProyectosTableClient({ proyectos }: Props) {
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Nombre</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Cliente</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Ubicación</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Inicio programado</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Fin programado</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</th>
               </tr>
             </thead>
@@ -199,6 +201,12 @@ export function ProyectosTableClient({ proyectos }: Props) {
                   <td className="px-4 py-3 text-muted-foreground">{p.cliente?.nombreComercial ?? p.cliente?.razonSocial ?? '---'}</td>
                   <td className="px-4 py-3">
                     <UbicacionCell proyecto={p} />
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {p.fechaInicio ? formatDateOnly(p.fechaInicio) : '---'}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {p.fechaFin ? formatDateOnly(p.fechaFin) : '---'}
                   </td>
                   <td className="px-4 py-3">
                     <EstadoBadge estado={p.estado} />

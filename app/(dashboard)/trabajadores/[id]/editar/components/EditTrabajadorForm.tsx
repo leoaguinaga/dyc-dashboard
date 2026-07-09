@@ -63,6 +63,8 @@ type FormState = {
   cargo: string
   telefono: string
   email: string
+  banco: string
+  numeroCuenta: string
   activo: boolean
 }
 
@@ -89,6 +91,8 @@ export function EditTrabajadorForm({ trabajador: t }: Props) {
     cargo: t.cargo ?? '',
     telefono: t.telefono ?? '',
     email: t.email ?? '',
+    banco: t.banco ?? '',
+    numeroCuenta: t.numeroCuenta ?? '',
     activo: t.activo,
   })
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
@@ -170,6 +174,8 @@ export function EditTrabajadorForm({ trabajador: t }: Props) {
         cargo: form.cargo.trim() || null,
         telefono: form.telefono.trim() || null,
         email: form.email.trim() || null,
+        banco: form.banco.trim() || null,
+        numeroCuenta: form.numeroCuenta.trim() || null,
       })
 
       if (crearAcceso) {
@@ -293,6 +299,30 @@ export function EditTrabajadorForm({ trabajador: t }: Props) {
                 <SelectItem value="inactivo">Inactivo</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </div>
+      </section>
+
+      {/* Datos bancarios */}
+      <section className="space-y-4">
+        <h2 className={sectionTitleCn}>Datos bancarios</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelCn}>Banco</label>
+            <Input
+              value={form.banco}
+              onChange={(e) => set('banco', e.target.value)}
+              placeholder="Ej. BCP"
+            />
+          </div>
+          <div>
+            <label className={labelCn}>N° de cuenta / CCI</label>
+            <Input
+              value={form.numeroCuenta}
+              onChange={(e) => set('numeroCuenta', e.target.value)}
+              placeholder="Ej. 1934198421091"
+              className="font-mono"
+            />
           </div>
         </div>
       </section>

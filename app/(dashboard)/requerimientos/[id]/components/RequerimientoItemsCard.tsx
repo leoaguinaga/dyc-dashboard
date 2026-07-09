@@ -1,5 +1,7 @@
 'use client'
 
+import { FileText } from 'lucide-react'
+import { API_ORIGIN } from '@/lib/api/client'
 import { useSession } from '@/lib/auth/session'
 import { UNIDAD_ABBR } from '@/lib/inventario'
 import { RequerimientoEditForm } from './RequerimientoEditForm'
@@ -31,6 +33,7 @@ export function RequerimientoItemsCard({ requerimiento: r }: Props) {
               <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Descripción</th>
               <th className="px-4 py-2.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">Cantidad</th>
               <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Nota</th>
+              <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Archivos</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -43,6 +46,26 @@ export function RequerimientoItemsCard({ requerimiento: r }: Props) {
                   <span className="ml-1 text-xs text-muted-foreground">{UNIDAD_ABBR[item.unidad]}</span>
                 </td>
                 <td className="px-4 py-3 text-sm text-muted-foreground">{item.nota ?? '—'}</td>
+                <td className="px-4 py-3 text-sm">
+                  {item.archivos?.length ? (
+                    <div className="flex flex-col gap-1">
+                      {item.archivos.map((archivo) => (
+                        <a
+                          key={archivo.id}
+                          href={`${API_ORIGIN}${archivo.url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-primary hover:underline"
+                        >
+                          <FileText className="size-3.5 shrink-0" />
+                          {archivo.nombre}
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
