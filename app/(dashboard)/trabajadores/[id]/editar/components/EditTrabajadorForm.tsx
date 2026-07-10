@@ -23,9 +23,12 @@ const DOMAIN = '@dycingenieriayproyectos.com'
 
 const ROLES: { value: Role; label: string }[] = [
   { value: 'supervisor', label: 'Supervisor' },
+  { value: 'ing_civil', label: 'Ing. Civil' },
+  { value: 'ing_electrico', label: 'Ing. Eléctrico' },
+  { value: 'jefe_sig', label: 'Jefe SIG' },
   { value: 'logistica', label: 'Logística' },
   { value: 'gerencia', label: 'Gerencia' },
-  { value: 'administrador', label: 'Administrador' },
+  { value: 'administrador', label: 'TI' },
 ]
 
 const CARGOS = [
@@ -33,7 +36,7 @@ const CARGOS = [
     group: 'Supervisor de obra',
     roles: ['Supervisor Civil', 'Supervisor Eléctrico', 'Prevencionista de riesgo', 'Residente de obra'],
   },
-  { group: 'Back office', roles: ['Ingeniero Eléctrico', 'Ingeniero Civil', 'Jefe SIG'] },
+  { group: 'Back office', roles: ['Ingeniero Eléctrico', 'Ingeniero Civil', 'Jefe SIG', 'Arquitecto'] },
   { group: 'Logística', roles: ['Administrador', 'Asistente Logística', 'Asistente Administración'] },
   { group: 'Gerencia', roles: ['Gerente General', 'Gerente Operaciones', 'Gerente Administrativo'] },
   { group: 'Obreros', roles: ['Operario', 'Técnico'] },

@@ -7,6 +7,7 @@ import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Switch } from '@/components/ui/switch'
 import { Pencil, Check, X, Info } from 'lucide-react'
 import type { OrdenCompra } from '@/types/api'
 
@@ -25,6 +26,7 @@ interface Props {
     | 'adelantoPorcentaje'
     | 'saldoPorcentaje'
     | 'detraccionPorcentaje'
+    | 'incluyeIgv'
     | 'tipoCambio'
     | 'contactoProveedorNombre'
     | 'contactoProveedorTelefono'
@@ -41,6 +43,7 @@ type FormState = {
   adelantoPorcentaje: string
   saldoPorcentaje: string
   detraccionPorcentaje: string
+  incluyeIgv: boolean
   tipoCambio: string
   contactoProveedorNombre: string
   contactoProveedorTelefono: string
@@ -57,6 +60,7 @@ function toForm(oc: Props['oc']): FormState {
     adelantoPorcentaje: oc.adelantoPorcentaje ?? '',
     saldoPorcentaje: oc.saldoPorcentaje ?? '',
     detraccionPorcentaje: oc.detraccionPorcentaje ?? '',
+    incluyeIgv: oc.incluyeIgv,
     tipoCambio: oc.tipoCambio ?? '',
     contactoProveedorNombre: oc.contactoProveedorNombre ?? '',
     contactoProveedorTelefono: oc.contactoProveedorTelefono ?? '',
@@ -94,6 +98,7 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
         adelantoPorcentaje: form.adelantoPorcentaje !== '' ? Number(form.adelantoPorcentaje) : null,
         saldoPorcentaje: form.saldoPorcentaje !== '' ? Number(form.saldoPorcentaje) : null,
         detraccionPorcentaje: form.detraccionPorcentaje !== '' ? Number(form.detraccionPorcentaje) : null,
+        incluyeIgv: form.incluyeIgv,
         tipoCambio: form.tipoCambio !== '' ? Number(form.tipoCambio) : null,
         contactoProveedorNombre: form.contactoProveedorNombre.trim() || null,
         contactoProveedorTelefono: form.contactoProveedorTelefono.trim() || null,
@@ -144,6 +149,10 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
             <div>
               <dt className="text-xs text-muted-foreground">Detracción</dt>
               <dd className="font-medium">{oc.detraccionPorcentaje ? `${oc.detraccionPorcentaje}%` : '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">IGV</dt>
+              <dd className="font-medium">{oc.incluyeIgv ? 'Incluido en los precios' : 'Se agrega (18%)'}</dd>
             </div>
             {oc.tipoCambio && (
               <div>
@@ -267,6 +276,14 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
             onChange={(e) => set('detraccionPorcentaje', e.target.value)}
             placeholder="10"
           />
+        </div>
+        <div className="flex items-center gap-2 pt-4">
+          <Switch
+            checked={form.incluyeIgv}
+            onCheckedChange={(v) => set('incluyeIgv', v)}
+            size="sm"
+          />
+          <label className="text-xs text-foreground">Los precios incluyen IGV</label>
         </div>
         <div>
           <label className={labelCn}>Tipo de cambio</label>

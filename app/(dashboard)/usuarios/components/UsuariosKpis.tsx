@@ -19,7 +19,7 @@ export async function UsuariosKpis() {
         context="Cuentas activas en el sistema"
       />
       <KpiCard
-        label="Administradores"
+        label="TI"
         value={admins}
         context={admins > 0 ? 'Acceso completo' : undefined}
       />

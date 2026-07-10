@@ -69,6 +69,16 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
         <OrdenCompraActions oc={oc} />
       </div>
 
+      {oc.estado === 'borrador' && !oc.proveedor.ruc && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+          El proveedor{' '}
+          <Link href={`/proveedores/${oc.proveedorId}`} className="font-medium underline underline-offset-2">
+            {oc.proveedor.razonSocial}
+          </Link>{' '}
+          no tiene RUC registrado. Actualízalo antes de emitir esta orden.
+        </div>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Info panel */}
         <div className="space-y-4">

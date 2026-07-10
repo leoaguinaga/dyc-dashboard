@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/u
 import type { Role, User } from '@/types/api'
 
 const ROLE_LABELS: Record<Role, string> = {
-  administrador:        'Administrador',
+  administrador:        'TI',
   gerencia:             'Gerencia',
   logistica:            'Logística',
   supervisor:           'Supervisor',
@@ -79,10 +79,13 @@ export function UsuariosTableClient({ usuarios }: Props) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los roles</SelectItem>
-            <SelectItem value="administrador">Administrador</SelectItem>
+            <SelectItem value="administrador">TI</SelectItem>
             <SelectItem value="gerencia">Gerencia</SelectItem>
             <SelectItem value="logistica">Logística</SelectItem>
             <SelectItem value="supervisor">Supervisor</SelectItem>
+            <SelectItem value="ing_civil">Ing. Civil</SelectItem>
+            <SelectItem value="ing_electrico">Ing. Eléctrico</SelectItem>
+            <SelectItem value="jefe_sig">Jefe SIG</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -172,6 +172,14 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
               </span>
             </p>
           )}
+          {cotizacion.estado !== 'pendiente' && (
+            <p>
+              IGV:{' '}
+              <span className="font-medium text-foreground">
+                {cotizacion.incluyeIgv ? 'Incluido en los precios' : 'No incluido (se agrega en la OC)'}
+              </span>
+            </p>
+          )}
           {cotizacion.condicionPago && (
             <p>Otras condiciones de pago: <span className="text-foreground">{cotizacion.condicionPago}</span></p>
           )}

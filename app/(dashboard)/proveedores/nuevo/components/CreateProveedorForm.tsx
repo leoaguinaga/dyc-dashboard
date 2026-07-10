@@ -60,7 +60,6 @@ export function CreateProveedorForm() {
   function validate(): FormErrors {
     const next: FormErrors = {}
     if (!form.razonSocial.trim()) next.razonSocial = 'La razón social es requerida'
-    if (!form.ruc.trim()) next.ruc = 'El RUC es requerido'
     return next
   }
 
@@ -74,9 +73,9 @@ export function CreateProveedorForm() {
 
     const payload: Record<string, unknown> = {
       razonSocial: form.razonSocial.trim(),
-      ruc: form.ruc.trim(),
       activo: form.activo,
     }
+    if (form.ruc.trim()) payload.ruc = form.ruc.trim()
     if (form.direccion.trim()) payload.direccion = form.direccion.trim()
     if (form.rubro.trim()) payload.rubro = form.rubro.trim()
     if (form.categoria) payload.categoria = form.categoria
@@ -114,9 +113,7 @@ export function CreateProveedorForm() {
         </div>
 
         <div>
-          <label className={labelCn}>
-            RUC <span className="text-destructive">*</span>
-          </label>
+          <label className={labelCn}>RUC</label>
           <Input
             value={form.ruc}
             onChange={(e) => set('ruc', e.target.value)}
@@ -124,9 +121,9 @@ export function CreateProveedorForm() {
             className="font-mono"
             aria-invalid={!!errors.ruc}
           />
-          {errors.ruc && (
-            <p className="mt-1 text-xs text-destructive">{errors.ruc}</p>
-          )}
+          <p className="mt-1 text-xs text-muted-foreground">
+            Opcional al registrar. Se requiere para emitir una orden de compra.
+          </p>
         </div>
 
         <div>

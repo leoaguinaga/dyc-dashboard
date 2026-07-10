@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { CircleQuestionMark } from 'lucide-react'
 import { findNavItem, findNavGroup } from './routes-config'
 import { MobileSidebar } from './sidebar'
+import { NotificationBell } from './notification-bell'
 
 export function Navbar() {
   const pathname = usePathname()
@@ -28,9 +29,12 @@ export function Navbar() {
           </span>
         </nav>
       </div>
-      <div className='flex cursor-pointer items-center gap-1 text-sm text-muted-foreground hover:text-black'>
-        <CircleQuestionMark className='size-4' />
-        Ayuda
+      <div className="flex items-center gap-3">
+        <NotificationBell />
+        <div className='flex cursor-pointer items-center gap-1 text-sm text-muted-foreground hover:text-black'>
+          <CircleQuestionMark className='size-4' />
+          Ayuda
+        </div>
       </div>
     </header>
   )

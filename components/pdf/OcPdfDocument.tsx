@@ -1,3 +1,5 @@
+import fs from 'fs'
+import path from 'path'
 import React from 'react'
 import {
   Document,
@@ -6,9 +8,17 @@ import {
   View,
   StyleSheet,
   Font,
+  Image,
 } from '@react-pdf/renderer'
 import type { OrdenCompra, TipoRequerimiento } from '@/types/api'
 import { numeroALetras } from '@/lib/numero-a-letras'
+
+const FIRMA_JEFE_ADMIN = fs.readFileSync(
+  path.join(process.cwd(), 'public', 'signatures', 'jefe-admin.jpg'),
+)
+const FIRMA_LOGISTICA = fs.readFileSync(
+  path.join(process.cwd(), 'public', 'signatures', 'logistica.jpg'),
+)
 
 // Use built-in font families (Helvetica ships with @react-pdf/renderer)
 Font.register({
@@ -201,6 +211,7 @@ const s = StyleSheet.create({
   reserveText: { fontSize: 7.5, color: C.muted, marginTop: 10, lineHeight: 1.4 },
 
   // ── Signature ──────────────────────────────────────────────────────────────
+  signatureImage: { width: 140, height: 60, objectFit: 'contain' },
   signatureLine: { borderBottomWidth: 1, borderBottomColor: C.text, width: 160, marginBottom: 4 },
   signatureTitle: { fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: C.navy, textAlign: 'center' },
 
@@ -239,9 +250,12 @@ interface Props {
 }
 
 export function OcPdfDocument({ oc }: Props) {
-  const subtotal = oc.items.reduce((sum, i) => sum + parseFloat(i.precioTotal), 0)
-  const igv = subtotal * 0.18
-  const total = subtotal + igv
+  const itemsTotal = oc.items.reduce((sum, i) => sum + parseFloat(i.precioTotal), 0)
+  // Si la respuesta del proveedor ya incluye IGV, los precios de línea son el total
+  // (hay que descontar el IGV para mostrar el V. Compra sin IGV); si no, se agrega 18%.
+  const subtotal = oc.incluyeIgv ? itemsTotal / 1.18 : itemsTotal
+  const igv = oc.incluyeIgv ? itemsTotal - subtotal : itemsTotal * 0.18
+  const total = oc.incluyeIgv ? itemsTotal : subtotal + igv
 
   const adelantoPct = oc.adelantoPorcentaje ? parseFloat(oc.adelantoPorcentaje) : 50
   const saldoPct = oc.saldoPorcentaje ? parseFloat(oc.saldoPorcentaje) : 50
@@ -490,28 +504,23 @@ export function OcPdfDocument({ oc }: Props) {
 
           <View style={s.paymentBox}>
             <Text style={s.paymentTitle}>Contacto D&amp;C</Text>
+            {/* TODO: hardcodeado hasta que la OC tenga un contacto D&C configurable */}
             <View style={s.paymentLine}>
               <Text style={s.paymentLabel}>Contacto</Text>
-              <Text style={s.paymentValue}>{oc.contactoDycNombre ?? oc.creadoPor.name}</Text>
+              <Text style={s.paymentValue}>Ruben Soplapuco Garcia</Text>
             </View>
-            {oc.contactoDycArea && (
-              <View style={s.paymentLine}>
-                <Text style={s.paymentLabel}>Área</Text>
-                <Text style={s.paymentValue}>{oc.contactoDycArea}</Text>
-              </View>
-            )}
-            {oc.contactoDycCelular && (
-              <View style={s.paymentLine}>
-                <Text style={s.paymentLabel}>Celular</Text>
-                <Text style={s.paymentValue}>{oc.contactoDycCelular}</Text>
-              </View>
-            )}
-            {oc.contactoDycTelefono && (
-              <View style={s.paymentLine}>
-                <Text style={s.paymentLabel}>Teléfono D&amp;C</Text>
-                <Text style={s.paymentValue}>{oc.contactoDycTelefono}</Text>
-              </View>
-            )}
+            <View style={s.paymentLine}>
+              <Text style={s.paymentLabel}>Área</Text>
+              <Text style={s.paymentValue}>ADMINISTRACIÓN</Text>
+            </View>
+            <View style={s.paymentLine}>
+              <Text style={s.paymentLabel}>Celular</Text>
+              <Text style={s.paymentValue}>979228332</Text>
+            </View>
+            <View style={s.paymentLine}>
+              <Text style={s.paymentLabel}>Teléfono D&amp;C</Text>
+              <Text style={s.paymentValue}>074-238554</Text>
+            </View>
           </View>
         </View>
 
@@ -531,10 +540,12 @@ export function OcPdfDocument({ oc }: Props) {
         {/* ── Firma ───────────────────────────────────────────────────────── */}
         <View style={s.signatureRow}>
           <View style={s.signatureCol}>
+            <Image src={FIRMA_JEFE_ADMIN} style={s.signatureImage} />
             <View style={s.signatureLine} />
             <Text style={s.signatureTitle}>Jefe de Administración</Text>
           </View>
           <View style={s.signatureCol}>
+            <Image src={FIRMA_LOGISTICA} style={s.signatureImage} />
             <View style={s.signatureLine} />
             <Text style={s.signatureTitle}>Logística</Text>
           </View>

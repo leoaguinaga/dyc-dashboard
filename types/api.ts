@@ -161,7 +161,7 @@ export interface ContactoProveedor {
 export interface Proveedor {
   id: string;
   razonSocial: string;
-  ruc: string;
+  ruc?: string;
   direccion?: string;
   rubro?: string;
   categoria?: string;
@@ -310,6 +310,7 @@ export interface Cotizacion {
   condicionesServicio?: string;
   condicionesPago: CotizacionCondicionPago[];
   condicionPago?: string;
+  incluyeIgv: boolean;
   nota?: string;
   creadoEn: string;
   items: CotizacionItem[];
@@ -365,6 +366,7 @@ export interface OrdenCompra {
   adelantoPorcentaje?: string | null;
   saldoPorcentaje?: string | null;
   detraccionPorcentaje?: string | null;
+  incluyeIgv: boolean;
   tipoCambio?: string | null;
   contactoProveedorNombre?: string | null;
   contactoProveedorTelefono?: string | null;
@@ -473,4 +475,27 @@ export interface DashboardFinanzas {
   proximos7dias: number;
   pagadoMes: number;
   montoPorMes: { mes: string; pagado: number; pendiente: number; vencido: number }[];
+}
+
+export type TipoNotificacion =
+  | 'pago_por_vencer'
+  | 'pago_vencido'
+  | 'requerimiento_creado'
+  | 'requerimiento_aprobado'
+  | 'requerimiento_observado'
+  | 'cotizacion_recibida'
+  | 'solicitud_lista_adjudicar'
+  | 'orden_compra_generada';
+
+export interface Notificacion {
+  id: string;
+  userId: string;
+  tipo: TipoNotificacion;
+  titulo: string;
+  mensaje: string;
+  entidadTipo?: string | null;
+  entidadId?: string | null;
+  leida: boolean;
+  leidaEn?: string | null;
+  creadoEn: string;
 }

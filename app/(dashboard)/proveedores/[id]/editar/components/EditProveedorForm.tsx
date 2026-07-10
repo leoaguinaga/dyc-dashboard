@@ -36,7 +36,6 @@ const labelCn = 'mb-1.5 block text-sm font-medium'
 function validate(form: FormState): FormErrors {
   const next: FormErrors = {}
   if (!form.razonSocial.trim()) next.razonSocial = 'La razón social es requerida'
-  if (!form.ruc.trim()) next.ruc = 'El RUC es requerido'
   return next
 }
 
@@ -48,7 +47,7 @@ export function EditProveedorForm({ proveedor }: Props) {
   const router = useRouter()
   const [form, setForm] = useState<FormState>({
     razonSocial: proveedor.razonSocial,
-    ruc: proveedor.ruc,
+    ruc: proveedor.ruc ?? '',
     direccion: proveedor.direccion ?? '',
     rubro: proveedor.rubro ?? '',
     categoria: proveedor.categoria ?? '',
@@ -77,7 +76,7 @@ export function EditProveedorForm({ proveedor }: Props) {
 
     const payload: Record<string, unknown> = {
       razonSocial: form.razonSocial.trim(),
-      ruc: form.ruc.trim(),
+      ruc: form.ruc.trim() || null,
       activo: form.activo,
       direccion: form.direccion.trim() || null,
       rubro: form.rubro.trim() || null,
@@ -117,9 +116,7 @@ export function EditProveedorForm({ proveedor }: Props) {
         </div>
 
         <div>
-          <label className={labelCn}>
-            RUC <span className="text-destructive">*</span>
-          </label>
+          <label className={labelCn}>RUC</label>
           <Input
             value={form.ruc}
             onChange={(e) => set('ruc', e.target.value)}
@@ -127,9 +124,9 @@ export function EditProveedorForm({ proveedor }: Props) {
             className="font-mono"
             aria-invalid={!!errors.ruc}
           />
-          {errors.ruc && (
-            <p className="mt-1 text-xs text-destructive">{errors.ruc}</p>
-          )}
+          <p className="mt-1 text-xs text-muted-foreground">
+            Se requiere para emitir una orden de compra a este proveedor.
+          </p>
         </div>
 
         <div>

@@ -17,9 +17,12 @@ import type { Role, User } from '@/types/api'
 
 const ROLES: { value: Role; label: string }[] = [
   { value: 'supervisor', label: 'Supervisor' },
+  { value: 'ing_civil', label: 'Ing. Civil' },
+  { value: 'ing_electrico', label: 'Ing. Eléctrico' },
+  { value: 'jefe_sig', label: 'Jefe SIG' },
   { value: 'logistica', label: 'Logística' },
   { value: 'gerencia', label: 'Gerencia' },
-  { value: 'administrador', label: 'Administrador' },
+  { value: 'administrador', label: 'TI' },
 ]
 
 const labelCn = 'mb-1.5 block text-sm font-medium'

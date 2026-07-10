@@ -90,7 +90,7 @@ export function CreateSolicitudForm({ requerimientos, proveedores, requerimiento
   function validate() {
     const next: Record<string, string> = {}
     if (!requerimiento) next.requerimientoId = 'Selecciona un requerimiento aprobado'
-    if (selectedProveedores.size < 2) next.proveedores = 'Selecciona al menos 2 proveedores'
+    if (selectedProveedores.size < 1) next.proveedores = 'Selecciona al menos 1 proveedor'
     lineas.forEach((l, i) => {
       if (!l.descripcion.trim()) next[`linea_${i}_descripcion`] = 'Requerido'
       const total = parseFloat(l.cantidadTotal)
@@ -188,8 +188,8 @@ export function CreateSolicitudForm({ requerimientos, proveedores, requerimiento
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className={sectionTitleCn}>Proveedores a cotizar <span className="text-destructive">*</span></h2>
-          <span className={cn('text-xs', selectedProveedores.size >= 2 ? 'text-chart-2' : 'text-muted-foreground')}>
-            {selectedProveedores.size} seleccionados (mínimo 2)
+          <span className={cn('text-xs', selectedProveedores.size >= 1 ? 'text-chart-2' : 'text-muted-foreground')}>
+            {selectedProveedores.size} seleccionados (mínimo 1)
           </span>
         </div>
         {errors.proveedores && <p className="text-xs text-destructive">{errors.proveedores}</p>}

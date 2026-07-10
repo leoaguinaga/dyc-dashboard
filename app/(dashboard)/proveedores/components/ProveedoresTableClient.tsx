@@ -29,7 +29,7 @@ export function ProveedoresTableClient({ proveedores }: Props) {
       result = result.filter(
         (p) =>
           p.razonSocial.toLowerCase().includes(q) ||
-          p.ruc.toLowerCase().includes(q) ||
+          p.ruc?.toLowerCase().includes(q) ||
           p.contactos?.some((c) => c.nombre.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q)),
       )
     }
@@ -99,7 +99,7 @@ export function ProveedoresTableClient({ proveedores }: Props) {
                         {p.razonSocial}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground tabular-nums">{p.ruc}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground tabular-nums">{p.ruc ?? '—'}</td>
                     <td className="px-4 py-3">
                       {p.categoria
                         ? (

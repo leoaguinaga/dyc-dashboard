@@ -12,9 +12,12 @@ interface Props {
 
 const ROLE_LABELS: Record<string, string> = {
   supervisor: 'Supervisor',
+  ing_civil: 'Ing. Civil',
+  ing_electrico: 'Ing. Eléctrico',
+  jefe_sig: 'Jefe SIG',
   logistica: 'Logística',
   gerencia: 'Gerencia',
-  administrador: 'Administrador',
+  administrador: 'TI',
 }
 
 const ESTADO_PROYECTO: Record<string, string> = {

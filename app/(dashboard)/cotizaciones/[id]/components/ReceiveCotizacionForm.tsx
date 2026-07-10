@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import type { SolicitudItem, UnidadMedida } from '@/types/api'
 
@@ -47,6 +48,7 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel }
   const [condicionesServicio, setCondicionesServicio] = useState('')
   const [condicionesPago, setCondicionesPago] = useState<CondicionPago[]>([{ porcentaje: '100', fecha: '' }])
   const [condicionPago, setCondicionPago] = useState('')
+  const [incluyeIgv, setIncluyeIgv] = useState(false)
   const [nota, setNota] = useState('')
   const [lineas, setLineas] = useState<LineaItem[]>(
     solicitudItems.length > 0 ? solicitudItems.map((si) => emptyLinea(si)) : [emptyLinea()],
@@ -107,6 +109,7 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel }
           fecha: c.fecha,
         })),
         condicionPago: condicionPago.trim() || undefined,
+        incluyeIgv,
         nota: nota.trim() || undefined,
         items: lineas.map((l) => ({
           descripcionProveedor: l.descripcionProveedor.trim(),
@@ -165,6 +168,12 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel }
             placeholder="Ej. Detracción 10%, cheque diferido a 15 días"
             className="h-8 text-sm"
           />
+        </div>
+        <div className="sm:col-span-2 flex items-center gap-2 pt-1">
+          <Switch checked={incluyeIgv} onCheckedChange={(v) => setIncluyeIgv(v)} size="sm" />
+          <label className="text-xs text-foreground">
+            Los precios cotizados incluyen IGV
+          </label>
         </div>
         <div className="sm:col-span-2">
           <label className="mb-1 block text-xs font-medium text-muted-foreground">Nota <span className="font-normal text-muted-foreground/70">(opcional)</span></label>
