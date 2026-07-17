@@ -34,7 +34,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  correoContacto?: string | null;
   role: Role;
+  cargo?: string | null;
   createdAt: string;
 }
 
@@ -230,7 +232,7 @@ export interface Requerimiento {
   codigo: string;
   nombre: string;
   proyectoId: string;
-  proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'>;
+  proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'ciudad' | 'direccion' | 'comuna'>;
   creadoPorId: string;
   creadoPor: Pick<User, 'id' | 'name' | 'email' | 'role'>;
   estado: EstadoRequerimiento;
@@ -298,6 +300,14 @@ export interface CotizacionCondicionPago {
   fecha: string;
 }
 
+export interface CotizacionArchivo {
+  id: string;
+  cotizacionId: string;
+  nombre: string;
+  url: string;
+  creadoEn: string;
+}
+
 export interface Cotizacion {
   id: string;
   solicitudId: string;
@@ -314,6 +324,21 @@ export interface Cotizacion {
   nota?: string;
   creadoEn: string;
   items: CotizacionItem[];
+  archivos?: CotizacionArchivo[];
+}
+
+export interface CotizacionConHistorial extends Cotizacion {
+  solicitud: { id: string; codigo: string };
+  archivos: CotizacionArchivo[];
+}
+
+export interface ProveedorEvaluacion {
+  puntajeTotal: number | null;
+  precioScore: number | null;
+  plazosScore: number | null;
+  calidadScore: number | null;
+  muestraCotizaciones: number;
+  muestraOCs: number;
 }
 
 export interface SolicitudCotizacion {

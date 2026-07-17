@@ -4,6 +4,7 @@ import { FileText } from 'lucide-react'
 import { API_ORIGIN } from '@/lib/api/client'
 import { useSession } from '@/lib/auth/session'
 import { UNIDAD_ABBR } from '@/lib/inventario'
+import { TIPO_APPROVERS } from '@/lib/requerimientos'
 import { RequerimientoEditForm } from './RequerimientoEditForm'
 import type { Requerimiento } from '@/types/api'
 
@@ -14,10 +15,17 @@ interface Props {
 export function RequerimientoItemsCard({ requerimiento: r }: Props) {
   const { data: session } = useSession()
   const role = session?.user?.role
-  const isEditor = r.creadoPorId === session?.user?.id || role === 'administrador'
+  const esCreador = r.creadoPorId === session?.user?.id || role === 'administrador'
+  const esRevisor = role ? TIPO_APPROVERS[r.tipo].includes(role) : false
 
-  if (r.estado === 'observado' && isEditor) {
-    return <RequerimientoEditForm requerimiento={r} />
+  // El solicitante corrige en "observado"; el revisor puede corregir directamente
+  // mientras el requerimiento está "enviado", sin esperar a que el solicitante
+  // actualice el sistema — el PDF se exporta tal cual queda en la BD.
+  if (r.estado === 'observado' && esCreador) {
+    return <RequerimientoEditForm requerimiento={r} mode="creador" />
+  }
+  if (r.estado === 'enviado' && esRevisor) {
+    return <RequerimientoEditForm requerimiento={r} mode="revisor" />
   }
 
   return (

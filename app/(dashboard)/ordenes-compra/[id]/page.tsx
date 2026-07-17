@@ -10,7 +10,7 @@ import { ReferenciaConceptoEditor } from './components/ReferenciaConceptoEditor'
 import { OcItemsTable } from './components/OcItemsTable'
 import { PagoPlanCard } from './components/PagoPlanCard'
 import type { EstadoOrdenCompra, OrdenCompra, Pago, TipoRequerimiento } from '@/types/api'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 
 const ESTADO_LABEL: Record<EstadoOrdenCompra, string> = {
   borrador: 'Borrador',
@@ -125,7 +125,7 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
               <div>
                 <dt className="text-muted-foreground mb-0.5">Monto total</dt>
                 <dd className="text-lg font-bold tabular-nums">
-                  S/ {Number(oc.montoTotal).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                  {formatCurrency(oc.montoTotal)}
                 </dd>
               </div>
               <div>

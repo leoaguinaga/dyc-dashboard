@@ -9,7 +9,8 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { useSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 import { downloadRequerimientoPDF } from './RequerimientoPDF'
-import type { Requerimiento, Role } from '@/types/api'
+import { TIPO_APPROVERS, TIPO_APPROVER_LABEL } from '@/lib/requerimientos'
+import type { Requerimiento } from '@/types/api'
 
 interface Props {
   requerimiento: Requerimiento
@@ -36,20 +37,6 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
     } finally {
       setLoading(null)
     }
-  }
-
-  const TIPO_APPROVERS: Partial<Record<string, Role[]>> = {
-    civil:          ['ing_civil', 'administrador'],
-    electrico:      ['ing_electrico', 'administrador'],
-    seguridad:      ['jefe_sig', 'administrador'],
-    administrativo: ['logistica', 'administrador'],
-  }
-
-  const TIPO_APPROVER_LABEL: Partial<Record<string, string>> = {
-    civil:          'Ing. Civil',
-    electrico:      'Ing. Eléctrico',
-    seguridad:      'Jefe SIG',
-    administrativo: 'Logística',
   }
 
   const approvers = role ? TIPO_APPROVERS[r.tipo] ?? [] : []

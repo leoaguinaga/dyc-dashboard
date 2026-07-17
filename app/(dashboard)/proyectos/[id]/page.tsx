@@ -18,6 +18,7 @@ import { ProyectoTrabajadoresSection } from './components/ProyectoTrabajadoresSe
 import { ProyectoHitosSection } from './components/ProyectoHitosSection'
 import { ProyectoOrdenesCompraSection } from './components/ProyectoOrdenesCompraSection'
 import { ProyectoPagosPendientesSection } from './components/ProyectoPagosPendientesSection'
+import { CierreObraSection } from './components/CierreObraSection'
 import type { Proyecto, Trabajador } from '@/types/api'
 
 interface Props {
@@ -124,7 +125,7 @@ export default async function ProyectoDetailPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
 
         {/* Identificacion */}
         <div className="rounded-xl border border-border bg-white p-5 space-y-4">
@@ -172,7 +173,7 @@ export default async function ProyectoDetailPage({ params }: Props) {
         </div>
 
         {/* Personas */}
-        <div className="rounded-xl border border-border bg-white p-5 space-y-3 col-span-3">
+        <div className="rounded-xl border border-border bg-white p-5 space-y-3 lg:col-span-3">
           <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Personas asignadas</h2>
           {!o.coordinadorEmpresa && !o.coordinadorCliente && !o.ejecutor && !o.prevencionista ? (
             <div className="flex flex-col items-center justify-center py-6 text-center gap-2">
@@ -271,6 +272,9 @@ export default async function ProyectoDetailPage({ params }: Props) {
 
         {/* Pagos pendientes */}
         <ProyectoPagosPendientesSection proyectoId={o.id} />
+
+        {/* Cierre de obra */}
+        <CierreObraSection proyecto={o} />
       </div>
     </div>
   )

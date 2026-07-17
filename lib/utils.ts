@@ -5,6 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/** Formatea un monto en soles, siempre redondeado a 2 decimales. */
+export function formatCurrency(value: number | string): string {
+  return `S/ ${Number(value).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+/** Formatea un porcentaje redondeado a máx. 2 decimales, sin ceros de más (ej. "50%", "12.5%"). */
+export function formatPercent(value: number | string): string {
+  return `${Number(value).toLocaleString('es-PE', { maximumFractionDigits: 2 })}%`
+}
+
 /**
  * Formatea una fecha "de solo día" (guardada como medianoche UTC) sin el
  * corrimiento de un día que produce `new Date(iso).toLocaleDateString()` en

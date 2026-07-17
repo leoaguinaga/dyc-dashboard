@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Switch } from '@/components/ui/switch'
 import { Pencil, Check, X, Info } from 'lucide-react'
+import { formatPercent } from '@/lib/utils'
 import type { OrdenCompra } from '@/types/api'
 
 const DETRACCION_REFERENCIA = [
@@ -143,12 +144,12 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
             <div>
               <dt className="text-xs text-muted-foreground">Adelanto / Saldo</dt>
               <dd className="font-medium">
-                {oc.adelantoPorcentaje ? `${oc.adelantoPorcentaje}%` : '—'} / {oc.saldoPorcentaje ? `${oc.saldoPorcentaje}%` : '—'}
+                {oc.adelantoPorcentaje ? formatPercent(oc.adelantoPorcentaje) : '—'} / {oc.saldoPorcentaje ? formatPercent(oc.saldoPorcentaje) : '—'}
               </dd>
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">Detracción</dt>
-              <dd className="font-medium">{oc.detraccionPorcentaje ? `${oc.detraccionPorcentaje}%` : '—'}</dd>
+              <dd className="font-medium">{oc.detraccionPorcentaje ? formatPercent(oc.detraccionPorcentaje) : '—'}</dd>
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">IGV</dt>
@@ -157,7 +158,7 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
             {oc.tipoCambio && (
               <div>
                 <dt className="text-xs text-muted-foreground">Tipo de cambio</dt>
-                <dd className="font-medium">{oc.tipoCambio}</dd>
+                <dd className="font-medium">{Number(oc.tipoCambio).toLocaleString('es-PE', { maximumFractionDigits: 4 })}</dd>
               </div>
             )}
             {oc.tiempoEntrega && (

@@ -241,8 +241,22 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
+// El PDF de la OC redondea a como mucho 1 decimal (a diferencia del resto del
+// dashboard, que usa 2) — es una decisión solo de formato de este documento,
+// los valores en base de datos siguen guardándose con su precisión original.
 function fmtMoney(n: string | number) {
-  return `S/ ${parseFloat(String(n)).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  return `S/ ${parseFloat(String(n)).toLocaleString('es-PE', { maximumFractionDigits: 1 })}`
+}
+
+function fmtPercent(n: string | number) {
+  return `${Number(n).toLocaleString('es-PE', { maximumFractionDigits: 1 })}%`
+}
+
+/** Redondea a 1 decimal antes de usar el valor en el siguiente paso del
+ * cálculo, para que las cifras impresas siempre sumen/cuadren exactamente
+ * entre sí (evita arrastrar el error de coma flotante de un paso al otro). */
+function round1(n: number) {
+  return Math.round(n * 10) / 10
 }
 
 interface Props {
@@ -253,20 +267,20 @@ export function OcPdfDocument({ oc }: Props) {
   const itemsTotal = oc.items.reduce((sum, i) => sum + parseFloat(i.precioTotal), 0)
   // Si la respuesta del proveedor ya incluye IGV, los precios de línea son el total
   // (hay que descontar el IGV para mostrar el V. Compra sin IGV); si no, se agrega 18%.
-  const subtotal = oc.incluyeIgv ? itemsTotal / 1.18 : itemsTotal
-  const igv = oc.incluyeIgv ? itemsTotal - subtotal : itemsTotal * 0.18
-  const total = oc.incluyeIgv ? itemsTotal : subtotal + igv
+  const subtotal = round1(oc.incluyeIgv ? itemsTotal / 1.18 : itemsTotal)
+  const igv = round1(oc.incluyeIgv ? itemsTotal - subtotal : itemsTotal * 0.18)
+  const total = round1(oc.incluyeIgv ? itemsTotal : subtotal + igv)
 
   const adelantoPct = oc.adelantoPorcentaje ? parseFloat(oc.adelantoPorcentaje) : 50
   const saldoPct = oc.saldoPorcentaje ? parseFloat(oc.saldoPorcentaje) : 50
   const detraccionPct = oc.detraccionPorcentaje ? parseFloat(oc.detraccionPorcentaje) : 10
 
-  const adelantoBruto = total * (adelantoPct / 100)
-  const saldoBruto = total * (saldoPct / 100)
-  const adelantoNeto = adelantoBruto * (1 - detraccionPct / 100)
-  const saldoNeto = saldoBruto * (1 - detraccionPct / 100)
-  const detraccionTotal = total * (detraccionPct / 100)
-  const netoADepositarTotal = total - detraccionTotal
+  const adelantoBruto = round1(total * (adelantoPct / 100))
+  const saldoBruto = round1(total * (saldoPct / 100))
+  const adelantoNeto = round1(adelantoBruto * (1 - detraccionPct / 100))
+  const saldoNeto = round1(saldoBruto * (1 - detraccionPct / 100))
+  const detraccionTotal = round1(total * (detraccionPct / 100))
+  const netoADepositarTotal = round1(total - detraccionTotal)
 
   const requerimiento = oc.solicitud.requerimiento
   const contactoProveedor = oc.proveedor.contactos?.[0]
@@ -433,13 +447,13 @@ export function OcPdfDocument({ oc }: Props) {
             </View>
             <View style={s.formaPagoRow}>
               <Text style={[s.fpTdText, s.fpColConcepto]}>Adelanto a la emisión de la OC</Text>
-              <Text style={[s.fpTdText, s.fpColPct]}>{adelantoPct}%</Text>
+              <Text style={[s.fpTdText, s.fpColPct]}>{fmtPercent(adelantoPct)}</Text>
               <Text style={[s.fpTdText, s.fpColBruto]}>{fmtMoney(adelantoBruto)}</Text>
               <Text style={[s.fpTdText, s.fpColNeto]}>{fmtMoney(adelantoNeto)}</Text>
             </View>
             <View style={s.formaPagoRow}>
               <Text style={[s.fpTdText, s.fpColConcepto]}>Saldo al término de obra</Text>
-              <Text style={[s.fpTdText, s.fpColPct]}>{saldoPct}%</Text>
+              <Text style={[s.fpTdText, s.fpColPct]}>{fmtPercent(saldoPct)}</Text>
               <Text style={[s.fpTdText, s.fpColBruto]}>{fmtMoney(saldoBruto)}</Text>
               <Text style={[s.fpTdText, s.fpColNeto]}>{fmtMoney(saldoNeto)}</Text>
             </View>
@@ -449,11 +463,13 @@ export function OcPdfDocument({ oc }: Props) {
             <Text style={s.paymentTitle}>Tipo de cambio</Text>
             <View style={s.paymentLine}>
               <Text style={s.paymentLabel}>Total</Text>
-              <Text style={s.paymentValue}>{oc.tipoCambio ?? '0'}</Text>
+              <Text style={s.paymentValue}>
+                {oc.tipoCambio ? Number(oc.tipoCambio).toLocaleString('es-PE', { maximumFractionDigits: 4 }) : '0'}
+              </Text>
             </View>
             <Text style={[s.paymentTitle, { marginTop: 8 }]}>Detracción</Text>
             <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>{detraccionPct}%</Text>
+              <Text style={s.paymentLabel}>{fmtPercent(detraccionPct)}</Text>
               <Text style={s.paymentValue}>{fmtMoney(detraccionTotal)}</Text>
             </View>
             <View style={s.paymentLine}>

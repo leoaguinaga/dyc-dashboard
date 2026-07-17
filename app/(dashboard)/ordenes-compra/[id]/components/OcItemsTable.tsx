@@ -7,7 +7,7 @@ import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import type { OrdenCompraItem, UnidadMedida } from '@/types/api'
 
 const UNIDADES: UnidadMedida[] = ['und', 'kg', 'm', 'm2', 'm3', 'l', 'gal', 'bolsa', 'caja', 'rollo', 'par', 'juego']
@@ -28,10 +28,6 @@ type LineaItem = {
 }
 
 const emptyLinea = (): LineaItem => ({ codigo: '', descripcion: '', cantidad: '', unidad: 'und', precioUnitario: '' })
-
-function fmtMoney(n: string | number) {
-  return `S/ ${Number(n).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
 
 export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
   const { data: session } = useSession()
@@ -172,7 +168,7 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
                     <Input type="number" min="0" step="0.01" value={editLinea.precioUnitario} onChange={(e) => setEditLinea((p) => ({ ...p, precioUnitario: e.target.value }))} className="h-8 text-sm text-right" />
                   </td>
                   <td className="px-4 py-2 text-right text-muted-foreground tabular-nums">
-                    {fmtMoney((parseFloat(editLinea.cantidad) || 0) * (parseFloat(editLinea.precioUnitario) || 0))}
+                    {formatCurrency((parseFloat(editLinea.cantidad) || 0) * (parseFloat(editLinea.precioUnitario) || 0))}
                   </td>
                   <td className="px-2 py-2">
                     <div className="flex items-center gap-1">
@@ -193,8 +189,8 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
                 <td className="px-4 py-3">{item.descripcion}</td>
                 <td className="px-4 py-3 text-right tabular-nums">{Number(item.cantidad).toLocaleString('es-PE')}</td>
                 <td className="px-4 py-3 text-muted-foreground">{item.unidad}</td>
-                <td className="px-4 py-3 text-right tabular-nums">{fmtMoney(item.precioUnitario)}</td>
-                <td className="px-4 py-3 text-right tabular-nums font-medium">{fmtMoney(item.precioTotal)}</td>
+                <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.precioUnitario)}</td>
+                <td className="px-4 py-3 text-right tabular-nums font-medium">{formatCurrency(item.precioTotal)}</td>
                 {canEdit && (
                   <td className="px-2 py-3">
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -236,7 +232,7 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
                 <Input type="number" min="0" step="0.01" value={nueva.precioUnitario} onChange={(e) => setNueva((p) => ({ ...p, precioUnitario: e.target.value }))} className="h-8 text-sm text-right" placeholder="0.00" />
               </td>
               <td className="px-4 py-2 text-right text-muted-foreground tabular-nums">
-                {fmtMoney((parseFloat(nueva.cantidad) || 0) * (parseFloat(nueva.precioUnitario) || 0))}
+                {formatCurrency((parseFloat(nueva.cantidad) || 0) * (parseFloat(nueva.precioUnitario) || 0))}
               </td>
               <td className="px-2 py-2">
                 <div className="flex items-center gap-1">
@@ -254,7 +250,7 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
         <tfoot className="border-t border-border bg-muted/20">
           <tr>
             <td colSpan={canEdit ? 5 : 5} className="px-4 py-3 text-right text-sm font-medium">Total</td>
-            <td className="px-4 py-3 text-right tabular-nums font-bold">{fmtMoney(montoTotal)}</td>
+            <td className="px-4 py-3 text-right tabular-nums font-bold">{formatCurrency(montoTotal)}</td>
             {canEdit && <td />}
           </tr>
         </tfoot>

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import { Eye, EyeClosed } from 'lucide-react'
+import { ForgotPasswordDialog } from './forgot-password-dialog'
 
 const schema = z.object({
   email: z.string().email('Correo inválido'),
@@ -82,6 +83,9 @@ export default function LoginPage() {
             >
               {showPassword ? <EyeClosed className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
+          </div>
+          <div className="flex justify-end">
+            <ForgotPasswordDialog />
           </div>
         </Field>
 

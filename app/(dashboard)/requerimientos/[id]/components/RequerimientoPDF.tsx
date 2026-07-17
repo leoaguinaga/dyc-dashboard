@@ -14,7 +14,7 @@ const s = StyleSheet.create({
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   companyBlock: {},
   company: { fontSize: 13, fontFamily: 'Helvetica-Bold', marginBottom: 1 },
-  companyRuc: { fontSize: 8, color: '#888' },
+  companyRuc: { fontSize: 9.5, color: '#888' },
   reqBadge: { backgroundColor: '#1e293b', borderRadius: 6, padding: '8 14', alignItems: 'flex-end' },
   reqBadgeLabel: { fontSize: 7, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 },
   reqBadgeCode: { fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#ffffff', letterSpacing: 0.5 },
@@ -53,8 +53,14 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
+function formatLugar(proyecto: Requerimiento['proyecto']) {
+  const partes = [proyecto.direccion, proyecto.comuna, proyecto.ciudad].filter(Boolean)
+  return partes.length ? partes.join(', ') : null
+}
+
 function RequerimientoDocument({ r }: { r: Requerimiento }) {
   const generadoEn = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
+  const lugar = formatLugar(r.proyecto)
 
   return (
     <Document>
@@ -75,8 +81,21 @@ function RequerimientoDocument({ r }: { r: Requerimiento }) {
 
           <View style={s.row2}>
             <View style={s.metaBlock}>
+              <Text style={s.metaLabel}>Obra</Text>
+              <Text style={s.metaValueNormal}>{r.proyecto.codigo ? `${r.proyecto.codigo} — ${r.proyecto.nombre}` : r.proyecto.nombre}</Text>
+            </View>
+            {lugar && (
+              <View style={s.metaBlock}>
+                <Text style={s.metaLabel}>Lugar</Text>
+                <Text style={s.metaValueNormal}>{lugar}</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={s.row2}>
+            <View style={s.metaBlock}>
               <Text style={s.metaLabel}>Solicitante</Text>
-              <Text style={s.metaValueNormal}>Rubén Dario Cachay Arto</Text>
+              <Text style={s.metaValueNormal}>{r.creadoPor.name}</Text>
             </View>
             <View style={s.metaBlock}>
               <Text style={s.metaLabel}>Generado</Text>

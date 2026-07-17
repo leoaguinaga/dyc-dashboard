@@ -253,64 +253,16 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
           </div>
 
           {lineas.map((linea, i) => (
-            <div key={i} className="grid grid-cols-[1fr_100px_110px_140px_32px] gap-2 items-start">
-              <div>
-                <Input
-                  value={linea.descripcion}
-                  onChange={(e) => updateLinea(i, 'descripcion', e.target.value)}
-                  placeholder="Ej: Plancha melamina 18mm blanco…"
-                  className={cn(errors[`linea_${i}_descripcion`] && 'border-destructive')}
-                />
-                {errors[`linea_${i}_descripcion`] && (
-                  <p className="mt-0.5 text-xs text-destructive">{errors[`linea_${i}_descripcion`]}</p>
-                )}
-              </div>
-
-              <div>
-                <Input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={linea.cantidad}
-                  onChange={(e) => updateLinea(i, 'cantidad', e.target.value)}
-                  placeholder="0"
-                  className={cn(errors[`linea_${i}_cantidad`] && 'border-destructive')}
-                />
-                {errors[`linea_${i}_cantidad`] && (
-                  <p className="mt-0.5 text-xs text-destructive">{errors[`linea_${i}_cantidad`]}</p>
-                )}
-              </div>
-
-              <Select value={linea.unidad} onValueChange={(v) => updateLinea(i, 'unidad', v ?? 'und')}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {UNIDAD_OPTIONS.map(([val, label]) => (
-                    <SelectItem key={val} value={val}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <button
-                type="button"
-                onClick={() => setSpecModalIndex(i)}
-                className="flex h-8 items-center rounded-lg border border-dashed border-border px-2.5 text-left text-xs text-muted-foreground hover:border-ring hover:text-foreground transition-colors duration-[120ms] truncate"
-              >
-                {linea.especificacion
-                  ? `Especificación · ${linea.especificacion.archivos.length} archivo(s)`
-                  : '+ Agregar espec'}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setLineas((p) => p.filter((_, idx) => idx !== i))}
-                disabled={lineas.length === 1}
-                className="mt-1 flex size-8 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors duration-[120ms] disabled:pointer-events-none disabled:opacity-30"
-              >
-                <Trash2 className="size-3.5 mb-3.5" />
-              </button>
-            </div>
+            <ItemRow
+              key={i}
+              index={i}
+              linea={linea}
+              errors={errors}
+              canRemove={lineas.length > 1}
+              onChange={(field, value) => updateLinea(i, field, value)}
+              onOpenSpec={() => setSpecModalIndex(i)}
+              onRemove={() => setLineas((p) => p.filter((_, idx) => idx !== i))}
+            />
           ))}
         </div>
 
@@ -362,5 +314,144 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
         }}
       />
     </form>
+  )
+}
+
+interface ItemRowProps {
+  index: number
+  linea: LineaItem
+  errors: Record<string, string>
+  canRemove: boolean
+  onChange: (field: 'descripcion' | 'cantidad' | 'unidad', value: string) => void
+  onOpenSpec: () => void
+  onRemove: () => void
+}
+
+// Below `sm` the 5-column grid (descripción/cantidad/unidad/especificaciones/quitar)
+// can't fit — fixed-width columns don't shrink, so it forces horizontal scroll on
+// phones. Below `sm` we stack the same fields as a card instead; from `sm` up we
+// switch back to the single-row grid (same pattern as the column-header row above).
+function ItemRow({ index, linea, errors, canRemove, onChange, onOpenSpec, onRemove }: ItemRowProps) {
+  const descripcionError = errors[`linea_${index}_descripcion`]
+  const cantidadError = errors[`linea_${index}_cantidad`]
+  const specLabel = linea.especificacion
+    ? `Especificación · ${linea.especificacion.archivos.length} archivo(s)`
+    : '+ Agregar espec'
+
+  return (
+    <>
+      {/* Mobile: stacked card */}
+      <div className="space-y-2 rounded-lg border border-border p-3 sm:hidden">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-medium text-muted-foreground">Ítem {index + 1}</p>
+          <button
+            type="button"
+            onClick={onRemove}
+            disabled={!canRemove}
+            className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors duration-[120ms] disabled:pointer-events-none disabled:opacity-30"
+          >
+            <Trash2 className="size-3.5" />
+          </button>
+        </div>
+
+        <div>
+          <Input
+            value={linea.descripcion}
+            onChange={(e) => onChange('descripcion', e.target.value)}
+            placeholder="Ej: Plancha melamina 18mm blanco…"
+            className={cn(descripcionError && 'border-destructive')}
+          />
+          {descripcionError && <p className="mt-0.5 text-xs text-destructive">{descripcionError}</p>}
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={linea.cantidad}
+              onChange={(e) => onChange('cantidad', e.target.value)}
+              placeholder="Cantidad"
+              className={cn(cantidadError && 'border-destructive')}
+            />
+            {cantidadError && <p className="mt-0.5 text-xs text-destructive">{cantidadError}</p>}
+          </div>
+
+          <Select value={linea.unidad} onValueChange={(v) => onChange('unidad', v ?? 'und')}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {UNIDAD_OPTIONS.map(([val, label]) => (
+                <SelectItem key={val} value={val}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <button
+          type="button"
+          onClick={onOpenSpec}
+          className="flex h-8 w-full items-center rounded-lg border border-dashed border-border px-2.5 text-left text-xs text-muted-foreground hover:border-ring hover:text-foreground transition-colors duration-[120ms] truncate"
+        >
+          {specLabel}
+        </button>
+      </div>
+
+      {/* sm and up: single-row grid, matches the column-header row */}
+      <div className="hidden sm:grid grid-cols-[1fr_100px_110px_140px_32px] gap-2 items-start">
+        <div>
+          <Input
+            value={linea.descripcion}
+            onChange={(e) => onChange('descripcion', e.target.value)}
+            placeholder="Ej: Plancha melamina 18mm blanco…"
+            className={cn(descripcionError && 'border-destructive')}
+          />
+          {descripcionError && <p className="mt-0.5 text-xs text-destructive">{descripcionError}</p>}
+        </div>
+
+        <div>
+          <Input
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={linea.cantidad}
+            onChange={(e) => onChange('cantidad', e.target.value)}
+            placeholder="0"
+            className={cn(cantidadError && 'border-destructive')}
+          />
+          {cantidadError && <p className="mt-0.5 text-xs text-destructive">{cantidadError}</p>}
+        </div>
+
+        <Select value={linea.unidad} onValueChange={(v) => onChange('unidad', v ?? 'und')}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {UNIDAD_OPTIONS.map(([val, label]) => (
+              <SelectItem key={val} value={val}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <button
+          type="button"
+          onClick={onOpenSpec}
+          className="flex h-8 items-center rounded-lg border border-dashed border-border px-2.5 text-left text-xs text-muted-foreground hover:border-ring hover:text-foreground transition-colors duration-[120ms] truncate"
+        >
+          {specLabel}
+        </button>
+
+        <button
+          type="button"
+          onClick={onRemove}
+          disabled={!canRemove}
+          className="mt-1 flex size-8 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors duration-[120ms] disabled:pointer-events-none disabled:opacity-30"
+        >
+          <Trash2 className="size-3.5 mb-3.5" />
+        </button>
+      </div>
+    </>
   )
 }

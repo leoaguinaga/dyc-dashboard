@@ -26,7 +26,7 @@ export async function ProyectoPagosPendientesSection({ proyectoId }: { proyectoI
   )
 
   return (
-    <div className="rounded-xl border border-border bg-white p-5 space-y-4 col-span-2">
+    <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-2">
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Pagos pendientes ({ordenados.length})
@@ -45,7 +45,7 @@ export async function ProyectoPagosPendientesSection({ proyectoId }: { proyectoI
               <tr className="border-b border-border bg-muted/50">
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Orden de compra</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Proveedor</th>
+                <th className="hidden px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground sm:table-cell">Proveedor</th>
                 <th className="px-4 py-2.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">Monto</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</th>
               </tr>
@@ -64,7 +64,7 @@ export async function ProyectoPagosPendientesSection({ proyectoId }: { proyectoI
                       {p.ordenCompra.numero}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 font-medium">{p.ordenCompra.proveedor.razonSocial}</td>
+                  <td className="hidden px-4 py-3 font-medium sm:table-cell">{p.ordenCompra.proveedor.razonSocial}</td>
                   <td className="px-4 py-3 text-right tabular-nums font-medium">
                     S/ {Number(p.monto).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
                   </td>

@@ -1,4 +1,5 @@
 import { serverFetch } from '@/lib/api/server'
+import { formatCurrency } from '@/lib/utils'
 import type { OrdenCompra } from '@/types/api'
 
 function KpiCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
@@ -26,7 +27,7 @@ export async function OrdenesCompraKpis() {
       <KpiCard label="Total OC" value={ordenes.length} />
       <KpiCard label="Emitidas" value={emitidas} sub="Esperando recepción" />
       <KpiCard label="Recepción parcial" value={enTransito} />
-      <KpiCard label="Monto comprometido" value={`S/ ${montoTotal.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`} sub="Excluye canceladas" />
+      <KpiCard label="Monto comprometido" value={formatCurrency(montoTotal)} sub="Excluye canceladas" />
     </div>
   )
 }

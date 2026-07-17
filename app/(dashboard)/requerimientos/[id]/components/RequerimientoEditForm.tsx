@@ -20,6 +20,7 @@ interface LineaItem {
 
 interface Props {
   requerimiento: Requerimiento
+  mode?: 'creador' | 'revisor'
 }
 
 const labelCn = 'mb-1.5 block text-sm font-medium'
@@ -33,7 +34,7 @@ function toLineas(r: Requerimiento): LineaItem[] {
   }))
 }
 
-export function RequerimientoEditForm({ requerimiento: r }: Props) {
+export function RequerimientoEditForm({ requerimiento: r, mode = 'creador' }: Props) {
   const router = useRouter()
   const [nombre, setNombre] = useState(r.nombre)
   const [urgente, setUrgente] = useState(r.urgente)
@@ -82,7 +83,7 @@ export function RequerimientoEditForm({ requerimiento: r }: Props) {
         })),
       })
 
-      if (reenviar) {
+      if (reenviar && mode === 'creador') {
         await api.post(`/requerimientos/${r.id}/enviar`, {})
       }
 
@@ -98,9 +99,15 @@ export function RequerimientoEditForm({ requerimiento: r }: Props) {
     <div className="rounded-xl border border-border bg-white p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Corregir requerimiento observado
+          {mode === 'revisor' ? 'Editar antes de decidir' : 'Corregir requerimiento observado'}
         </h2>
       </div>
+      {mode === 'revisor' && (
+        <p className="text-sm text-muted-foreground">
+          Estás corrigiendo este requerimiento como revisor. El cambio queda registrado en el
+          historial. Usa las acciones de aprobar u observar por separado para emitir tu decisión.
+        </p>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
@@ -232,20 +239,22 @@ export function RequerimientoEditForm({ requerimiento: r }: Props) {
       <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
         <Button
           type="button"
-          variant="outline"
+          variant={mode === 'revisor' ? 'default' : 'outline'}
           disabled={loading !== null}
           onClick={() => handleSubmit(false)}
         >
           {loading === 'guardar' ? 'Guardando…' : 'Guardar cambios'}
         </Button>
-        <Button
-          type="button"
-          disabled={loading !== null}
-          className="min-w-32"
-          onClick={() => handleSubmit(true)}
-        >
-          {loading === 'reenviar' ? 'Reenviando…' : 'Guardar y reenviar'}
-        </Button>
+        {mode === 'creador' && (
+          <Button
+            type="button"
+            disabled={loading !== null}
+            className="min-w-32"
+            onClick={() => handleSubmit(true)}
+          >
+            {loading === 'reenviar' ? 'Reenviando…' : 'Guardar y reenviar'}
+          </Button>
+        )}
       </div>
     </div>
   )

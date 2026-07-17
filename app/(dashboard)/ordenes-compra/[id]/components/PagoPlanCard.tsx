@@ -7,7 +7,7 @@ import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { cn, formatDateOnly } from '@/lib/utils'
+import { cn, formatCurrency, formatDateOnly, formatPercent } from '@/lib/utils'
 import type { OrdenCompra, Pago } from '@/types/api'
 
 interface Props {
@@ -27,10 +27,6 @@ const ESTADO_CLASS: Record<Pago['estadoEfectivo'], string> = {
   vencido: 'bg-destructive/10 text-destructive',
   pagado: 'bg-chart-2/10 text-chart-2',
   cancelado: 'bg-muted text-muted-foreground/60',
-}
-
-function fmtMoney(n: string | number) {
-  return `S/ ${Number(n).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 const fmtDate = formatDateOnly
@@ -126,12 +122,12 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
           <div className="flex items-center gap-2">
             {oc.adelantoPorcentaje && (
               <button onClick={() => prefill(Number(oc.adelantoPorcentaje))} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                + Adelanto ({oc.adelantoPorcentaje}%)
+                + Adelanto ({formatPercent(oc.adelantoPorcentaje)})
               </button>
             )}
             {oc.saldoPorcentaje && (
               <button onClick={() => prefill(Number(oc.saldoPorcentaje))} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                + Saldo ({oc.saldoPorcentaje}%)
+                + Saldo ({formatPercent(oc.saldoPorcentaje)})
               </button>
             )}
             {!adding && (
@@ -172,8 +168,8 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
                     <div className="text-xs text-muted-foreground">Pagado {fmtDate(p.fechaPagoReal)}</div>
                   )}
                 </td>
-                <td className="px-4 py-3 text-right tabular-nums font-medium">{p.porcentaje}%</td>
-                <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{fmtMoney(p.monto)}</td>
+                <td className="px-4 py-3 text-right tabular-nums font-medium">{formatPercent(p.porcentaje)}</td>
+                <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatCurrency(p.monto)}</td>
                 <td className="px-4 py-3">
                   <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', ESTADO_CLASS[p.estadoEfectivo])}>
                     {ESTADO_LABEL[p.estadoEfectivo]}
@@ -211,7 +207,7 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
             <tr>
               <td className="px-4 py-3 text-right text-sm font-medium">Planificado</td>
               <td className="px-4 py-3 text-right tabular-nums font-bold">{porcentajePlanificado.toFixed(2)}%</td>
-              <td className="px-4 py-3 text-right tabular-nums font-bold">{fmtMoney(totalPlanificado)}</td>
+              <td className="px-4 py-3 text-right tabular-nums font-bold">{formatCurrency(totalPlanificado)}</td>
               <td colSpan={canManage ? 3 : 2} className="px-4 py-3 text-xs text-muted-foreground">
                 {cubre100
                   ? 'Cubre el 100% de la OC'
@@ -243,7 +239,7 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Monto</label>
               <Input
-                value={porcentaje ? fmtMoney((Number(oc.montoTotal) * Number(porcentaje)) / 100) : '—'}
+                value={porcentaje ? formatCurrency((Number(oc.montoTotal) * Number(porcentaje)) / 100) : '—'}
                 disabled
                 className="h-8 text-sm tabular-nums"
               />

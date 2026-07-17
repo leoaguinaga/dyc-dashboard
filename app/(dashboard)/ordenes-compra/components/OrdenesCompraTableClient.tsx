@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import type { EstadoOrdenCompra, OrdenCompra } from '@/types/api'
 
 const ESTADO_LABEL: Record<EstadoOrdenCompra, string> = {
@@ -141,7 +141,7 @@ export function OrdenesCompraTableClient({ ordenes }: Props) {
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums font-medium">
-                    S/ {Number(oc.montoTotal).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                    {formatCurrency(oc.montoTotal)}
                   </td>
                   <td className="px-4 py-3">
                     <span className={cn('inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium', ESTADO_CLASS[oc.estado])}>

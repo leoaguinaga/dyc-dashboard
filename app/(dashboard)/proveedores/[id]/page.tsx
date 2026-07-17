@@ -1,12 +1,14 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, MapPin, CalendarDays, Pencil, Briefcase } from 'lucide-react'
+import { ArrowLeft, MapPin, CalendarDays, Pencil, Briefcase, Tag } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ContactosProveedorSection } from './components/ContactosProveedorSection'
 import { ItemsSolicitadosSection } from './components/ItemsSolicitadosSection'
-import type { Proveedor, ItemSolicitadoProveedor } from '@/types/api'
+import { HistorialCotizacionesSection } from './components/HistorialCotizacionesSection'
+import { EvaluacionProveedorSection } from './components/EvaluacionProveedorSection'
+import type { Proveedor, ItemSolicitadoProveedor, CotizacionConHistorial, ProveedorEvaluacion } from '@/types/api'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -18,9 +20,13 @@ function fmt(iso: string) {
 
 export default async function ProveedorDetailPage({ params }: Props) {
   const { id } = await params
-  const [result, itemsSolicitados] = await Promise.all([
+  const [result, itemsSolicitados, cotizaciones, evaluacion] = await Promise.all([
     serverFetch<Proveedor>(`/proveedores/${id}`).catch((e: Error) => e),
     serverFetch<ItemSolicitadoProveedor[]>(`/proveedores/${id}/items-solicitados`).catch(() => [] as ItemSolicitadoProveedor[]),
+    serverFetch<CotizacionConHistorial[]>(`/proveedores/${id}/cotizaciones`).catch(() => [] as CotizacionConHistorial[]),
+    serverFetch<ProveedorEvaluacion>(`/proveedores/${id}/evaluacion`).catch(
+      () => null as ProveedorEvaluacion | null,
+    ),
   ])
 
   if (result instanceof Error) {
@@ -89,13 +95,16 @@ export default async function ProveedorDetailPage({ params }: Props) {
             {p.rubro && (
               <InfoRow icon={<Briefcase className="size-4" />} label="Rubro" value={p.rubro} />
             )}
+            {p.categoria && (
+              <InfoRow icon={<Tag className="size-4" />} label="Categoría" value={p.categoria} />
+            )}
             {p.direccion && (
               <InfoRow icon={<MapPin className="size-4" />} label="Dirección" value={p.direccion} />
             )}
             {p.creadoEn && (
               <InfoRow icon={<CalendarDays className="size-4" />} label="Registrado" value={fmt(p.creadoEn)} />
             )}
-            {!p.rubro && !p.direccion && (
+            {!p.rubro && !p.categoria && !p.direccion && (
               <p className="text-muted-foreground">Sin información adicional</p>
             )}
           </dl>
@@ -109,9 +118,17 @@ export default async function ProveedorDetailPage({ params }: Props) {
           />
         </div>
 
+        {/* Evaluación */}
+        {evaluacion && <EvaluacionProveedorSection evaluacion={evaluacion} />}
+
         {/* Ítems solicitados */}
         <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-3">
           <ItemsSolicitadosSection items={itemsSolicitados} />
+        </div>
+
+        {/* Historial de cotizaciones */}
+        <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-3">
+          <HistorialCotizacionesSection cotizaciones={cotizaciones} />
         </div>
       </div>
     </div>

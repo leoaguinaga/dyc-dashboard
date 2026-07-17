@@ -13,7 +13,7 @@ export const { signIn, signOut, signUp } = authClient;
 // Typed wrapper: better-auth exposes additionalFields at runtime but not in its
 // default TypeScript types, so we cast the session user to include `role`.
 type SessionUser = ReturnType<typeof authClient.useSession>['data'] extends
-  { user: infer U } | null ? U & { role?: Role } : never;
+  { user: infer U } | null ? U & { role?: Role; correoContacto?: string | null } : never;
 
 export function useSession() {
   const session = authClient.useSession();
