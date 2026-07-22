@@ -14,11 +14,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { CATEGORIAS_PROVEEDOR } from '@/lib/proveedores'
+import { PERU_UBIGEO } from '@/lib/peru-ubigeo'
 
 type FormState = {
   razonSocial: string
   ruc: string
   direccion: string
+  departamento: string
+  distrito: string
   rubro: string
   categoria: string
   banco: string
@@ -32,6 +35,8 @@ const initial: FormState = {
   razonSocial: '',
   ruc: '',
   direccion: '',
+  departamento: '',
+  distrito: '',
   rubro: '',
   categoria: '',
   banco: '',
@@ -52,14 +57,23 @@ export function CreateProveedorForm() {
   const [serverError, setServerError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  const distritos =
+    PERU_UBIGEO.find((d) => d.nombre === form.departamento)?.distritos ?? []
+
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }))
   }
 
+  function handleDepartamentoChange(depto: string) {
+    set('departamento', depto)
+    set('distrito', '')
+  }
+
   function validate(): FormErrors {
     const next: FormErrors = {}
     if (!form.razonSocial.trim()) next.razonSocial = 'La razón social es requerida'
+    if (!form.departamento) next.departamento = 'El departamento es requerido'
     return next
   }
 
@@ -74,9 +88,11 @@ export function CreateProveedorForm() {
     const payload: Record<string, unknown> = {
       razonSocial: form.razonSocial.trim(),
       activo: form.activo,
+      departamento: form.departamento,
     }
     if (form.ruc.trim()) payload.ruc = form.ruc.trim()
     if (form.direccion.trim()) payload.direccion = form.direccion.trim()
+    if (form.distrito.trim()) payload.distrito = form.distrito.trim()
     if (form.rubro.trim()) payload.rubro = form.rubro.trim()
     if (form.categoria) payload.categoria = form.categoria
     if (form.banco.trim()) payload.banco = form.banco.trim()
@@ -163,6 +179,46 @@ export function CreateProveedorForm() {
             onChange={(e) => set('rubro', e.target.value)}
             placeholder="Ej. Compañía especializada en la venta de puertas de metal"
           />
+        </div>
+
+        <div>
+          <label className={labelCn}>
+            Departamento <span className="text-destructive">*</span>
+          </label>
+          <Select
+            value={form.departamento}
+            onValueChange={(v) => handleDepartamentoChange(v ?? '')}
+          >
+            <SelectTrigger className="w-full" aria-invalid={!!errors.departamento}>
+              <SelectValue placeholder="Seleccionar departamento..." />
+            </SelectTrigger>
+            <SelectContent>
+              {PERU_UBIGEO.map((d) => (
+                <SelectItem key={d.nombre} value={d.nombre}>{d.nombre}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.departamento && (
+            <p className="mt-1 text-xs text-destructive">{errors.departamento}</p>
+          )}
+        </div>
+
+        <div>
+          <label className={labelCn}>Distrito</label>
+          <Select
+            value={form.distrito}
+            onValueChange={(v) => set('distrito', v ?? '')}
+            disabled={!form.departamento}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={form.departamento ? 'Seleccionar distrito...' : 'Elige un departamento primero'} />
+            </SelectTrigger>
+            <SelectContent>
+              {distritos.map((d) => (
+                <SelectItem key={d} value={d}>{d}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="sm:col-span-2">

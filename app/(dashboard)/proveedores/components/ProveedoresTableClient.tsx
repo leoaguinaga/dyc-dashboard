@@ -17,12 +17,20 @@ interface Props {
 export function ProveedoresTableClient({ proveedores }: Props) {
   const [search, setSearch] = useState('')
   const [estado, setEstado] = useState<EstadoFilter>('todos')
+  const [departamento, setDepartamento] = useState('todos')
+
+  const departamentos = useMemo(
+    () =>
+      Array.from(new Set(proveedores.map((p) => p.departamento).filter((d): d is string => !!d))).sort(),
+    [proveedores],
+  )
 
   const filtered = useMemo(() => {
     let result = proveedores
 
     if (estado === 'activos') result = result.filter((p) => p.activo)
     if (estado === 'inactivos') result = result.filter((p) => !p.activo)
+    if (departamento !== 'todos') result = result.filter((p) => p.departamento === departamento)
 
     if (search.trim()) {
       const q = search.trim().toLowerCase()
@@ -35,7 +43,7 @@ export function ProveedoresTableClient({ proveedores }: Props) {
     }
 
     return result
-  }, [proveedores, estado, search])
+  }, [proveedores, estado, departamento, search])
 
   return (
     <div className="space-y-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-[250ms] ease-out">
@@ -61,6 +69,17 @@ export function ProveedoresTableClient({ proveedores }: Props) {
             <SelectItem value="inactivos">Inactivos</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={departamento} onValueChange={(value) => setDepartamento(value ?? 'todos')}>
+          <SelectTrigger>
+            <p>{departamento === 'todos' ? 'Departamento' : departamento}</p>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos los departamentos</SelectItem>
+            {departamentos.map((d) => (
+              <SelectItem key={d} value={d}>{d}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Link href="/proveedores/nuevo">
           <Button>
             <Plus className="size-4" />
@@ -84,6 +103,7 @@ export function ProveedoresTableClient({ proveedores }: Props) {
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Razón Social</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">RUC</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Categoría</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Ubicación</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Contacto principal</th>
                 <th className="px-4 py-2.5 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">Cotizaciones</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</th>
@@ -107,6 +127,11 @@ export function ProveedoresTableClient({ proveedores }: Props) {
                             {p.categoria}
                           </span>
                         )
+                        : <span className="text-muted-foreground/40">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {p.departamento
+                        ? (p.distrito ? `${p.distrito}, ${p.departamento}` : p.departamento)
                         : <span className="text-muted-foreground/40">—</span>}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">

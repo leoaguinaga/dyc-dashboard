@@ -6,6 +6,7 @@ import { api } from '@/lib/api/client'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import { Eye, EyeClosed } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -36,20 +37,52 @@ export function EditUsuarioForm({ usuario }: Props) {
   const [name, setName] = useState(usuario.name)
   const [role, setRole] = useState<Role>(usuario.role)
   const [nameError, setNameError] = useState<string | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    let hasError = false
     if (!name.trim()) {
       setNameError('El nombre es requerido')
-      return
+      hasError = true
+    } else {
+      setNameError(null)
     }
-    setNameError(null)
+
+    const wantsPasswordChange = newPassword || confirmPassword
+    if (wantsPasswordChange) {
+      if (newPassword.length < 8) {
+        setPasswordError('Mínimo 8 caracteres')
+        hasError = true
+      } else {
+        setPasswordError(null)
+      }
+      if (newPassword !== confirmPassword) {
+        setConfirmPasswordError('Las contraseñas no coinciden')
+        hasError = true
+      } else {
+        setConfirmPasswordError(null)
+      }
+    } else {
+      setPasswordError(null)
+      setConfirmPasswordError(null)
+    }
+
+    if (hasError) return
+
     setLoading(true)
     setServerError(null)
     try {
       await api.patch(`/users/${usuario.id}`, { name: name.trim(), role })
+      if (wantsPasswordChange) {
+        await api.patch(`/users/${usuario.id}/password`, { newPassword })
+      }
       router.push('/usuarios')
       router.refresh()
     } catch (err) {
@@ -95,6 +128,57 @@ export function EditUsuarioForm({ usuario }: Props) {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-3 border-t border-border pt-4">
+        <p className="text-sm font-medium">Cambiar contraseña</p>
+        <p className="text-xs text-muted-foreground">
+          Opcional. Déjalo en blanco si no necesitas restablecer la contraseña de este usuario.
+        </p>
+
+        <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+          <div>
+            <label className={labelCn}>Nueva contraseña</label>
+            <div className="relative">
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => {
+                  setNewPassword(e.target.value)
+                  if (passwordError) setPasswordError(null)
+                }}
+                autoComplete="new-password"
+                aria-invalid={!!passwordError}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              >
+                {showPassword ? <EyeClosed className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {passwordError && <p className="mt-1 text-xs text-destructive">{passwordError}</p>}
+          </div>
+
+          <div>
+            <label className={labelCn}>Confirmar nueva contraseña</label>
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value)
+                if (confirmPasswordError) setConfirmPasswordError(null)
+              }}
+              autoComplete="new-password"
+              aria-invalid={!!confirmPasswordError}
+            />
+            {confirmPasswordError && (
+              <p className="mt-1 text-xs text-destructive">{confirmPasswordError}</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {serverError && (

@@ -14,12 +14,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { CATEGORIAS_PROVEEDOR } from '@/lib/proveedores'
+import { PERU_UBIGEO } from '@/lib/peru-ubigeo'
 import type { Proveedor } from '@/types/api'
 
 type FormState = {
   razonSocial: string
   ruc: string
   direccion: string
+  departamento: string
+  distrito: string
   rubro: string
   categoria: string
   banco: string
@@ -36,6 +39,7 @@ const labelCn = 'mb-1.5 block text-sm font-medium'
 function validate(form: FormState): FormErrors {
   const next: FormErrors = {}
   if (!form.razonSocial.trim()) next.razonSocial = 'La razón social es requerida'
+  if (!form.departamento) next.departamento = 'El departamento es requerido'
   return next
 }
 
@@ -49,6 +53,8 @@ export function EditProveedorForm({ proveedor }: Props) {
     razonSocial: proveedor.razonSocial,
     ruc: proveedor.ruc ?? '',
     direccion: proveedor.direccion ?? '',
+    departamento: proveedor.departamento ?? '',
+    distrito: proveedor.distrito ?? '',
     rubro: proveedor.rubro ?? '',
     categoria: proveedor.categoria ?? '',
     banco: proveedor.banco ?? '',
@@ -61,9 +67,17 @@ export function EditProveedorForm({ proveedor }: Props) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  const distritos =
+    PERU_UBIGEO.find((d) => d.nombre === form.departamento)?.distritos ?? []
+
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }))
+  }
+
+  function handleDepartamentoChange(depto: string) {
+    set('departamento', depto)
+    set('distrito', '')
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -79,6 +93,8 @@ export function EditProveedorForm({ proveedor }: Props) {
       ruc: form.ruc.trim() || null,
       activo: form.activo,
       direccion: form.direccion.trim() || null,
+      departamento: form.departamento,
+      distrito: form.distrito.trim() || null,
       rubro: form.rubro.trim() || null,
       categoria: form.categoria || null,
       banco: form.banco.trim() || null,
@@ -166,6 +182,46 @@ export function EditProveedorForm({ proveedor }: Props) {
             onChange={(e) => set('rubro', e.target.value)}
             placeholder="Ej. Compañía especializada en la venta de puertas de metal"
           />
+        </div>
+
+        <div>
+          <label className={labelCn}>
+            Departamento <span className="text-destructive">*</span>
+          </label>
+          <Select
+            value={form.departamento}
+            onValueChange={(v) => handleDepartamentoChange(v ?? '')}
+          >
+            <SelectTrigger className="w-full" aria-invalid={!!errors.departamento}>
+              <SelectValue placeholder="Seleccionar departamento..." />
+            </SelectTrigger>
+            <SelectContent>
+              {PERU_UBIGEO.map((d) => (
+                <SelectItem key={d.nombre} value={d.nombre}>{d.nombre}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.departamento && (
+            <p className="mt-1 text-xs text-destructive">{errors.departamento}</p>
+          )}
+        </div>
+
+        <div>
+          <label className={labelCn}>Distrito</label>
+          <Select
+            value={form.distrito}
+            onValueChange={(v) => set('distrito', v ?? '')}
+            disabled={!form.departamento}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={form.departamento ? 'Seleccionar distrito...' : 'Elige un departamento primero'} />
+            </SelectTrigger>
+            <SelectContent>
+              {distritos.map((d) => (
+                <SelectItem key={d} value={d}>{d}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="sm:col-span-2">

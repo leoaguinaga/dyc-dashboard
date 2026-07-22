@@ -165,6 +165,8 @@ export interface Proveedor {
   razonSocial: string;
   ruc?: string;
   direccion?: string;
+  departamento?: string;
+  distrito?: string;
   rubro?: string;
   categoria?: string;
   banco?: string;

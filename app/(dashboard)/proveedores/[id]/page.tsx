@@ -98,13 +98,20 @@ export default async function ProveedorDetailPage({ params }: Props) {
             {p.categoria && (
               <InfoRow icon={<Tag className="size-4" />} label="Categoría" value={p.categoria} />
             )}
+            {p.departamento && (
+              <InfoRow
+                icon={<MapPin className="size-4" />}
+                label="Ubicación"
+                value={p.distrito ? `${p.distrito}, ${p.departamento}` : p.departamento}
+              />
+            )}
             {p.direccion && (
               <InfoRow icon={<MapPin className="size-4" />} label="Dirección" value={p.direccion} />
             )}
             {p.creadoEn && (
               <InfoRow icon={<CalendarDays className="size-4" />} label="Registrado" value={fmt(p.creadoEn)} />
             )}
-            {!p.rubro && !p.categoria && !p.direccion && (
+            {!p.rubro && !p.categoria && !p.direccion && !p.departamento && (
               <p className="text-muted-foreground">Sin información adicional</p>
             )}
           </dl>
