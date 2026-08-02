@@ -8,6 +8,7 @@ import { api } from '@/lib/api/client'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DatePicker } from '@/components/ui/date-picker'
+import { TimePicker } from '@/components/ui/time-picker'
 import {
   Select,
   SelectContent,
@@ -38,6 +39,10 @@ type FormData = {
   coordinadorEmpresaId: string
   ejecutorId: string
   prevencionistaId: string
+  jornadaInicio: string
+  jornadaFin: string
+  toleranciaMinutos: string
+  toleranciaSalidaMinutos: string
   fechaInicio: string
   fechaFin: string
   fechaInicioReal: string
@@ -59,6 +64,10 @@ const initial: FormData = {
   coordinadorEmpresaId: '',
   ejecutorId: '',
   prevencionistaId: '',
+  jornadaInicio: '',
+  jornadaFin: '',
+  toleranciaMinutos: '',
+  toleranciaSalidaMinutos: '',
   fechaInicio: '',
   fechaFin: '',
   fechaInicioReal: '',
@@ -68,6 +77,7 @@ const initial: FormData = {
 }
 
 const labelCn = 'mb-1.5 block text-sm font-medium'
+const sectionTitleCn = 'text-xs font-medium uppercase tracking-wide text-muted-foreground'
 
 type StepErrors = Partial<Record<keyof FormData, string>>
 
@@ -175,9 +185,11 @@ export function CreateProyectoForm({ clientes, trabajadores, proyectos }: Props)
     setLoading(true)
     setServerError(null)
     try {
-      const payload = Object.fromEntries(
+      const payload: Record<string, unknown> = Object.fromEntries(
         Object.entries(form).filter(([, v]) => v !== ''),
       )
+      if (form.toleranciaMinutos) payload.toleranciaMinutos = Number(form.toleranciaMinutos)
+      if (form.toleranciaSalidaMinutos) payload.toleranciaSalidaMinutos = Number(form.toleranciaSalidaMinutos)
       await api.post<Proyecto>('/proyectos', payload)
       router.push('/proyectos')
       router.refresh()
@@ -449,13 +461,61 @@ export function CreateProyectoForm({ clientes, trabajadores, proyectos }: Props)
                 />
               </div>
               <div>
-                <label className={labelCn}>Prevencionista asignado</label>
+                <label className={labelCn}>
+                  Prevencionista asignado{' '}
+                  <span className="text-muted-foreground font-normal">(encargado de asistencia)</span>
+                </label>
                 <TrabajadorCombobox
                   trabajadores={trabajadores}
                   value={form.prevencionistaId}
                   onValueChange={(v) => set('prevencionistaId', v)}
                   placeholder="Seleccionar prevencionista..."
                 />
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t border-border pt-4">
+              <h3 className={sectionTitleCn}>Jornada de asistencia</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelCn}>Inicio de jornada</label>
+                  <TimePicker
+                    value={form.jornadaInicio}
+                    onValueChange={(v) => set('jornadaInicio', v)}
+                  />
+                </div>
+                <div>
+                  <label className={labelCn}>Fin de jornada</label>
+                  <TimePicker
+                    value={form.jornadaFin}
+                    onValueChange={(v) => set('jornadaFin', v)}
+                  />
+                </div>
+                <div>
+                  <label className={labelCn}>Tolerancia de entrada (minutos)</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={form.toleranciaMinutos}
+                    onChange={(e) => set('toleranciaMinutos', e.target.value)}
+                    placeholder="10"
+                  />
+                </div>
+                <div>
+                  <label className={labelCn}>
+                    Tolerancia de salida (minutos){' '}
+                    <span className="text-muted-foreground font-normal">(umbral antes de contar hora extra)</span>
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={form.toleranciaSalidaMinutos}
+                    onChange={(e) => set('toleranciaSalidaMinutos', e.target.value)}
+                    placeholder="60"
+                  />
+                </div>
               </div>
             </div>
           </div>

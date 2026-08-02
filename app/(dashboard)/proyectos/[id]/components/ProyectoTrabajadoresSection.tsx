@@ -7,7 +7,7 @@ import { api } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
-import { TrabajadorCombobox } from '@/components/ui/trabajador-combobox'
+import { TrabajadorMultiCombobox } from '@/components/ui/trabajador-multi-combobox'
 import type { Proyecto, Trabajador } from '@/types/api'
 
 type AsigItem = NonNullable<Proyecto['trabajadores']>[number]
@@ -19,7 +19,7 @@ interface Props {
 }
 
 type FormState = {
-  trabajadorId: string
+  trabajadorIds: string[]
   fechaIngreso: string
   fechaSalida: string
 }
@@ -32,7 +32,7 @@ function fmt(iso?: string) {
 export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }: Props) {
   const [items, setItems] = useState<AsigItem[]>(initialItems)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState<FormState>({ trabajadorId: '', fechaIngreso: '', fechaSalida: '' })
+  const [form, setForm] = useState<FormState>({ trabajadorIds: [], fechaIngreso: '', fechaSalida: '' })
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -43,34 +43,26 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
   const disponibles = todos.filter((t) => !assignedIds.has(t.id))
 
   function resetForm() {
-    setForm({ trabajadorId: '', fechaIngreso: '', fechaSalida: '' })
+    setForm({ trabajadorIds: [], fechaIngreso: '', fechaSalida: '' })
     setFormError(null)
     setShowForm(false)
   }
 
   async function handleAsignar(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.trabajadorId) { setFormError('Selecciona un trabajador'); return }
+    if (form.trabajadorIds.length === 0) { setFormError('Selecciona al menos un trabajador'); return }
     if (!form.fechaIngreso) { setFormError('La fecha de ingreso es requerida'); return }
 
     setSubmitting(true)
     setFormError(null)
     try {
-      await api.post(`/trabajadores/${form.trabajadorId}/proyectos`, {
-        proyectoId,
+      const created = await api.post<AsigItem[]>(`/proyectos/${proyectoId}/trabajadores`, {
+        trabajadorIds: form.trabajadorIds,
         fechaIngreso: form.fechaIngreso,
         ...(form.fechaSalida && { fechaSalida: form.fechaSalida }),
       })
 
-      const trabajador = todos.find((t) => t.id === form.trabajadorId)!
-      const newItem: AsigItem = {
-        id: crypto.randomUUID(),
-        trabajadorId: form.trabajadorId,
-        fechaIngreso: form.fechaIngreso,
-        fechaSalida: form.fechaSalida || undefined,
-        trabajador: { id: trabajador.id, nombre: trabajador.nombre, cargo: trabajador.cargo, dni: trabajador.dni },
-      }
-      setItems((prev) => [...prev, newItem])
+      setItems((prev) => [...prev, ...created])
       resetForm()
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Error al asignar')
@@ -115,15 +107,15 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
           onSubmit={handleAsignar}
           className="rounded-lg border border-border bg-muted/30 p-4 space-y-3 animate-in fade-in-0 slide-in-from-top-1 duration-150"
         >
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Asignar trabajador</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Asignar trabajadores</p>
           <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium">Trabajador</label>
-              <TrabajadorCombobox
+              <label className="text-xs font-medium">Trabajadores</label>
+              <TrabajadorMultiCombobox
                 trabajadores={disponibles}
-                value={form.trabajadorId}
-                onValueChange={(v) => {
-                  setForm((f) => ({ ...f, trabajadorId: v }))
+                value={form.trabajadorIds}
+                onValueChange={(ids) => {
+                  setForm((f) => ({ ...f, trabajadorIds: ids }))
                   setFormError(null)
                 }}
                 placeholder={disponibles.length === 0 ? 'Todos asignados' : 'Seleccionar...'}
@@ -170,7 +162,9 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
               Cancelar
             </button>
             <Button type="submit" size="sm" disabled={submitting} className="h-7 text-xs">
-              {submitting ? 'Asignando...' : 'Confirmar asignacion'}
+              {submitting
+                ? 'Asignando...'
+                : `Confirmar asignación${form.trabajadorIds.length > 1 ? ` (${form.trabajadorIds.length})` : ''}`}
             </Button>
           </div>
         </form>

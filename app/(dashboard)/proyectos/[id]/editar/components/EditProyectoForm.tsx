@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DatePicker } from '@/components/ui/date-picker'
+import { TimePicker } from '@/components/ui/time-picker'
 import {
   Select,
   SelectContent,
@@ -38,6 +39,10 @@ type FormData = {
   coordinadorEmpresaId: string
   ejecutorId: string
   prevencionistaId: string
+  jornadaInicio: string
+  jornadaFin: string
+  toleranciaMinutos: string
+  toleranciaSalidaMinutos: string
   fechaInicio: string
   fechaFin: string
   fechaInicioReal: string
@@ -71,6 +76,10 @@ export function EditProyectoForm({ proyecto: o, clientes, trabajadores, proyecto
     coordinadorEmpresaId: o.coordinadorEmpresaId ?? '',
     ejecutorId: o.ejecutorId ?? '',
     prevencionistaId: o.prevencionistaId ?? '',
+    jornadaInicio: o.jornadaInicio ?? '',
+    jornadaFin: o.jornadaFin ?? '',
+    toleranciaMinutos: o.toleranciaMinutos != null ? String(o.toleranciaMinutos) : '',
+    toleranciaSalidaMinutos: o.toleranciaSalidaMinutos != null ? String(o.toleranciaSalidaMinutos) : '',
     fechaInicio: toDateInput(o.fechaInicio),
     fechaFin: toDateInput(o.fechaFin),
     fechaInicioReal: toDateInput(o.fechaInicioReal),
@@ -139,9 +148,11 @@ export function EditProyectoForm({ proyecto: o, clientes, trabajadores, proyecto
     setServerError(null)
 
     try {
-      const payload = Object.fromEntries(
+      const payload: Record<string, unknown> = Object.fromEntries(
         Object.entries(form).filter(([, v]) => v !== ''),
       )
+      if (form.toleranciaMinutos) payload.toleranciaMinutos = Number(form.toleranciaMinutos)
+      if (form.toleranciaSalidaMinutos) payload.toleranciaSalidaMinutos = Number(form.toleranciaSalidaMinutos)
       await api.patch<Proyecto>(`/proyectos/${o.id}`, payload)
       router.push(`/proyectos/${o.id}`)
       router.refresh()
@@ -338,12 +349,61 @@ export function EditProyectoForm({ proyecto: o, clientes, trabajadores, proyecto
             />
           </div>
           <div>
-            <label className={labelCn}>Prevencionista asignado</label>
+            <label className={labelCn}>
+              Prevencionista asignado{' '}
+              <span className="text-muted-foreground font-normal">(encargado de asistencia)</span>
+            </label>
             <TrabajadorCombobox
               trabajadores={trabajadores}
               value={form.prevencionistaId}
               onValueChange={(v) => set('prevencionistaId', v)}
               placeholder="Seleccionar prevencionista..."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Jornada de asistencia */}
+      <section className="space-y-4">
+        <h2 className={sectionTitleCn}>Jornada de asistencia</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelCn}>Inicio de jornada</label>
+            <TimePicker
+              value={form.jornadaInicio}
+              onValueChange={(v) => set('jornadaInicio', v)}
+            />
+          </div>
+          <div>
+            <label className={labelCn}>Fin de jornada</label>
+            <TimePicker
+              value={form.jornadaFin}
+              onValueChange={(v) => set('jornadaFin', v)}
+            />
+          </div>
+          <div>
+            <label className={labelCn}>Tolerancia de entrada (minutos)</label>
+            <Input
+              type="number"
+              min={0}
+              step={1}
+              value={form.toleranciaMinutos}
+              onChange={(e) => set('toleranciaMinutos', e.target.value)}
+              placeholder="10"
+            />
+          </div>
+          <div>
+            <label className={labelCn}>
+              Tolerancia de salida (minutos){' '}
+              <span className="text-muted-foreground font-normal">(umbral antes de contar hora extra)</span>
+            </label>
+            <Input
+              type="number"
+              min={0}
+              step={1}
+              value={form.toleranciaSalidaMinutos}
+              onChange={(e) => set('toleranciaSalidaMinutos', e.target.value)}
+              placeholder="60"
             />
           </div>
         </div>

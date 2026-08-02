@@ -10,6 +10,7 @@ import {
   Globe,
   FileText,
   FolderTree,
+  ClipboardCheck,
 } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -112,16 +113,24 @@ export default async function ProyectoDetailPage({ params }: Props) {
               )}
             </div>
           </div>
-          <Link
-            href={`/proyectos/${id}/editar`}
-          >
-            <Button
-              variant="link"
-              className='text-muted-foreground'
+          <div className="flex items-center gap-1">
+            <Link href={`/proyectos/${id}/asistencia`}>
+              <Button variant="outline" className="gap-1.5">
+                <ClipboardCheck className="size-3.5" />
+                Tomar asistencia
+              </Button>
+            </Link>
+            <Link
+              href={`/proyectos/${id}/editar`}
             >
-              Editar proyecto
-            </Button>
-          </Link>
+              <Button
+                variant="link"
+                className='text-muted-foreground'
+              >
+                Editar proyecto
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

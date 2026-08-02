@@ -18,6 +18,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { Role, Trabajador } from '@/types/api'
+import { PerfilObreroFields } from '../../../components/PerfilObreroFields'
+import {
+  OBRERO_CARGOS,
+  perfilObreroInitial,
+  perfilObreroToPayload,
+  type PerfilObreroState,
+} from '../../../components/perfil-obrero-constants'
 
 const DOMAIN = '@dycingenieriayproyectos.com'
 
@@ -98,6 +105,18 @@ export function EditTrabajadorForm({ trabajador: t }: Props) {
     numeroCuenta: t.numeroCuenta ?? '',
     activo: t.activo,
   })
+  const [perfilObrero, setPerfilObrero] = useState<PerfilObreroState>({
+    ...perfilObreroInitial,
+    categoria: t.perfilObrero?.categoria ?? '',
+    precioHora: t.perfilObrero?.precioHora ?? '',
+    tipoSangre: t.perfilObrero?.tipoSangre ?? '',
+    contactoEmergenciaNombre: t.perfilObrero?.contactoEmergenciaNombre ?? '',
+    contactoEmergenciaTelefono: t.perfilObrero?.contactoEmergenciaTelefono ?? '',
+    direccion: t.perfilObrero?.direccion ?? '',
+    tallaUniforme: t.perfilObrero?.tallaUniforme ?? '',
+    tallaCalzado: t.perfilObrero?.tallaCalzado ?? '',
+    numeroSctr: t.perfilObrero?.numeroSctr ?? '',
+  })
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -117,6 +136,8 @@ export function EditTrabajadorForm({ trabajador: t }: Props) {
   // Soft delete
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  const esObrero = OBRERO_CARGOS.includes(form.cargo)
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -187,6 +208,10 @@ export function EditTrabajadorForm({ trabajador: t }: Props) {
           role: acceso.role,
           password: acceso.password,
         })
+      }
+
+      if (esObrero) {
+        await api.patch(`/trabajadores/${t.id}/perfil-obrero`, perfilObreroToPayload(perfilObrero))
       }
 
       router.push(`/trabajadores/${t.id}`)
@@ -274,6 +299,17 @@ export function EditTrabajadorForm({ trabajador: t }: Props) {
           </div>
         </div>
       </section>
+
+      {/* Datos de obrero (régimen de construcción civil) */}
+      {esObrero && (
+        <section className="space-y-4">
+          <h2 className={sectionTitleCn}>Datos de obrero</h2>
+          <PerfilObreroFields
+            value={perfilObrero}
+            onChange={(key, value) => setPerfilObrero((prev) => ({ ...prev, [key]: value }))}
+          />
+        </section>
+      )}
 
       {/* Contacto y estado */}
       <section className="space-y-4">
