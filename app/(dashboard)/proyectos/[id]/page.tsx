@@ -20,7 +20,9 @@ import { ProyectoOrdenesCompraSection } from './components/ProyectoOrdenesCompra
 import { ProyectoPagosPendientesSection } from './components/ProyectoPagosPendientesSection'
 import { CierreObraSection } from './components/CierreObraSection'
 import { TomarAsistenciaButton } from './components/TomarAsistenciaButton'
-import type { Proyecto, Trabajador } from '@/types/api'
+import type { Proyecto, Role, Trabajador, User } from '@/types/api'
+
+const SIN_ACCESO_EDICION: Role[] = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr']
 
 interface Props {
   params: Promise<{ id: string }>
@@ -56,9 +58,10 @@ const sectionTitleCn = 'text-xs font-medium uppercase tracking-wide text-muted-f
 export default async function ProyectoDetailPage({ params }: Props) {
   const { id } = await params
 
-  const [result, trabajadores] = await Promise.all([
+  const [result, trabajadores, user] = await Promise.all([
     serverFetch<Proyecto>(`/proyectos/${id}`).catch((e: Error) => e),
     serverFetch<Trabajador[]>('/trabajadores').catch(() => [] as Trabajador[]),
+    serverFetch<User>('/users/me').catch(() => null),
   ])
 
   if (result instanceof Error) {
@@ -67,6 +70,7 @@ export default async function ProyectoDetailPage({ params }: Props) {
   }
 
   const o = result
+  const puedeEditar = !user || !SIN_ACCESO_EDICION.includes(user.role)
 
   return (
     <div className="space-y-3">
@@ -115,16 +119,18 @@ export default async function ProyectoDetailPage({ params }: Props) {
           </div>
           <div className="flex items-center gap-1">
             <TomarAsistenciaButton proyectoId={id} />
-            <Link
-              href={`/proyectos/${id}/editar`}
-            >
-              <Button
-                variant="link"
-                className='text-muted-foreground'
+            {puedeEditar && (
+              <Link
+                href={`/proyectos/${id}/editar`}
               >
-                Editar proyecto
-              </Button>
-            </Link>
+                <Button
+                  variant="link"
+                  className='text-muted-foreground'
+                >
+                  Editar proyecto
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -178,7 +184,7 @@ export default async function ProyectoDetailPage({ params }: Props) {
 
         {/* Personas */}
         <div className="rounded-xl border border-border bg-white p-5 space-y-3 lg:col-span-3">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Personas asignadas</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Staff asignado</h2>
           {!o.coordinadorEmpresa && !o.coordinadorCliente && !o.ejecutor && !o.prevencionista ? (
             <div className="flex flex-col items-center justify-center py-6 text-center gap-2">
               <Users className="size-8 text-muted-foreground/30" />

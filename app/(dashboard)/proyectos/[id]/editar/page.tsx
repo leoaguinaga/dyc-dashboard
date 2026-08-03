@@ -1,9 +1,11 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { EditProyectoForm } from './components/EditProyectoForm'
-import type { Cliente, Proyecto, Trabajador } from '@/types/api'
+import type { Cliente, Proyecto, Role, Trabajador, User } from '@/types/api'
+
+const SIN_ACCESO_EDICION: Role[] = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr']
 
 interface Props {
   params: Promise<{ id: string }>
@@ -12,12 +14,15 @@ interface Props {
 export default async function EditarProyectoPage({ params }: Props) {
   const { id } = await params
 
-  const [result, clientes, trabajadores, proyectos] = await Promise.all([
+  const [result, clientes, trabajadores, proyectos, user] = await Promise.all([
     serverFetch<Proyecto>(`/proyectos/${id}`).catch((e: Error) => e),
     serverFetch<Cliente[]>('/clientes').catch(() => [] as Cliente[]),
     serverFetch<Trabajador[]>('/trabajadores').catch(() => [] as Trabajador[]),
     serverFetch<Proyecto[]>('/proyectos').catch(() => [] as Proyecto[]),
+    serverFetch<User>('/users/me').catch(() => null),
   ])
+
+  if (user && SIN_ACCESO_EDICION.includes(user.role)) redirect(`/proyectos/${id}`)
 
   if (result instanceof Error) {
     if (result.message.includes('404')) notFound()

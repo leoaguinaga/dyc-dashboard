@@ -143,7 +143,9 @@ export function JornadasGlobalView({ proyectos }: Props) {
                       {formatFecha(j.fecha)}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{j.proyectoNombre}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {j.proyectoNombre} <span className="text-xs">· {j.turnoNombre}</span>
+                  </td>
                   <td className="px-4 py-3 tabular-nums">{j.obreros}</td>
                   <td className="px-4 py-3 tabular-nums">
                     {j.horasNormales.toFixed(1)}h{j.horasExtra > 0 && ` + ${j.horasExtra.toFixed(1)}h extra`}

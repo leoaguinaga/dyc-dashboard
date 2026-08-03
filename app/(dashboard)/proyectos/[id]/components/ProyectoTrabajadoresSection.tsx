@@ -88,7 +88,7 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
     <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-2">
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Trabajadores en proyecto ({items.length})
+          Operadores en proyecto ({items.length})
         </h2>
         {!showForm && (
           <button
@@ -107,10 +107,10 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
           onSubmit={handleAsignar}
           className="rounded-lg border border-border bg-muted/30 p-4 space-y-3 animate-in fade-in-0 slide-in-from-top-1 duration-150"
         >
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Asignar trabajadores</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Operadores</p>
           <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium">Trabajadores</label>
+              <label className="text-xs font-medium">Operadores</label>
               <TrabajadorMultiCombobox
                 trabajadores={disponibles}
                 value={form.trabajadorIds}
@@ -189,7 +189,7 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Trabajador</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Operador</th>
                 <th className="hidden px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground sm:table-cell">Cargo</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Ingreso</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Salida</th>
