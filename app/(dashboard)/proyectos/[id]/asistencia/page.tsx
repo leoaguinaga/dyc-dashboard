@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
-import { AsistenciaTurnoView } from './components/AsistenciaTurnoView'
+import { AsistenciaTurnoView } from '@/components/asistencia/AsistenciaTurnoView'
 import { RegistroVisitaSection } from './components/RegistroVisitaSection'
 import { VisitaTerceroSection } from './components/VisitaTerceroSection'
+import { ConsolidadoAsistenciaSection } from './components/ConsolidadoAsistenciaSection'
 import { Tabs, TabsList, TabsTab, TabsIndicator, TabsPanel } from '@/components/ui/tabs'
 import { hoyLimaISO } from '@/lib/date/fecha-lima'
 import type { Proyecto, RegistroVisita, Trabajador, Turno, TurnoDetalle, VisitaTercero } from '@/types/api'
@@ -63,6 +64,7 @@ export default async function AsistenciaPage({ params }: Props) {
           <TabsTab value="staff">Staff</TabsTab>
           <TabsTab value="staff_oficina">Staff oficina</TabsTab>
           <TabsTab value="terceros">Terceros</TabsTab>
+          <TabsTab value="consolidado">Consolidado</TabsTab>
         </TabsList>
 
         <TabsPanel value="operarios">
@@ -89,6 +91,10 @@ export default async function AsistenciaPage({ params }: Props) {
 
         <TabsPanel value="terceros">
           <VisitaTerceroSection proyectoId={id} visitas={visitasTercero} />
+        </TabsPanel>
+
+        <TabsPanel value="consolidado">
+          <ConsolidadoAsistenciaSection proyectoId={id} />
         </TabsPanel>
       </Tabs>
     </div>

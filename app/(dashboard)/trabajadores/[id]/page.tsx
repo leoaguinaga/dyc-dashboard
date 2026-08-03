@@ -6,6 +6,9 @@ import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Trabajador } from '@/types/api'
 import { CATEGORIAS_OBRERO } from '../components/perfil-obrero-constants'
+import { ConsolidadoAsistenciaTrabajador } from './components/ConsolidadoAsistenciaTrabajador'
+
+const CARGOS_OPERARIO = ['Operario', 'Técnico']
 
 interface Props {
   params: Promise<{ id: string }>
@@ -247,6 +250,10 @@ export default async function TrabajadorDetailPage({ params }: Props) {
             </div>
           )}
         </div>
+
+        {CARGOS_OPERARIO.includes(t.cargo ?? '') && (
+          <ConsolidadoAsistenciaTrabajador trabajadorId={id} />
+        )}
       </div>
     </div>
   )

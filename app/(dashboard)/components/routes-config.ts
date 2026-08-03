@@ -11,6 +11,8 @@ import {
   ShoppingCart,
   BarChart2,
   Wallet,
+  UserCheck,
+  Receipt,
   type LucideIcon,
 } from 'lucide-react'
 import type { Role } from '@/types/api'
@@ -105,6 +107,12 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: ShoppingCart,
         roles: ['administrador', 'gerencia', 'logistica'],
       },
+      {
+        href: '/asistencia',
+        label: 'Asistencia',
+        icon: UserCheck,
+        roles: ['administrador', 'gerencia', 'pdr'],
+      },
     ],
   },
   {
@@ -114,6 +122,12 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/pagos',
         label: 'Pagos',
         icon: Wallet,
+        roles: ['administrador', 'gerencia'],
+      },
+      {
+        href: '/planilla',
+        label: 'Planilla',
+        icon: Receipt,
         roles: ['administrador', 'gerencia'],
       },
     ],

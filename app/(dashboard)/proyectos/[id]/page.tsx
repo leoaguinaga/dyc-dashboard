@@ -10,7 +10,6 @@ import {
   Globe,
   FileText,
   FolderTree,
-  ClipboardCheck,
 } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -20,6 +19,7 @@ import { ProyectoHitosSection } from './components/ProyectoHitosSection'
 import { ProyectoOrdenesCompraSection } from './components/ProyectoOrdenesCompraSection'
 import { ProyectoPagosPendientesSection } from './components/ProyectoPagosPendientesSection'
 import { CierreObraSection } from './components/CierreObraSection'
+import { TomarAsistenciaButton } from './components/TomarAsistenciaButton'
 import type { Proyecto, Trabajador } from '@/types/api'
 
 interface Props {
@@ -114,12 +114,7 @@ export default async function ProyectoDetailPage({ params }: Props) {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <Link href={`/proyectos/${id}/asistencia`}>
-              <Button variant="outline" className="gap-1.5">
-                <ClipboardCheck className="size-3.5" />
-                Tomar asistencia
-              </Button>
-            </Link>
+            <TomarAsistenciaButton proyectoId={id} />
             <Link
               href={`/proyectos/${id}/editar`}
             >
