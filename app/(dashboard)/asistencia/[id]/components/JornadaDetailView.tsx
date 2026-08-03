@@ -131,7 +131,9 @@ export function JornadaDetailView({ turnoId }: Props) {
       {jornada && (
         <>
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">{jornada.proyectoNombre}</h1>
+            <h1 className="text-xl font-semibold tracking-tight">
+              {jornada.proyectoNombre} <span className="text-muted-foreground font-normal">· {jornada.turnoNombre}</span>
+            </h1>
             <p className="text-sm text-muted-foreground">
               {formatFecha(jornada.fecha)} · {formatHora(jornada.horaAperturaReal)} – {formatHora(jornada.horaCierreReal)}{' '}
               <span className={`ml-1 rounded-md px-2 py-0.5 text-xs font-medium ${jornada.estado === 'cerrado' ? 'bg-muted text-muted-foreground' : 'bg-chart-2/15 text-chart-2'}`}>

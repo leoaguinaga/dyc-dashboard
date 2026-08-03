@@ -20,7 +20,7 @@ export function MisProyectosPdrView({ proyectos }: Props) {
   return (
     <div className="space-y-3">
       {proyectos.map((p) => {
-        const jornadaConfigurada = !!p.jornadaInicio && !!p.jornadaFin
+        const jornadaConfigurada = (p.turnoConfigs ?? []).some((c) => c.activo)
         return (
           <div
             key={p.id}

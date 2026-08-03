@@ -103,10 +103,12 @@ export interface Proyecto {
   prevencionistaId?: string;
   prevencionista?: Pick<Trabajador, 'id' | 'nombre' | 'cargo' | 'email' | 'telefono'>;
 
+  // Deprecados en favor de TurnoConfig (soporte multi-turno) — el backend ya no los lee.
   jornadaInicio?: string;
   jornadaFin?: string;
   toleranciaMinutos?: number;
   toleranciaSalidaMinutos?: number;
+  turnoConfigs?: TurnoConfig[];
 
   fechaInicio?: string;
   fechaFin?: string;
@@ -188,9 +190,23 @@ export interface Asistencia {
   pagarExtra: boolean;
 }
 
+export interface TurnoConfig {
+  id: string;
+  proyectoId: string;
+  nombre: string;
+  horaInicio: string;
+  horaFin: string;
+  cruzaMedianoche: boolean;
+  toleranciaMinutos: number;
+  toleranciaSalidaMinutos: number;
+  activo: boolean;
+}
+
 export interface Turno {
   id: string;
   proyectoId: string;
+  turnoConfigId: string;
+  turnoConfig?: Pick<TurnoConfig, 'nombre'>;
   fecha: string;
   estado: EstadoTurno;
   horaAperturaReal: string;
@@ -218,7 +234,7 @@ export interface ObreroAsistencia {
 
 export interface TurnoDetalle extends Turno {
   asistencias: Asistencia[];
-  proyecto: Pick<Proyecto, 'jornadaInicio' | 'jornadaFin' | 'toleranciaMinutos' | 'toleranciaSalidaMinutos'>;
+  turnoConfig: TurnoConfig;
   obreros: ObreroAsistencia[];
 }
 
@@ -289,6 +305,7 @@ export interface Jornada {
   proyectoId: string;
   proyectoNombre: string;
   proyectoCodigo?: string;
+  turnoNombre: string;
   obreros: number;
   horasNormales: number;
   horasExtra: number;
@@ -315,6 +332,7 @@ export interface JornadaDetalle {
   proyectoId: string;
   proyectoNombre: string;
   proyectoCodigo?: string;
+  turnoNombre: string;
   abiertoPor?: Pick<User, 'id' | 'name'>;
   cerradoPor?: Pick<User, 'id' | 'name'>;
   trabajadores: JornadaTrabajador[];

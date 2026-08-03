@@ -3,8 +3,9 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { AsistenciaTurnoView } from '@/components/asistencia/AsistenciaTurnoView'
+import { HorariosRegistradosList } from '@/components/asistencia/HorariosRegistradosList'
 import { hoyLimaISO } from '@/lib/date/fecha-lima'
-import type { Proyecto, Turno, TurnoDetalle } from '@/types/api'
+import type { Proyecto, Turno, TurnoConfig, TurnoDetalle } from '@/types/api'
 
 interface Props {
   params: Promise<{ proyectoId: string }>
@@ -13,9 +14,10 @@ interface Props {
 export default async function AsistenciaTurnoPage({ params }: Props) {
   const { proyectoId } = await params
 
-  const [proyecto, turnos] = await Promise.all([
+  const [proyecto, turnos, horarios] = await Promise.all([
     serverFetch<Proyecto>(`/proyectos/${proyectoId}`).catch(() => null),
     serverFetch<Turno[]>(`/asistencias/proyectos/${proyectoId}/turnos`).catch(() => [] as Turno[]),
+    serverFetch<TurnoConfig[]>(`/asistencias/proyectos/${proyectoId}/turno-configs`).catch(() => [] as TurnoConfig[]),
   ])
   if (!proyecto) notFound()
 
@@ -41,6 +43,13 @@ export default async function AsistenciaTurnoPage({ params }: Props) {
       </div>
 
       <AsistenciaTurnoView proyecto={proyecto} turnoInicial={turnoDetalle} />
+
+      {!turnoHoy && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Horarios registrados</p>
+          <HorariosRegistradosList horarios={horarios} />
+        </div>
+      )}
     </div>
   )
 }

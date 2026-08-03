@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CameraIcon, CheckCircle2Icon, ClockIcon, ImageOffIcon, LogOutIcon, RotateCcwIcon } from 'lucide-react'
 import { api, API_ORIGIN } from '@/lib/api/client'
@@ -24,7 +24,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import type { CierrePreview, EstadoAsistencia, Proyecto, Turno, TurnoDetalle } from '@/types/api'
+import type { CierrePreview, EstadoAsistencia, Proyecto, Turno, TurnoConfig, TurnoDetalle } from '@/types/api'
 
 interface Props {
   proyecto: Proyecto
@@ -103,44 +103,8 @@ function MotivoTags({ motivos, value, onChange }: { motivos: string[]; value: st
 }
 
 export function AsistenciaTurnoView({ proyecto, turnoInicial }: Props) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  if (!proyecto.jornadaInicio || !proyecto.jornadaFin) {
-    return (
-      <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-700">
-        Esta obra no tiene configurada la jornada de asistencia (hora de inicio/fin).{' '}
-        <a href={`/proyectos/${proyecto.id}/editar`} className="underline underline-offset-2">
-          Configúrala en Editar proyecto
-        </a>{' '}
-        antes de tomar asistencia.
-      </div>
-    )
-  }
-
   if (!turnoInicial) {
-    async function abrirTurno() {
-      setLoading(true)
-      setError(null)
-      try {
-        await api.post(`/asistencias/proyectos/${proyecto.id}/turnos`, {})
-        router.refresh()
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al abrir el turno')
-        setLoading(false)
-      }
-    }
-
-    return (
-      <div className="space-y-3 rounded-xl border border-border bg-white p-6 text-center">
-        <p className="text-sm text-muted-foreground">Todavía no se ha abierto el turno de hoy para esta obra.</p>
-        <Button onClick={abrirTurno} disabled={loading}>
-          {loading ? 'Abriendo...' : 'Abrir turno'}
-        </Button>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-      </div>
-    )
+    return <AbrirTurnoCard proyectoId={proyecto.id} />
   }
 
   if (turnoInicial.estado === 'cerrado') {
@@ -155,6 +119,90 @@ export function AsistenciaTurnoView({ proyecto, turnoInicial }: Props) {
   }
 
   return <TurnoAbiertoForm proyectoId={proyecto.id} turno={turnoInicial} />
+}
+
+function AbrirTurnoCard({ proyectoId }: { proyectoId: string }) {
+  const router = useRouter()
+  const [configs, setConfigs] = useState<TurnoConfig[] | null>(null)
+  const [turnoConfigId, setTurnoConfigId] = useState('')
+  const [loadingConfigs, setLoadingConfigs] = useState(true)
+  const [abriendo, setAbriendo] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelado = false
+    async function cargar() {
+      try {
+        const data = await api.get<TurnoConfig[]>(`/asistencias/proyectos/${proyectoId}/turno-configs`)
+        const activos = data.filter((c) => c.activo)
+        if (cancelado) return
+        setConfigs(activos)
+        if (activos.length === 1) setTurnoConfigId(activos[0].id)
+      } catch (err) {
+        if (!cancelado) setError(err instanceof Error ? err.message : 'Error al cargar los turnos de horario')
+      } finally {
+        if (!cancelado) setLoadingConfigs(false)
+      }
+    }
+    void cargar()
+    return () => {
+      cancelado = true
+    }
+  }, [proyectoId])
+
+  async function abrirTurno() {
+    setAbriendo(true)
+    setError(null)
+    try {
+      await api.post(`/asistencias/proyectos/${proyectoId}/turnos`, { turnoConfigId })
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al abrir el turno')
+      setAbriendo(false)
+    }
+  }
+
+  if (loadingConfigs) {
+    return (
+      <div className="rounded-xl border border-border bg-white p-6 text-center text-sm text-muted-foreground">
+        Cargando...
+      </div>
+    )
+  }
+
+  if (!configs || configs.length === 0) {
+    return (
+      <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-700">
+        Esta obra no tiene un turno de horario configurado.{' '}
+        <a href={`/proyectos/${proyectoId}/editar`} className="underline underline-offset-2">
+          Configúralo en Editar proyecto
+        </a>{' '}
+        antes de tomar asistencia.
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3 rounded-xl border border-border bg-white p-6 text-center">
+      <p className="text-sm text-muted-foreground">Todavía no se ha abierto el turno de hoy para esta obra.</p>
+      {configs.length > 1 && (
+        <Select value={turnoConfigId} onValueChange={(v) => setTurnoConfigId(v ?? '')}>
+          <SelectTrigger className="mx-auto w-full max-w-64">
+            <SelectValue placeholder="Selecciona el turno de horario..." />
+          </SelectTrigger>
+          <SelectContent>
+            {configs.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.nombre} ({c.horaInicio}–{c.horaFin})</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+      <Button onClick={abrirTurno} disabled={abriendo || !turnoConfigId}>
+        {abriendo ? 'Abriendo...' : 'Abrir turno'}
+      </Button>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+    </div>
+  )
 }
 
 function EvidenciaYPresenciaGate({ proyectoId, turno }: { proyectoId: string; turno: TurnoDetalle }) {
@@ -427,7 +475,7 @@ function TurnoAbiertoForm({ proyectoId, turno }: { proyectoId: string; turno: Tu
           </span>
         </div>
         <span className="text-xs text-muted-foreground">
-          Jornada {turno.proyecto.jornadaInicio}–{turno.proyecto.jornadaFin}
+          {turno.turnoConfig.nombre} {turno.turnoConfig.horaInicio}–{turno.turnoConfig.horaFin}
         </span>
       </div>
 
@@ -533,7 +581,7 @@ function TurnoAbiertoForm({ proyectoId, turno }: { proyectoId: string; turno: Tu
               {preview && (
                 <>
                   Se detectaron {preview.totalHorasExtra.toFixed(1)}h de horas extra (por encima de la tolerancia de{' '}
-                  {turno.proyecto.toleranciaSalidaMinutos ?? 60} min) para: {preview.trabajadoresAfectados.map((t) => t.nombre).join(', ')}.
+                  {turno.turnoConfig.toleranciaSalidaMinutos} min) para: {preview.trabajadoresAfectados.map((t) => t.nombre).join(', ')}.
                 </>
               )}
             </DialogDescription>
