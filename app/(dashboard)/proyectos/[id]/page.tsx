@@ -19,6 +19,7 @@ import { ProyectoHitosSection } from './components/ProyectoHitosSection'
 import { ProyectoOrdenesCompraSection } from './components/ProyectoOrdenesCompraSection'
 import { ProyectoPagosPendientesSection } from './components/ProyectoPagosPendientesSection'
 import { CierreObraSection } from './components/CierreObraSection'
+import { TomarAsistenciaButton } from './components/TomarAsistenciaButton'
 import type { Proyecto, Trabajador } from '@/types/api'
 
 interface Props {
@@ -112,16 +113,19 @@ export default async function ProyectoDetailPage({ params }: Props) {
               )}
             </div>
           </div>
-          <Link
-            href={`/proyectos/${id}/editar`}
-          >
-            <Button
-              variant="link"
-              className='text-muted-foreground'
+          <div className="flex items-center gap-1">
+            <TomarAsistenciaButton proyectoId={id} />
+            <Link
+              href={`/proyectos/${id}/editar`}
             >
-              Editar proyecto
-            </Button>
-          </Link>
+              <Button
+                variant="link"
+                className='text-muted-foreground'
+              >
+                Editar proyecto
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

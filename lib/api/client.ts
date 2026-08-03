@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3333/api';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3333/api';
 
 // Backend origin without the /api suffix — for static assets (e.g. /uploads/...)
 export const API_ORIGIN = API_URL.replace(/\/api\/?$/, '');

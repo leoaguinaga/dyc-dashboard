@@ -1,10 +1,14 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, HardHat, Mail, Phone, Briefcase, ShieldCheck, ShieldOff, CalendarDays, Pencil, Landmark, CreditCard } from 'lucide-react'
+import { ArrowLeft, HardHat, Mail, Phone, Briefcase, ShieldCheck, ShieldOff, CalendarDays, Pencil, Landmark, CreditCard, Droplet, Shirt, MapPin, PhoneCall, FileBadge } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Trabajador } from '@/types/api'
+import { CATEGORIAS_OBRERO } from '../components/perfil-obrero-constants'
+import { ConsolidadoAsistenciaTrabajador } from './components/ConsolidadoAsistenciaTrabajador'
+
+const CARGOS_OPERARIO = ['Operario', 'Técnico']
 
 interface Props {
   params: Promise<{ id: string }>
@@ -147,6 +151,48 @@ export default async function TrabajadorDetailPage({ params }: Props) {
           )}
         </div>
 
+        {/* Perfil de obrero */}
+        {t.perfilObrero && (
+          <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-3">
+            <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Datos de obrero
+            </h2>
+            <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+              {t.perfilObrero.categoria && (
+                <InfoRow
+                  icon={<HardHat className="size-4" />}
+                  label="Categoría"
+                  value={CATEGORIAS_OBRERO.find((c) => c.value === t.perfilObrero?.categoria)?.label ?? t.perfilObrero.categoria}
+                />
+              )}
+              {t.perfilObrero.precioHora && (
+                <InfoRow icon={<CreditCard className="size-4" />} label="Precio por hora" value={`S/ ${t.perfilObrero.precioHora}`} mono />
+              )}
+              {t.perfilObrero.tipoSangre && (
+                <InfoRow icon={<Droplet className="size-4" />} label="Tipo de sangre" value={t.perfilObrero.tipoSangre} />
+              )}
+              {t.perfilObrero.numeroSctr && (
+                <InfoRow icon={<FileBadge className="size-4" />} label="N° póliza SCTR" value={t.perfilObrero.numeroSctr} mono />
+              )}
+              {t.perfilObrero.contactoEmergenciaNombre && (
+                <InfoRow icon={<PhoneCall className="size-4" />} label="Contacto de emergencia" value={t.perfilObrero.contactoEmergenciaNombre} />
+              )}
+              {t.perfilObrero.contactoEmergenciaTelefono && (
+                <InfoRow icon={<Phone className="size-4" />} label="Teléfono de emergencia" value={t.perfilObrero.contactoEmergenciaTelefono} mono />
+              )}
+              {t.perfilObrero.direccion && (
+                <InfoRow icon={<MapPin className="size-4" />} label="Dirección" value={t.perfilObrero.direccion} />
+              )}
+              {t.perfilObrero.tallaUniforme && (
+                <InfoRow icon={<Shirt className="size-4" />} label="Talla de uniforme" value={t.perfilObrero.tallaUniforme} />
+              )}
+              {t.perfilObrero.tallaCalzado && (
+                <InfoRow icon={<Shirt className="size-4" />} label="Talla de calzado" value={t.perfilObrero.tallaCalzado} />
+              )}
+            </dl>
+          </div>
+        )}
+
         {/* Proyectos asignados */}
         <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-3">
           <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -204,6 +250,10 @@ export default async function TrabajadorDetailPage({ params }: Props) {
             </div>
           )}
         </div>
+
+        {CARGOS_OPERARIO.includes(t.cargo ?? '') && (
+          <ConsolidadoAsistenciaTrabajador trabajadorId={id} />
+        )}
       </div>
     </div>
   )

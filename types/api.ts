@@ -103,6 +103,11 @@ export interface Proyecto {
   prevencionistaId?: string;
   prevencionista?: Pick<Trabajador, 'id' | 'nombre' | 'cargo' | 'email' | 'telefono'>;
 
+  jornadaInicio?: string;
+  jornadaFin?: string;
+  toleranciaMinutos?: number;
+  toleranciaSalidaMinutos?: number;
+
   fechaInicio?: string;
   fechaFin?: string;
   fechaInicioReal?: string;
@@ -132,6 +137,22 @@ export interface ProyectoTrabajador {
   proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'estado'>;
 }
 
+export type CategoriaObrero = 'operario' | 'oficial' | 'peon';
+
+export interface PerfilObrero {
+  id: string;
+  trabajadorId: string;
+  categoria?: CategoriaObrero;
+  precioHora?: string;
+  tipoSangre?: string;
+  contactoEmergenciaNombre?: string;
+  contactoEmergenciaTelefono?: string;
+  direccion?: string;
+  tallaUniforme?: string;
+  tallaCalzado?: string;
+  numeroSctr?: string;
+}
+
 export interface Trabajador {
   id: string;
   nombre: string;
@@ -146,6 +167,240 @@ export interface Trabajador {
   userId?: string;
   user?: Pick<User, 'id' | 'name' | 'email' | 'role'>;
   proyectos?: ProyectoTrabajador[];
+  perfilObrero?: PerfilObrero;
+}
+
+export type EstadoTurno = 'abierto' | 'cerrado';
+export type EstadoAsistencia = 'presente' | 'tardio' | 'falta';
+
+export interface Asistencia {
+  id: string;
+  turnoId: string;
+  trabajadorId: string;
+  estado: EstadoAsistencia;
+  horaLlegadaReal?: string;
+  justificada?: boolean;
+  justificacion?: string;
+  salidaTempranaHora?: string;
+  salidaTempranaMotivo?: string;
+  horasNormales: string;
+  horasExtra: string;
+  pagarExtra: boolean;
+}
+
+export interface Turno {
+  id: string;
+  proyectoId: string;
+  fecha: string;
+  estado: EstadoTurno;
+  horaAperturaReal: string;
+  horaCierreReal?: string;
+  fotoUrl?: string;
+  fotoOmitida: boolean;
+  motivoFotoOmitida?: string;
+  abiertoPorId: string;
+  abiertoPor?: Pick<User, 'id' | 'name'>;
+  cerradoPorId?: string;
+  cerradoPor?: Pick<User, 'id' | 'name'>;
+  corregidoPorId?: string;
+  corregidoPor?: Pick<User, 'id' | 'name'>;
+  corregidoEn?: string;
+  motivoCorreccion?: string;
+}
+
+export interface ObreroAsistencia {
+  trabajadorId: string;
+  nombre: string;
+  dni: string;
+  cargo?: string;
+  asistencia: Asistencia | null;
+}
+
+export interface TurnoDetalle extends Turno {
+  asistencias: Asistencia[];
+  proyecto: Pick<Proyecto, 'jornadaInicio' | 'jornadaFin' | 'toleranciaMinutos' | 'toleranciaSalidaMinutos'>;
+  obreros: ObreroAsistencia[];
+}
+
+export interface CierrePreview {
+  hayExcedente: boolean;
+  trabajadoresAfectados: { trabajadorId: string; nombre: string; horasExtra: number }[];
+  totalHorasExtra: number;
+}
+
+export type TipoVisita = 'staff' | 'staff_oficina';
+
+export interface RegistroVisita {
+  id: string;
+  proyectoId: string;
+  fecha: string;
+  tipo: TipoVisita;
+  trabajadorId?: string;
+  trabajador?: Pick<Trabajador, 'id' | 'nombre' | 'dni' | 'cargo'>;
+  userId?: string;
+  user?: Pick<User, 'id' | 'name' | 'role'>;
+  nombreLibre?: string;
+  motivo?: string;
+  horaEntrada: string;
+  horaSalida?: string;
+  registradoPorId: string;
+  registradoPor?: Pick<User, 'id' | 'name'>;
+}
+
+export interface VisitanteTercero {
+  id: string;
+  visitaTerceroId: string;
+  nombre: string;
+  dni: string;
+  horaEntrada: string;
+  horaSalida?: string;
+}
+
+export interface VisitaTercero {
+  id: string;
+  proyectoId: string;
+  fecha: string;
+  empresaNombre: string;
+  motivo: string;
+  registradoPorId: string;
+  registradoPor?: Pick<User, 'id' | 'name'>;
+  visitantes: VisitanteTercero[];
+}
+
+export type TipoPersonaAcceso = 'operario' | TipoVisita | 'tercero';
+
+export interface AccesoConsolidadoItem {
+  tipo: TipoPersonaAcceso;
+  nombre: string;
+  dni: string | null;
+  empresa: string | null;
+  motivo: string | null;
+  horaEntrada: string | null;
+  horaSalida: string | null;
+  fecha: string;
+  proyectoId: string;
+  proyectoNombre: string;
+}
+
+export interface Jornada {
+  id: string;
+  fecha: string;
+  estado: EstadoTurno;
+  proyectoId: string;
+  proyectoNombre: string;
+  proyectoCodigo?: string;
+  obreros: number;
+  horasNormales: number;
+  horasExtra: number;
+}
+
+export interface JornadaTrabajador {
+  trabajadorId: string;
+  nombre: string;
+  dni: string;
+  estado: EstadoAsistencia;
+  justificada?: boolean;
+  horasNormales: number;
+  horasExtra: number;
+  pagarExtra: boolean;
+  precioHora: number | null;
+}
+
+export interface JornadaDetalle {
+  id: string;
+  fecha: string;
+  estado: EstadoTurno;
+  horaAperturaReal: string;
+  horaCierreReal?: string;
+  proyectoId: string;
+  proyectoNombre: string;
+  proyectoCodigo?: string;
+  abiertoPor?: Pick<User, 'id' | 'name'>;
+  cerradoPor?: Pick<User, 'id' | 'name'>;
+  trabajadores: JornadaTrabajador[];
+  totales: { horasNormales: number; horasExtra: number };
+}
+
+export interface ConsolidadoObraTurno {
+  turnoId: string;
+  fecha: string;
+  estado: EstadoTurno;
+  horasNormales: number;
+  horasExtra: number;
+  obreros: number;
+}
+
+export interface ConsolidadoObraTrabajador {
+  trabajadorId: string;
+  nombre: string;
+  horasNormales: number;
+  horasExtra: number;
+  turnos: number;
+}
+
+export interface ConsolidadoObra {
+  turnos: ConsolidadoObraTurno[];
+  porTrabajador: ConsolidadoObraTrabajador[];
+  totales: { horasNormales: number; horasExtra: number };
+}
+
+export interface PlanillaPreviewTrabajador {
+  trabajadorId: string;
+  nombre: string;
+  precioHora: number | null;
+  horasNormales: number;
+  horasExtraPagable: number;
+  montoNormal: number;
+  montoExtra: number;
+  total: number;
+  sinTarifa: boolean;
+}
+
+export interface ConsolidadoTrabajadorObra {
+  proyectoId: string;
+  proyectoNombre: string;
+  horasNormales: number;
+  horasExtra: number;
+  turnos: { fecha: string; estado: EstadoAsistencia; horasNormales: number; horasExtra: number }[];
+}
+
+export interface ConsolidadoTrabajador {
+  porObra: ConsolidadoTrabajadorObra[];
+  totales: { horasNormales: number; horasExtra: number };
+}
+
+export interface PlanillaPreview {
+  periodo: { desde: string; hasta: string };
+  valorHoraExtra: number;
+  trabajadores: PlanillaPreviewTrabajador[];
+  totalGeneral: number;
+}
+
+export interface PlanillaItem {
+  id: string;
+  planillaId: string;
+  trabajadorId: string;
+  trabajador?: Pick<Trabajador, 'id' | 'nombre'>;
+  horasNormales: string;
+  horasExtraPagable: string;
+  precioHora?: string;
+  montoNormal: string;
+  montoExtra: string;
+  total: string;
+}
+
+export interface Planilla {
+  id: string;
+  proyectoId: string;
+  proyecto?: Pick<Proyecto, 'id' | 'nombre' | 'codigo'>;
+  periodoInicio: string;
+  periodoFin: string;
+  valorHoraExtra: string;
+  totalGeneral: string;
+  generadaPorId: string;
+  generadaPor?: Pick<User, 'id' | 'name'>;
+  generadaEn: string;
+  items?: PlanillaItem[];
 }
 
 export interface ContactoProveedor {

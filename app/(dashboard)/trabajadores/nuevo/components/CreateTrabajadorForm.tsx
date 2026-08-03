@@ -19,6 +19,13 @@ import {
   SelectLabel
 } from '@/components/ui/select'
 import type { Role } from '@/types/api'
+import { PerfilObreroFields } from '../../components/PerfilObreroFields'
+import {
+  OBRERO_CARGOS,
+  perfilObreroInitial,
+  perfilObreroToPayload,
+  type PerfilObreroState,
+} from '../../components/perfil-obrero-constants'
 
 const DOMAIN = '@dycingenieriayproyectos.com'
 
@@ -140,6 +147,8 @@ const sectionTitleCn = 'text-xs font-medium uppercase tracking-wide text-muted-f
 export function CreateTrabajadorForm() {
   const router = useRouter()
   const [form, setForm] = useState<FormState>(initial)
+  const [perfilObrero, setPerfilObrero] = useState<PerfilObreroState>(perfilObreroInitial)
+  const esObrero = OBRERO_CARGOS.includes(form.cargo)
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -204,7 +213,13 @@ export function CreateTrabajadorForm() {
     }
 
     try {
-      await api.post('/trabajadores', payload)
+      const created = await api.post<{ id: string }>('/trabajadores', payload)
+      if (esObrero) {
+        const perfilPayload = perfilObreroToPayload(perfilObrero)
+        if (Object.keys(perfilPayload).length > 0) {
+          await api.patch(`/trabajadores/${created.id}/perfil-obrero`, perfilPayload)
+        }
+      }
       router.push('/trabajadores')
       router.refresh()
     } catch (err) {
@@ -286,6 +301,17 @@ export function CreateTrabajadorForm() {
           </div>
         </div>
       </section>
+
+      {/* Datos de obrero (régimen de construcción civil) */}
+      {esObrero && (
+        <section className="space-y-4">
+          <h2 className={sectionTitleCn}>Datos de obrero</h2>
+          <PerfilObreroFields
+            value={perfilObrero}
+            onChange={(key, value) => setPerfilObrero((prev) => ({ ...prev, [key]: value }))}
+          />
+        </section>
+      )}
 
       {/* Contacto y estado */}
       <section className="space-y-4">
