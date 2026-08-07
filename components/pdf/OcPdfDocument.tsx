@@ -282,8 +282,10 @@ export function OcPdfDocument({ oc }: Props) {
   const detraccionTotal = round1(total * (detraccionPct / 100))
   const netoADepositarTotal = round1(total - detraccionTotal)
 
-  const requerimiento = oc.solicitud.requerimiento
-  const contactoProveedor = oc.proveedor.contactos?.[0]
+  const requerimiento = oc.solicitud?.requerimiento
+  // El PDF solo se exporta para OCs del flujo macro, donde el proveedor siempre está presente.
+  const proveedor = oc.proveedor!
+  const contactoProveedor = proveedor.contactos?.[0]
 
   return (
     <Document
@@ -317,18 +319,18 @@ export function OcPdfDocument({ oc }: Props) {
             <Text style={s.infoBoxTitle}>Señores</Text>
             <View style={s.infoLine}>
               <Text style={s.infoLabel}>Razón social</Text>
-              <Text style={s.infoValue}>{oc.proveedor.razonSocial}</Text>
+              <Text style={s.infoValue}>{proveedor.razonSocial}</Text>
             </View>
-            {oc.proveedor.ruc && (
+            {proveedor.ruc && (
               <View style={s.infoLine}>
                 <Text style={s.infoLabel}>RUC</Text>
-                <Text style={s.infoValue}>{oc.proveedor.ruc}</Text>
+                <Text style={s.infoValue}>{proveedor.ruc}</Text>
               </View>
             )}
-            {oc.proveedor.direccion && (
+            {proveedor.direccion && (
               <View style={s.infoLine}>
                 <Text style={s.infoLabel}>Dirección</Text>
-                <Text style={s.infoValue}>{oc.proveedor.direccion}</Text>
+                <Text style={s.infoValue}>{proveedor.direccion}</Text>
               </View>
             )}
             <View style={s.infoLine}>
@@ -372,7 +374,7 @@ export function OcPdfDocument({ oc }: Props) {
             <View style={s.dividerThin} />
             <View style={s.infoLine}>
               <Text style={s.infoLabel}>Solicitud</Text>
-              <Text style={s.infoValue}>{oc.solicitud.codigo}</Text>
+              <Text style={s.infoValue}>{oc.solicitud?.codigo ?? '—'}</Text>
             </View>
             {requerimiento && (
               <View style={s.infoLine}>
@@ -426,7 +428,7 @@ export function OcPdfDocument({ oc }: Props) {
 
         {/* ── Monto en letras ─────────────────────────────────────────────── */}
         <View style={s.sonRow}>
-          <Text style={s.sonText}>SON: {numeroALetras(total, oc.proveedor.moneda)}</Text>
+          <Text style={s.sonText}>SON: {numeroALetras(total, proveedor.moneda)}</Text>
         </View>
 
         {/* ── Forma de pago (tramos) / Tipo de cambio ──────────────────────── */}
@@ -495,18 +497,18 @@ export function OcPdfDocument({ oc }: Props) {
                 {oc.contactoProveedorTelefono ?? contactoProveedor?.telefono ?? '—'}
               </Text>
             </View>
-            {(oc.proveedor.banco || oc.proveedor.numeroCuenta) && (
+            {(proveedor.banco || proveedor.numeroCuenta) && (
               <View style={s.paymentLine}>
                 <Text style={s.paymentLabel}>Cta / CCI</Text>
                 <Text style={s.paymentValue}>
-                  {oc.proveedor.banco && `${oc.proveedor.banco} · `}
-                  {oc.proveedor.numeroCuenta ?? '—'}
+                  {proveedor.banco && `${proveedor.banco} · `}
+                  {proveedor.numeroCuenta ?? '—'}
                 </Text>
               </View>
             )}
             <View style={s.paymentLine}>
               <Text style={s.paymentLabel}>Moneda</Text>
-              <Text style={s.paymentValue}>{oc.proveedor.moneda ?? 'Soles'}</Text>
+              <Text style={s.paymentValue}>{proveedor.moneda ?? 'Soles'}</Text>
             </View>
             <View style={s.paymentLine}>
               <Text style={s.paymentLabel}>Tiempo de entrega</Text>

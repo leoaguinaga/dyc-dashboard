@@ -42,7 +42,7 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
   if (!oc) notFound()
   const pagos = await serverFetch<Pago[]>(`/pagos/orden/${id}`).catch(() => [])
 
-  const requerimiento = oc.solicitud.requerimiento
+  const requerimiento = oc.solicitud?.requerimiento
 
   return (
     <div className="space-y-6 w-full">
@@ -69,7 +69,7 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
         <OrdenCompraActions oc={oc} />
       </div>
 
-      {oc.estado === 'borrador' && !oc.proveedor.ruc && (
+      {oc.estado === 'borrador' && oc.proveedor && !oc.proveedor.ruc && (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
           El proveedor{' '}
           <Link href={`/proveedores/${oc.proveedorId}`} className="font-medium underline underline-offset-2">
@@ -88,10 +88,14 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
               <div>
                 <dt className="text-muted-foreground mb-0.5">Proveedor</dt>
                 <dd className="font-medium">
-                  <Link href={`/proveedores/${oc.proveedorId}`} className="hover:text-primary transition-colors duration-[120ms]">
-                    {oc.proveedor.razonSocial}
-                  </Link>
-                  {oc.proveedor.ruc && <span className="ml-1.5 font-mono text-xs text-muted-foreground">{oc.proveedor.ruc}</span>}
+                  {oc.proveedor ? (
+                    <Link href={`/proveedores/${oc.proveedorId}`} className="hover:text-primary transition-colors duration-[120ms]">
+                      {oc.proveedor.razonSocial}
+                    </Link>
+                  ) : (
+                    <span>{oc.proveedorNombreLibre ?? '—'}</span>
+                  )}
+                  {oc.proveedor?.ruc && <span className="ml-1.5 font-mono text-xs text-muted-foreground">{oc.proveedor.ruc}</span>}
                 </dd>
               </div>
               <div>
@@ -103,14 +107,16 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
                   </Link>
                 </dd>
               </div>
-              <div>
-                <dt className="text-muted-foreground mb-0.5">Solicitud cotización</dt>
-                <dd>
-                  <Link href={`/cotizaciones/${oc.solicitudId}`} className="font-mono text-sm hover:text-primary transition-colors duration-[120ms]">
-                    {oc.solicitud.codigo}
-                  </Link>
-                </dd>
-              </div>
+              {oc.solicitud && (
+                <div>
+                  <dt className="text-muted-foreground mb-0.5">Solicitud cotización</dt>
+                  <dd>
+                    <Link href={`/cotizaciones/${oc.solicitudId}`} className="font-mono text-sm hover:text-primary transition-colors duration-[120ms]">
+                      {oc.solicitud.codigo}
+                    </Link>
+                  </dd>
+                </div>
+              )}
               {requerimiento && (
                 <div>
                   <dt className="text-muted-foreground mb-0.5">Requerimiento</dt>

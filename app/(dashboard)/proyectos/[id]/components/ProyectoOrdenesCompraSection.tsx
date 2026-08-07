@@ -65,7 +65,7 @@ export async function ProyectoOrdenesCompraSection({ proyectoId }: { proyectoId:
                       {oc.numero}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 font-medium">{oc.proveedor.razonSocial}</td>
+                  <td className="px-4 py-3 font-medium">{oc.proveedor?.razonSocial ?? oc.proveedorNombreLibre}</td>
                   <td className="px-4 py-3 text-right tabular-nums font-medium">
                     {formatCurrency(oc.montoTotal)}
                   </td>

@@ -9,6 +9,7 @@ import {
   FileText,
   Warehouse,
   ShoppingCart,
+  ShoppingBag,
   BarChart2,
   Wallet,
   UserCheck,
@@ -106,6 +107,15 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Órdenes compra',
         icon: ShoppingCart,
         roles: ['administrador', 'gerencia', 'logistica'],
+      },
+      {
+        href: '/compras-simples',
+        label: 'Compras simples',
+        icon: ShoppingBag,
+        roles: [
+          'administrador', 'gerencia', 'logistica',
+          'supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr',
+        ],
       },
       {
         href: '/asistencia',

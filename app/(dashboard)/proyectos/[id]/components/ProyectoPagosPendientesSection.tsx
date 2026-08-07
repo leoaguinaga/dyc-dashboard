@@ -64,7 +64,7 @@ export async function ProyectoPagosPendientesSection({ proyectoId }: { proyectoI
                       {p.ordenCompra.numero}
                     </Link>
                   </td>
-                  <td className="hidden px-4 py-3 font-medium sm:table-cell">{p.ordenCompra.proveedor.razonSocial}</td>
+                  <td className="hidden px-4 py-3 font-medium sm:table-cell">{p.ordenCompra.proveedor?.razonSocial ?? p.ordenCompra.proveedorNombreLibre}</td>
                   <td className="px-4 py-3 text-right tabular-nums font-medium">
                     S/ {Number(p.monto).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
                   </td>

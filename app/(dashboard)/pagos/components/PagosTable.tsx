@@ -63,7 +63,11 @@ export async function PagosTable() {
                   {p.ordenCompra.numero}
                 </Link>
               </td>
-              <td className="px-4 py-3 font-medium">{p.ordenCompra.proveedor.razonSocial}</td>
+              <td className="px-4 py-3 font-medium">
+                {p.tipoBeneficiario === 'trabajador'
+                  ? `Depósito a ${p.beneficiarioTrabajador?.nombre ?? p.ordenCompra.creadoPor.name}`
+                  : (p.ordenCompra.proveedor?.razonSocial ?? p.ordenCompra.proveedorNombreLibre)}
+              </td>
               <td className="px-4 py-3 text-muted-foreground">
                 <Link href={`/proyectos/${p.ordenCompra.proyecto.id}`} className="hover:text-foreground transition-colors duration-[120ms]">
                   {p.ordenCompra.proyecto.codigo ?? p.ordenCompra.proyecto.nombre}
