@@ -29,6 +29,10 @@ export type EstadoOrdenCompra = 'borrador' | 'emitida' | 'recibida_parcial' | 'r
 export type EstadoPago = 'pendiente' | 'pagado' | 'cancelado';
 export type EstadoPagoEfectivo = EstadoPago | 'vencido';
 export type TipoBeneficiario = 'proveedor' | 'trabajador';
+export type OrigenOrdenCompra = 'macro' | 'simple';
+export type EstadoAprobacionCompra = 'pendiente' | 'aprobada_tecnico' | 'aprobada' | 'observada';
+export type DestinoPago = 'empresa' | 'trabajador';
+export type MetodoPagoTrabajador = 'registrado' | 'transferencia' | 'yape' | 'plin';
 
 export interface User {
   id: string;
@@ -647,14 +651,34 @@ export interface OrdenCompra {
   id: string;
   numero: string;
   nombre?: string | null;
-  solicitudId: string;
-  solicitud: Pick<SolicitudCotizacion, 'id' | 'codigo' | 'estado'> & {
+  solicitudId?: string | null;
+  solicitud?: (Pick<SolicitudCotizacion, 'id' | 'codigo' | 'estado'> & {
     requerimiento?: Pick<Requerimiento, 'id' | 'codigo' | 'tipo'> | null;
-  };
-  proveedorId: string;
-  proveedor: Pick<Proveedor, 'id' | 'razonSocial' | 'ruc' | 'direccion' | 'banco' | 'numeroCuenta' | 'moneda' | 'condicionPago'> & {
+  }) | null;
+  proveedorId?: string | null;
+  proveedor?: (Pick<Proveedor, 'id' | 'razonSocial' | 'ruc' | 'direccion' | 'banco' | 'numeroCuenta' | 'moneda' | 'condicionPago'> & {
     contactos?: Pick<ContactoProveedor, 'nombre' | 'telefono'>[];
-  };
+  }) | null;
+  proveedorNombreLibre?: string | null;
+  origen: OrigenOrdenCompra;
+  compraSimpleId?: string | null;
+  estadoAprobacion?: EstadoAprobacionCompra | null;
+  aprobadoPorId?: string | null;
+  aprobadoPor?: Pick<User, 'id' | 'name'> | null;
+  aprobadoEn?: string | null;
+  notaAprobacion?: string | null;
+  historial?: CompraSimpleGrupoHistorial[];
+  destinoPago?: DestinoPago | null;
+  pagoBanco?: string | null;
+  pagoNumeroCuenta?: string | null;
+  pagoRazonSocial?: string | null;
+  pagoMetodo?: MetodoPagoTrabajador | null;
+  pagoTrabajadorBanco?: string | null;
+  pagoTrabajadorNumeroCuenta?: string | null;
+  pagoTrabajadorNumero?: string | null;
+  pagoTrabajadorId?: string | null;
+  pagoTrabajador?: Pick<Trabajador, 'id' | 'nombre'> | null;
+  archivos?: CompraSimpleGrupoArchivo[];
   proyectoId: string;
   proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'> & { direccion?: string | null };
   estado: EstadoOrdenCompra;
@@ -686,14 +710,55 @@ export interface OrdenCompra {
   _count?: { items: number };
 }
 
+export interface CompraSimple {
+  id: string;
+  codigo: string;
+  nombre: string;
+  tipo: TipoRequerimiento;
+  urgente: boolean;
+  proyectoId: string;
+  proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'>;
+  creadoPorId: string;
+  creadoPor: Pick<User, 'id' | 'name' | 'email' | 'role'>;
+  nota?: string | null;
+  creadoEn: string;
+  actualizadoEn: string;
+  grupos: OrdenCompra[];
+}
+
+export interface CompraSimpleGrupoArchivo {
+  id: string;
+  grupoId: string;
+  url: string;
+  nombreOriginal: string;
+  mimeType: string;
+  subidoPorId: string;
+  subidoPor: Pick<User, 'id' | 'name'>;
+  creadoEn: string;
+}
+
+export interface CompraSimpleGrupoHistorial {
+  id: string;
+  grupoId: string;
+  estado: EstadoAprobacionCompra;
+  nota?: string | null;
+  actorId?: string | null;
+  actor?: Pick<User, 'id' | 'name' | 'role'> | null;
+  actorRole?: Role;
+  creadoEn: string;
+}
+
 export interface Pago {
   id: string;
   ordenCompraId: string;
-  ordenCompra: Pick<OrdenCompra, 'id' | 'numero' | 'montoTotal'> & {
-    proveedor: Pick<Proveedor, 'id' | 'razonSocial'>;
+  ordenCompra: Pick<OrdenCompra, 'id' | 'numero' | 'montoTotal' | 'proveedorNombreLibre'> & {
+    proveedor: Pick<Proveedor, 'id' | 'razonSocial'> | null;
     proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'>;
+    creadoPor: Pick<User, 'id' | 'name'>;
   };
   tipoBeneficiario: TipoBeneficiario;
+  beneficiarioTrabajadorId?: string | null;
+  beneficiarioTrabajador?: Pick<Trabajador, 'id' | 'nombre'> | null;
   monto: string;
   porcentaje: string;
   fechaProgramada: string;

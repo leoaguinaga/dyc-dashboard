@@ -54,10 +54,10 @@ export function OrdenesCompraTableClient({ ordenes }: Props) {
         (oc) =>
           oc.numero.toLowerCase().includes(q) ||
           oc.nombre?.toLowerCase().includes(q) ||
-          oc.proveedor.razonSocial.toLowerCase().includes(q) ||
+          oc.proveedor?.razonSocial.toLowerCase().includes(q) ||
           oc.proyecto.nombre.toLowerCase().includes(q) ||
           oc.proyecto.codigo?.toLowerCase().includes(q) ||
-          oc.solicitud.codigo.toLowerCase().includes(q),
+          oc.solicitud?.codigo.toLowerCase().includes(q),
       )
     }
     return result
@@ -129,16 +129,18 @@ export function OrdenesCompraTableClient({ ordenes }: Props) {
                       {oc.nombre && <span className="block text-xs text-muted-foreground">{oc.nombre}</span>}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 font-medium">{oc.proveedor.razonSocial}</td>
+                  <td className="px-4 py-3 font-medium">{oc.proveedor?.razonSocial ?? oc.proveedorNombreLibre}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     <Link href={`/proyectos/${oc.proyectoId}`} className="hover:text-foreground transition-colors duration-[120ms]">
                       {oc.proyecto.codigo ?? oc.proyecto.nombre}
                     </Link>
                   </td>
                   <td className="px-4 py-3">
-                    <Link href={`/cotizaciones/${oc.solicitudId}`} className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors duration-[120ms]">
-                      {oc.solicitud.codigo}
-                    </Link>
+                    {oc.solicitud && (
+                      <Link href={`/cotizaciones/${oc.solicitudId}`} className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors duration-[120ms]">
+                        {oc.solicitud.codigo}
+                      </Link>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums font-medium">
                     {formatCurrency(oc.montoTotal)}
