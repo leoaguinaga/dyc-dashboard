@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { PagosKpis } from './components/PagosKpis'
-import { PagosTable } from './components/PagosTable'
+import { PagosViewLoader } from './components/PagosViewLoader'
 
 function KpisSkeleton() {
   return (
@@ -29,7 +29,7 @@ export default function PagosPage() {
         <PagosKpis />
       </Suspense>
       <Suspense fallback={<TableSkeleton />}>
-        <PagosTable />
+        <PagosViewLoader />
       </Suspense>
     </div>
   )
