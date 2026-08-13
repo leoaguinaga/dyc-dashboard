@@ -21,6 +21,7 @@ interface Props {
   proyectoId: string
   initialHitos: Hito[]
   trabajadores: Trabajador[]
+  canEdit: boolean
 }
 
 type FormState = {
@@ -48,7 +49,7 @@ function fmt(iso?: string) {
   return new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-export function ProyectoHitosSection({ proyectoId, initialHitos, trabajadores }: Props) {
+export function ProyectoHitosSection({ proyectoId, initialHitos, trabajadores, canEdit }: Props) {
   const [hitos, setHitos] = useState<Hito[]>(initialHitos)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<FormState>({
@@ -122,7 +123,7 @@ export function ProyectoHitosSection({ proyectoId, initialHitos, trabajadores }:
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Hitos del proyecto ({hitos.length})
         </h2>
-        {!showForm && (
+        {canEdit && !showForm && (
           <button
             type="button"
             onClick={() => setShowForm(true)}
@@ -134,7 +135,7 @@ export function ProyectoHitosSection({ proyectoId, initialHitos, trabajadores }:
         )}
       </div>
 
-      {showForm && (
+      {canEdit && showForm && (
         <form
           onSubmit={handleCreate}
           className="rounded-lg border border-border bg-muted/30 p-4 space-y-3 animate-in fade-in-0 slide-in-from-top-1 duration-[150ms]"
@@ -219,13 +220,15 @@ export function ProyectoHitosSection({ proyectoId, initialHitos, trabajadores }:
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-8 text-center">
           <Target className="size-8 text-muted-foreground/30" />
           <p className="mt-2 text-sm text-muted-foreground">Sin hitos registrados</p>
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="mt-2 text-xs text-primary hover:underline underline-offset-2"
-          >
-            Agregar el primero
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setShowForm(true)}
+              className="mt-2 text-xs text-primary hover:underline underline-offset-2"
+            >
+              Agregar el primero
+            </button>
+          )}
         </div>
       )}
 
@@ -261,24 +264,30 @@ export function ProyectoHitosSection({ proyectoId, initialHitos, trabajadores }:
                     {hito.responsable?.nombre ?? '—'}
                   </td>
                   <td className="px-4 py-3">
-                    <Select
-                      value={hito.cumplimiento}
-                      onValueChange={(v) => v && handleToggleCumplimiento(hito, v as CumplimientoHito)}
-                    >
-                      <SelectTrigger className="h-7 w-auto border-none bg-transparent p-0 shadow-none">
-                        <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', CUMPLIMIENTO_STYLES[hito.cumplimiento])}>
-                          {CUMPLIMIENTO_LABELS[hito.cumplimiento]}
-                        </span>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="programado">Programado</SelectItem>
-                        <SelectItem value="si">Cumplido</SelectItem>
-                        <SelectItem value="no">No cumplido</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {canEdit ? (
+                      <Select
+                        value={hito.cumplimiento}
+                        onValueChange={(v) => v && handleToggleCumplimiento(hito, v as CumplimientoHito)}
+                      >
+                        <SelectTrigger className="h-7 w-auto border-none bg-transparent p-0 shadow-none">
+                          <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', CUMPLIMIENTO_STYLES[hito.cumplimiento])}>
+                            {CUMPLIMIENTO_LABELS[hito.cumplimiento]}
+                          </span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="programado">Programado</SelectItem>
+                          <SelectItem value="si">Cumplido</SelectItem>
+                          <SelectItem value="no">No cumplido</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', CUMPLIMIENTO_STYLES[hito.cumplimiento])}>
+                        {CUMPLIMIENTO_LABELS[hito.cumplimiento]}
+                      </span>
+                    )}
                   </td>
                   <td className="px-2 py-3">
-                    {confirmId === hito.id ? (
+                    {canEdit && (confirmId === hito.id ? (
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
@@ -307,7 +316,7 @@ export function ProyectoHitosSection({ proyectoId, initialHitos, trabajadores }:
                       >
                         <Trash2 className="size-3.5" />
                       </button>
-                    )}
+                    ))}
                   </td>
                 </tr>
               ))}

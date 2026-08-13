@@ -24,7 +24,7 @@ export function ReferenciaConceptoEditor({ ocId, oc }: Props) {
   const [err, setErr] = useState<string | null>(null)
 
   const role = session?.user?.role
-  const canEdit = role === 'administrador' || role === 'logistica'
+  const canEdit = role === 'administrador' || role === 'logistica' || role === 'gerencia'
 
   async function save() {
     setSaving(true)

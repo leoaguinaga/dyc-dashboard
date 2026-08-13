@@ -4,10 +4,16 @@ import { serverFetch } from '@/lib/api/server'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ProyectosTableClient } from './ProyectosTableClient'
-import type { Proyecto } from '@/types/api'
+import type { Proyecto, User } from '@/types/api'
+
+const CON_ACCESO_CREACION = ['administrador', 'gerencia']
 
 export async function ProyectosTable() {
-  const result = await serverFetch<Proyecto[]>('/proyectos').catch((e: Error) => e)
+  const [result, user] = await Promise.all([
+    serverFetch<Proyecto[]>('/proyectos').catch((e: Error) => e),
+    serverFetch<User>('/users/me').catch(() => null),
+  ])
+  const puedeCrear = !!user?.role && CON_ACCESO_CREACION.includes(user.role)
 
   if (result instanceof Error) {
     const is403 = result.message.includes('403')
@@ -34,10 +40,12 @@ export async function ProyectosTable() {
         <p className="mt-1 text-sm text-muted-foreground">
           Crea el primer proyecto para comenzar
         </p>
-        <Link href="/proyectos/nuevo" className={cn(buttonVariants(), 'mt-4')}>
-          <Plus className="size-4" />
-          Primer proyecto
-        </Link>
+        {puedeCrear && (
+          <Link href="/proyectos/nuevo" className={cn(buttonVariants(), 'mt-4')}>
+            <Plus className="size-4" />
+            Primer proyecto
+          </Link>
+        )}
       </div>
     )
   }

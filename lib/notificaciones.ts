@@ -9,6 +9,8 @@ export function entidadHref(n: Notificacion): string | null {
       return `/cotizaciones/${n.entidadId}`
     case 'OrdenCompra':
       return `/ordenes-compra/${n.entidadId}`
+    case 'CompraSimple':
+      return `/compras-simples/${n.entidadId}`
     case 'Pago':
       return '/pagos'
     default:

@@ -6,16 +6,21 @@ import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { cn, formatDateOnly } from '@/lib/utils'
+import { useSession } from '@/lib/auth/session'
 import type { Proyecto } from '@/types/api'
 
 type EstadoFilter = 'todos' | Proyecto['estado']
 type AmbitoFilter = 'todos' | 'nacional' | 'internacional'
+
+const CON_ACCESO_CREACION = ['administrador', 'gerencia']
 
 interface Props {
   proyectos: Proyecto[]
 }
 
 export function ProyectosTableClient({ proyectos }: Props) {
+  const { data: session } = useSession()
+  const puedeCrear = !!session?.user?.role && CON_ACCESO_CREACION.includes(session.user.role)
   const [search, setSearch] = useState('')
   const [estado, setEstado] = useState<EstadoFilter>('todos')
   const [ambito, setAmbito] = useState<AmbitoFilter>('todos')
@@ -154,12 +159,14 @@ export function ProyectosTableClient({ proyectos }: Props) {
             </SelectContent>
           </Select>
         )}
-        <Link href="/proyectos/nuevo">
-          <Button>
-            <Plus className='size-4' />
-            Registrar Proyecto
-          </Button>
-        </Link>
+        {puedeCrear && (
+          <Link href="/proyectos/nuevo">
+            <Button>
+              <Plus className='size-4' />
+              Registrar Proyecto
+            </Button>
+          </Link>
+        )}
       </div>
       {/* Table */}
       {filtered.length === 0 ? (

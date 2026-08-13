@@ -47,7 +47,7 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
     role === 'administrador' || r.creadoPorId === session?.user?.id
   )
   const canAprobarObservar = r.estado === 'enviado' && approvers.includes(role!)
-  const canCrearCotizacion = r.estado === 'aprobado' && (role === 'logistica' || role === 'administrador')
+  const canCrearCotizacion = r.estado === 'aprobado' && (role === 'logistica' || role === 'administrador' || role === 'gerencia')
   const canExportarPDF = r.estado === 'aprobado'
 
   const FLUJO_STEPS: { estado: string; label: string }[] = [

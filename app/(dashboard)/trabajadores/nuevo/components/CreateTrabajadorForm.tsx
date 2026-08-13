@@ -59,6 +59,9 @@ function generatePassword(): string {
 
 const ROLES: { value: Role; label: string }[] = [
   { value: 'supervisor', label: 'Supervisor' },
+  { value: 'supervisor_civil', label: 'Supervisor Civil' },
+  { value: 'supervisor_electrico', label: 'Supervisor Eléctrico' },
+  { value: 'pdr', label: 'PDR' },
   { value: 'ing_civil', label: 'Ing. Civil' },
   { value: 'ing_electrico', label: 'Ing. Eléctrico' },
   { value: 'jefe_sig', label: 'Jefe SIG' },

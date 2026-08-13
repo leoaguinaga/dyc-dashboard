@@ -15,6 +15,7 @@ import { serverFetch } from '@/lib/api/server'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ProyectoTrabajadoresSection } from './components/ProyectoTrabajadoresSection'
+import { ProyectoSupervisoresSection } from './components/ProyectoSupervisoresSection'
 import { ProyectoHitosSection } from './components/ProyectoHitosSection'
 import { ProyectoOrdenesCompraSection } from './components/ProyectoOrdenesCompraSection'
 import { ProyectoPagosPendientesSection } from './components/ProyectoPagosPendientesSection'
@@ -22,7 +23,7 @@ import { CierreObraSection } from './components/CierreObraSection'
 import { TomarAsistenciaButton } from './components/TomarAsistenciaButton'
 import type { Proyecto, Role, Trabajador, User } from '@/types/api'
 
-const SIN_ACCESO_EDICION: Role[] = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr']
+const CON_ACCESO_EDICION: Role[] = ['administrador', 'gerencia']
 
 interface Props {
   params: Promise<{ id: string }>
@@ -70,7 +71,14 @@ export default async function ProyectoDetailPage({ params }: Props) {
   }
 
   const o = result
-  const puedeEditar = !user || !SIN_ACCESO_EDICION.includes(user.role)
+  const puedeEditar = !!user && CON_ACCESO_EDICION.includes(user.role)
+  const puedeAsignarSupervisores = user?.role === 'administrador' || user?.role === 'gerencia'
+  // Debe coincidir con @Roles de POST/DELETE .../proyectos/:id/trabajadores
+  const puedeAsignarTrabajadores =
+    user?.role === 'administrador' || user?.role === 'gerencia' || user?.role === 'logistica'
+  const usuarios = puedeAsignarSupervisores
+    ? await serverFetch<User[]>('/users').catch(() => [] as User[])
+    : []
 
   return (
     <div className="space-y-3">
@@ -268,6 +276,7 @@ export default async function ProyectoDetailPage({ params }: Props) {
           proyectoId={o.id}
           initialHitos={o.hitos ?? []}
           trabajadores={trabajadores}
+          canEdit={puedeEditar}
         />
 
         {/* Trabajadores */}
@@ -275,7 +284,17 @@ export default async function ProyectoDetailPage({ params }: Props) {
           proyectoId={o.id}
           initialItems={o.trabajadores ?? []}
           todos={trabajadores}
+          canEdit={puedeAsignarTrabajadores}
         />
+
+        {/* Supervisores */}
+        {puedeAsignarSupervisores && (
+          <ProyectoSupervisoresSection
+            proyectoId={o.id}
+            initialItems={o.supervisores ?? []}
+            usuarios={usuarios}
+          />
+        )}
 
         {/* Órdenes de compra */}
         <ProyectoOrdenesCompraSection proyectoId={o.id} />
