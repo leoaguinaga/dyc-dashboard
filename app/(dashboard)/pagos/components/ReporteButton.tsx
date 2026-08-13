@@ -32,13 +32,19 @@ function fechaConBarras(fecha: string) {
   return fecha.replaceAll('-', '/')
 }
 
+function horaParaArchivo() {
+  return new Date()
+    .toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false })
+    .replace(':', '')
+}
+
 async function obtenerPng(tipo: 'pendientes' | 'pagados', fecha: string) {
   const res = await fetch(`${API_URL}/pagos/reporte.png?fecha=${fecha}&tipo=${tipo}`, {
     credentials: 'include',
   })
   if (!res.ok) throw new Error('No se pudo generar el reporte')
   const blob = await res.blob()
-  const filename = `pagos-${tipo}-${fecha}.png`
+  const filename = `pagos-${tipo}-${fechaConBarras(fecha)}-${horaParaArchivo()}.png`
   return { blob, filename }
 }
 
