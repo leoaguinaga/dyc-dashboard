@@ -5,7 +5,7 @@ import { CreateRequerimientoForm } from './components/CreateRequerimientoForm'
 import type { Proyecto } from '@/types/api'
 
 export default async function NuevoRequerimientoPage() {
-  const proyectos = await serverFetch<Proyecto[]>('/proyectos').catch(() => [] as Proyecto[])
+  const proyectos = await serverFetch<Proyecto[]>('/proyectos?todos=1').catch(() => [] as Proyecto[])
 
   return (
     <div className="space-y-4">

@@ -26,7 +26,7 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
   const router = useRouter()
 
   const role = session?.user?.role
-  const canAct = role === 'administrador' || role === 'logistica'
+  const canAct = role === 'administrador' || role === 'logistica' || role === 'gerencia'
 
   const received = cotizaciones.filter((c) => c.items.length > 0)
 

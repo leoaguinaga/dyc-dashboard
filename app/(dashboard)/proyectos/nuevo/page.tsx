@@ -1,15 +1,21 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { CreateProyectoForm } from './components/CreateProyectoForm'
-import type { Cliente, Proyecto, Trabajador } from '@/types/api'
+import type { Cliente, Proyecto, Trabajador, User } from '@/types/api'
+
+const CON_ACCESO_CREACION = ['administrador', 'gerencia']
 
 export default async function NuevoProyectoPage() {
-  const [clientes, trabajadores, proyectos] = await Promise.all([
+  const [clientes, trabajadores, proyectos, user] = await Promise.all([
     serverFetch<Cliente[]>('/clientes').catch(() => [] as Cliente[]),
     serverFetch<Trabajador[]>('/trabajadores').catch(() => [] as Trabajador[]),
     serverFetch<Proyecto[]>('/proyectos').catch(() => [] as Proyecto[]),
+    serverFetch<User>('/users/me').catch(() => null),
   ])
+
+  if (!user || !CON_ACCESO_CREACION.includes(user.role)) redirect('/proyectos')
 
   return (
     <div className="space-y-6">

@@ -5,7 +5,11 @@ import Link from 'next/link'
 import { Plus, Search, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useSession } from '@/lib/auth/session'
 import type { CompraSimple, TipoRequerimiento } from '@/types/api'
+
+// Debe coincidir con ROLES_CREACION en compras-simples.service.ts
+const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador']
 
 const TIPO_LABEL: Record<TipoRequerimiento, string> = {
   civil: 'Civil',
@@ -44,6 +48,8 @@ interface Props {
 }
 
 export function ComprasSimplesTableClient({ compras }: Props) {
+  const { data: session } = useSession()
+  const puedeCrear = !!session?.user?.role && CON_ACCESO_CREACION.includes(session.user.role)
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() => {
@@ -71,12 +77,14 @@ export function ComprasSimplesTableClient({ compras }: Props) {
             className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
           />
         </div>
-        <Link href="/compras-simples/nueva">
-          <Button>
-            <Plus className="size-4" />
-            Nueva compra simple
-          </Button>
-        </Link>
+        {puedeCrear && (
+          <Link href="/compras-simples/nueva">
+            <Button>
+              <Plus className="size-4" />
+              Nueva compra simple
+            </Button>
+          </Link>
+        )}
       </div>
 
       {filtered.length === 0 ? (

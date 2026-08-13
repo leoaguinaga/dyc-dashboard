@@ -5,7 +5,7 @@ import { serverFetch } from '@/lib/api/server'
 import { EditProyectoForm } from './components/EditProyectoForm'
 import type { Cliente, Proyecto, Role, Trabajador, User } from '@/types/api'
 
-const SIN_ACCESO_EDICION: Role[] = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr']
+const CON_ACCESO_EDICION: Role[] = ['administrador', 'gerencia']
 
 interface Props {
   params: Promise<{ id: string }>
@@ -22,7 +22,7 @@ export default async function EditarProyectoPage({ params }: Props) {
     serverFetch<User>('/users/me').catch(() => null),
   ])
 
-  if (user && SIN_ACCESO_EDICION.includes(user.role)) redirect(`/proyectos/${id}`)
+  if (!user || !CON_ACCESO_EDICION.includes(user.role)) redirect(`/proyectos/${id}`)
 
   if (result instanceof Error) {
     if (result.message.includes('404')) notFound()

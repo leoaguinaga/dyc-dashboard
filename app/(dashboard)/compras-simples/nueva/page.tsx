@@ -1,14 +1,21 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { CreateCompraSimpleForm } from './components/CreateCompraSimpleForm'
-import type { Proyecto, Proveedor } from '@/types/api'
+import type { Proyecto, Proveedor, User } from '@/types/api'
+
+// Debe coincidir con ROLES_CREACION en compras-simples.service.ts
+const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador']
 
 export default async function NuevaCompraSimplePage() {
-  const [proyectos, proveedores] = await Promise.all([
-    serverFetch<Proyecto[]>('/proyectos').catch(() => [] as Proyecto[]),
+  const [proyectos, proveedores, user] = await Promise.all([
+    serverFetch<Proyecto[]>('/proyectos?todos=1').catch(() => [] as Proyecto[]),
     serverFetch<Proveedor[]>('/proveedores').catch(() => [] as Proveedor[]),
+    serverFetch<User>('/users/me').catch(() => null),
   ])
+
+  if (!user || !CON_ACCESO_CREACION.includes(user.role)) redirect('/compras-simples')
 
   return (
     <div className="space-y-4">

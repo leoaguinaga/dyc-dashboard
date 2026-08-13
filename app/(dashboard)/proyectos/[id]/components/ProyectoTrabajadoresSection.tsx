@@ -16,6 +16,7 @@ interface Props {
   proyectoId: string
   initialItems: AsigItem[]
   todos: Trabajador[]
+  canEdit: boolean
 }
 
 type FormState = {
@@ -29,7 +30,7 @@ function fmt(iso?: string) {
   return new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }: Props) {
+export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos, canEdit }: Props) {
   const [items, setItems] = useState<AsigItem[]>(initialItems)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<FormState>({ trabajadorIds: [], fechaIngreso: '', fechaSalida: '' })
@@ -90,7 +91,7 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Operadores en proyecto ({items.length})
         </h2>
-        {!showForm && (
+        {canEdit && !showForm && (
           <button
             type="button"
             onClick={() => setShowForm(true)}
@@ -102,7 +103,7 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
         )}
       </div>
 
-      {showForm && (
+      {canEdit && showForm && (
         <form
           onSubmit={handleAsignar}
           className="rounded-lg border border-border bg-muted/30 p-4 space-y-3 animate-in fade-in-0 slide-in-from-top-1 duration-150"
@@ -174,13 +175,15 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-8 text-center">
           <HardHat className="size-8 text-muted-foreground/30" />
           <p className="mt-2 text-sm text-muted-foreground">Sin trabajadores asignados</p>
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="mt-2 text-xs text-primary hover:underline underline-offset-2"
-          >
-            Asignar el primero
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setShowForm(true)}
+              className="mt-2 text-xs text-primary hover:underline underline-offset-2"
+            >
+              Asignar el primero
+            </button>
+          )}
         </div>
       )}
 
@@ -226,7 +229,7 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
                       : <span className="text-chart-2">Activo</span>}
                   </td>
                   <td className="px-2 py-3">
-                    {confirmId === asig.id ? (
+                    {canEdit && (confirmId === asig.id ? (
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
@@ -255,7 +258,7 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos }:
                       >
                         <Trash2 className="size-3.5" />
                       </button>
-                    )}
+                    ))}
                   </td>
                 </tr>
               ))}

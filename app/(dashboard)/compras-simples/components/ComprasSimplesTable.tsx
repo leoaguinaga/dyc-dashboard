@@ -4,10 +4,17 @@ import { serverFetch } from '@/lib/api/server'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ComprasSimplesTableClient } from './ComprasSimplesTableClient'
-import type { CompraSimple } from '@/types/api'
+import type { CompraSimple, User } from '@/types/api'
+
+// Debe coincidir con ROLES_CREACION en compras-simples.service.ts
+const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador']
 
 export async function ComprasSimplesTable() {
-  const result = await serverFetch<CompraSimple[]>('/compras-simples').catch((e: Error) => e)
+  const [result, user] = await Promise.all([
+    serverFetch<CompraSimple[]>('/compras-simples').catch((e: Error) => e),
+    serverFetch<User>('/users/me').catch(() => null),
+  ])
+  const puedeCrear = !!user?.role && CON_ACCESO_CREACION.includes(user.role)
 
   if (result instanceof Error) {
     return (
@@ -27,10 +34,12 @@ export async function ComprasSimplesTable() {
         <p className="mt-1 text-sm text-muted-foreground">
           Registra una compra ya cotizada o realizada en campo
         </p>
-        <Link href="/compras-simples/nueva" className={cn(buttonVariants(), 'mt-4')}>
-          <Plus className="size-4" />
-          Nueva compra simple
-        </Link>
+        {puedeCrear && (
+          <Link href="/compras-simples/nueva" className={cn(buttonVariants(), 'mt-4')}>
+            <Plus className="size-4" />
+            Nueva compra simple
+          </Link>
+        )}
       </div>
     )
   }

@@ -7,11 +7,14 @@ import { InviteProveedorForm } from './components/InviteProveedorForm'
 import { CotizacionesTabs } from './components/CotizacionesTabs'
 import { AdjudicacionMatrix } from './components/AdjudicacionMatrix'
 import { SolicitudActions } from './components/SolicitudActions'
-import type { SolicitudCotizacion, Proveedor, EstadoSolicitud, OrdenCompra } from '@/types/api'
+import type { SolicitudCotizacion, Proveedor, EstadoSolicitud, OrdenCompra, User } from '@/types/api'
 
 interface Props {
   params: Promise<{ id: string }>
 }
+
+// Debe coincidir con @Roles del endpoint PATCH .../cotizaciones/:id/aprobar
+const CON_ACCESO_APROBAR_COTIZACION = ['administrador', 'gerencia']
 
 const ESTADO_LABEL: Record<EstadoSolicitud, string> = {
   borrador: 'Borrador',
@@ -40,9 +43,10 @@ function fmt(iso: string) {
 export default async function SolicitudDetailPage({ params }: Props) {
   const { id } = await params
 
-  const [solicitud, proveedores] = await Promise.all([
+  const [solicitud, proveedores, user] = await Promise.all([
     serverFetch<SolicitudCotizacion>(`/solicitudes-cotizacion/${id}`).catch((e: Error) => e),
     serverFetch<Proveedor[]>('/proveedores').catch(() => [] as Proveedor[]),
+    serverFetch<User>('/users/me').catch(() => null),
   ])
 
   if (solicitud instanceof Error) {
@@ -53,7 +57,8 @@ export default async function SolicitudDetailPage({ params }: Props) {
   const s = solicitud
   const proveedoresInvitados = s.cotizaciones.map((c) => c.proveedorId)
   const puedeInvitar = s.estado !== 'aprobada_gerencia' && s.estado !== 'cancelada'
-  const puedeAprobar = s.estado === 'cotizada'
+  const puedeAprobar = s.estado === 'cotizada' &&
+    !!user?.role && CON_ACCESO_APROBAR_COTIZACION.includes(user.role)
   const receivedCotizaciones = s.cotizaciones.filter((c) => c.items.length > 0)
   const mostrarMatrix = receivedCotizaciones.length > 0 &&
     ['cotizada', 'seleccionada', 'aprobada_solicitante', 'aprobada_gerencia'].includes(s.estado)

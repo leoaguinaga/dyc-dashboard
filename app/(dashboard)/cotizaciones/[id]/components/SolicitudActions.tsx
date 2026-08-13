@@ -15,7 +15,7 @@ const TRANSICION: Partial<Record<EstadoSolicitud, { label: string; endpoint: str
   seleccionada: {
     label: 'Aprobar (solicitante)',
     endpoint: 'aprobar-solicitante',
-    rolesPermitidos: ['administrador', 'logistica'],
+    rolesPermitidos: ['administrador', 'logistica', 'gerencia'],
   },
   aprobada_solicitante: {
     label: 'Aprobar gerencia',
@@ -33,8 +33,9 @@ export function SolicitudActions({ solicitud }: Props) {
   const role = session?.user?.role
 
   const accion = TRANSICION[solicitud.estado]
+  // Debe coincidir con @Roles del endpoint POST .../cancelar
   const puedeCancelar =
-    role === 'administrador' &&
+    (role === 'administrador' || role === 'logistica' || role === 'gerencia') &&
     solicitud.estado !== 'aprobada_gerencia' &&
     solicitud.estado !== 'cancelada'
 

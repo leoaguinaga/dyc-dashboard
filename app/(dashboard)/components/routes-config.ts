@@ -115,6 +115,7 @@ export const NAV_GROUPS: NavGroup[] = [
         roles: [
           'administrador', 'gerencia', 'logistica',
           'supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr',
+          'ing_civil', 'ing_electrico', 'jefe_sig',
         ],
       },
       {

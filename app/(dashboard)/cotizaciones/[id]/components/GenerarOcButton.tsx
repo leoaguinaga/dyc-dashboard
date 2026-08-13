@@ -19,7 +19,7 @@ export function GenerarOcButton({ solicitudId }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   const role = session?.user?.role
-  if (role !== 'administrador' && role !== 'logistica') return null
+  if (role !== 'administrador' && role !== 'logistica' && role !== 'gerencia') return null
 
   async function generar() {
     setLoading(true)
