@@ -179,7 +179,7 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
                 {canManage && (
                   <td className="px-2 py-3">
                     {(p.estado === 'pendiente') && (
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => marcarPagado(p.id)}
                           disabled={payingId === p.id}

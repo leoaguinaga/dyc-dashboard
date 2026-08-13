@@ -30,7 +30,7 @@ Font.registerHyphenationCallback((word) => [word])
 
 const EMPRESA = {
   razonSocial: 'DIAZ & CASTILLO INGENIERÍA Y PROYECTOS SAC',
-  nombreComercial: 'DyC Ingeniería y Proyectos',
+  nombreComercial: 'DIAZ & CASTILLO INGENIERÍA Y PROYECTOS SAC',
   ruc: '20608745611',
   direccion: 'Av. Francisco Bolognesi 342 Int. B, Chiclayo, Chiclayo, Lambayeque',
   tagline: 'Ejecutando obras con estándares de salud, seguridad, calidad y protección medio ambiente',

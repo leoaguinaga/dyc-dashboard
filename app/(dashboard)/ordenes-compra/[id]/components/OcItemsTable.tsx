@@ -193,7 +193,7 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
                 <td className="px-4 py-3 text-right tabular-nums font-medium">{formatCurrency(item.precioTotal)}</td>
                 {canEdit && (
                   <td className="px-2 py-3">
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1">
                       <button onClick={() => startEdit(item)} className="flex size-7 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted">
                         <Pencil className="size-3.5" />
                       </button>
