@@ -86,6 +86,11 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
         <div>
           <p className="font-medium text-sm">{cotizacion.proveedor.razonSocial}</p>
           <p className="text-xs text-muted-foreground font-mono">{cotizacion.proveedor.ruc}</p>
+          {cotizacion.creadoPor && (
+            <p className="text-xs text-muted-foreground">
+              Cotizado por {cotizacion.creadoPor.name}
+            </p>
+          )}
         </div>
         <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium shrink-0', ESTADO_CLASS[cotizacion.estado])}>
           {ESTADO_LABEL[cotizacion.estado]}

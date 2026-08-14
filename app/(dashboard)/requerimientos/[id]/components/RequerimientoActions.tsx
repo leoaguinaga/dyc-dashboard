@@ -68,49 +68,26 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
   const canCrearCotizacion = r.estado === 'aprobado' && (role === 'logistica' || role === 'administrador' || role === 'admin_ti' || role === 'gerencia')
   const canExportarPDF = r.estado === 'aprobado'
 
-  const FLUJO_STEPS: { estado: string; label: string }[] = [
-    { estado: 'borrador',  label: 'Borrador' },
-    { estado: 'enviado',   label: `En revisión (${TIPO_APPROVER_LABEL[r.tipo] ?? '—'})` },
-    { estado: 'aprobado',  label: 'Aprobado' },
-    { estado: 'en_cotizacion', label: 'En cotización' },
-    { estado: 'pendiente_conformidad', label: 'Pendiente de conformidad' },
-    { estado: 'recibido', label: 'Recibido' },
-  ]
-  // "observado" sigue dentro del ciclo de revisión — se muestra en el mismo paso que "enviado"
-  const stepIdx = FLUJO_STEPS.findIndex((s) => s.estado === (r.estado === 'observado' ? 'enviado' : r.estado))
-
-  const hayFlujoQueMostrar = stepIdx >= 0
-  if (!canEnviar && !canAprobarObservar && !canCrearCotizacion && !canExportarPDF && !hayFlujoQueMostrar) return null
+  const requiereAccion = canEnviar || canAprobarObservar || canCrearCotizacion
+  const hayAlgoQueMostrar = canEnviar || canAprobarObservar || canCrearCotizacion || canExportarPDF || (r.solicitudes?.length ?? 0) > 0
+  if (!hayAlgoQueMostrar) return null
 
   return (
-    <div className="rounded-xl border border-border bg-white p-5 space-y-4">
-      <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Acciones</h2>
-
-      {/* Progreso del flujo */}
-      <ol className="flex flex-col gap-1.5">
-        {FLUJO_STEPS.map((step, i) => {
-          const done = stepIdx > i
-          const active = stepIdx === i
-          return (
-            <li key={step.estado} className="flex items-center gap-2 text-xs">
-              <span className={[
-                'flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold',
-                done  ? 'bg-chart-2 text-white' :
-                active ? 'bg-primary text-white' :
-                         'border border-border text-muted-foreground',
-              ].join(' ')}>
-                {done ? '✓' : i + 1}
-              </span>
-              <span className={active ? 'font-medium' : done ? 'text-chart-2' : 'text-muted-foreground'}>
-                {step.label}
-              </span>
-            </li>
-          )
-        })}
-      </ol>
+    <div className={[
+      'rounded-xl border p-5 space-y-4',
+      requiereAccion ? 'border-primary/30 bg-primary/[0.025] ring-1 ring-primary/10' : 'border-border bg-white',
+    ].join(' ')}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Acciones</h2>
+        {requiereAccion && (
+          <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+            Requiere tu acción
+          </span>
+        )}
+      </div>
 
       {(r.solicitudes?.length ?? 0) > 0 && (
-        <div className="border-t border-border pt-3 space-y-2">
+        <div className="space-y-2">
           <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Seguimiento de compra</h3>
           {r.solicitudes!.map((s) => {
             const cotizacion = s.cotizaciones?.[0]

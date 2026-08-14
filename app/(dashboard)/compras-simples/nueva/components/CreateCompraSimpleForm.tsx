@@ -11,9 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 import { UNIDAD_OPTIONS } from '@/lib/inventario'
-import type { DestinoPago, MetodoPagoTrabajador, Proyecto, Proveedor, Role, Trabajador, TipoRequerimiento } from '@/types/api'
+import type { DestinoPago, MetodoPagoTrabajador, Proyecto, Proveedor, Role, Trabajador, TipoRequerimiento, User } from '@/types/api'
 
 type MiTrabajador = Pick<Trabajador, 'id' | 'nombre' | 'banco' | 'numeroCuenta'>
+type AprobadorInformal = Pick<User, 'id' | 'name' | 'role'>
 
 interface ItemLinea {
   descripcion: string
@@ -104,12 +105,20 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
   const [loading, setLoading] = useState(false)
   const [miTrabajador, setMiTrabajador] = useState<MiTrabajador | null>(null)
   const [miTrabajadorCargado, setMiTrabajadorCargado] = useState(false)
+  const [aprobadores, setAprobadores] = useState<AprobadorInformal[]>([])
+  const [aprobadoInformalPorId, setAprobadoInformalPorId] = useState('')
 
   useEffect(() => {
     api.get<MiTrabajador | null>('/compras-simples/mi-trabajador')
       .then((t) => setMiTrabajador(t))
       .catch(() => setMiTrabajador(null))
       .finally(() => setMiTrabajadorCargado(true))
+  }, [])
+
+  useEffect(() => {
+    api.get<AprobadorInformal[]>('/compras-simples/aprobadores-informales')
+      .then((list) => setAprobadores(list))
+      .catch(() => setAprobadores([]))
   }, [])
 
   function updateGrupo(gi: number, patch: Partial<Grupo>) {
@@ -169,6 +178,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
       })
     })
     if (esRendicion && !comprobante) next.comprobante = 'Adjunta el comprobante (boleta/factura) de la compra'
+    if (esRendicion && !aprobadoInformalPorId) next.aprobadoInformalPorId = 'Selecciona quién aprobó la compra'
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -184,6 +194,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
         nombre: nombre.trim(),
         tipo,
         esRendicion,
+        aprobadoInformalPorId: esRendicion ? aprobadoInformalPorId : undefined,
         proyectoId,
         nota: nota.trim() || undefined,
         grupos: grupos.map((g) => ({
@@ -341,6 +352,33 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
                 file={fotoProducto}
                 onChange={setFotoProducto}
               />
+            </div>
+            <div>
+              <label className={labelCn}>
+                ¿Quién aprobó la compra? <span className="text-destructive">*</span>
+              </label>
+              <Select
+                value={aprobadoInformalPorId}
+                onValueChange={(v) => {
+                  setAprobadoInformalPorId(v ?? '')
+                  setErrors((p) => { const n = { ...p }; delete n.aprobadoInformalPorId; return n })
+                }}
+              >
+                <SelectTrigger className={cn('w-full', errors.aprobadoInformalPorId && 'border-destructive')}>
+                  <SelectValue>
+                    {(value: string | null) => aprobadores.find((a) => a.id === value)?.name ?? 'Selecciona un gerente o administrador…'}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {aprobadores.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Sirve como respaldo del gasto; gerencia igual deberá aprobarlo en el sistema.
+              </p>
+              {errors.aprobadoInformalPorId && <p className="mt-1 text-xs text-destructive">{errors.aprobadoInformalPorId}</p>}
             </div>
           </div>
         )}
