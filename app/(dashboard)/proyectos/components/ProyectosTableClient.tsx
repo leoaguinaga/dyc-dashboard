@@ -12,7 +12,7 @@ import type { Proyecto } from '@/types/api'
 type EstadoFilter = 'todos' | Proyecto['estado']
 type AmbitoFilter = 'todos' | 'nacional' | 'internacional'
 
-const CON_ACCESO_CREACION = ['administrador', 'gerencia']
+const CON_ACCESO_CREACION = ['administrador', 'admin_ti', 'gerencia']
 
 interface Props {
   proyectos: Proyecto[]

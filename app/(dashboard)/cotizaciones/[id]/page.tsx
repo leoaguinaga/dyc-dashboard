@@ -14,7 +14,7 @@ interface Props {
 }
 
 // Debe coincidir con @Roles del endpoint PATCH .../cotizaciones/:id/aprobar
-const CON_ACCESO_APROBAR_COTIZACION = ['administrador', 'gerencia']
+const CON_ACCESO_APROBAR_COTIZACION = ['administrador', 'admin_ti', 'gerencia']
 
 const ESTADO_LABEL: Record<EstadoSolicitud, string> = {
   borrador: 'Borrador',
@@ -96,6 +96,12 @@ export default async function SolicitudDetailPage({ params }: Props) {
             <SolicitudActions solicitud={{ id: s.id, estado: s.estado }} />
           </div>
         </div>
+        {s.aprobadaSolicitantePor && (
+          <p className="text-xs text-muted-foreground">
+            Aprobado como solicitante por {s.aprobadaSolicitantePor.name}
+            {s.aprobadaSolicitantePorRole && ` (${s.aprobadaSolicitantePorRole})`}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

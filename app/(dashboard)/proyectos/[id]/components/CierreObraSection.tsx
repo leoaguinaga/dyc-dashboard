@@ -39,7 +39,7 @@ export function CierreObraSection({ proyecto }: Props) {
   const [resumen, setResumen] = useState<Resumen | null>(null)
 
   const role = session?.user?.role
-  const canClose = role === 'administrador' || role === 'gerencia'
+  const canClose = role === 'administrador' || role === 'admin_ti' || role === 'gerencia'
   const trabajadores = proyecto.trabajadores ?? []
   const estaCerrada = proyecto.estado === 'cierre' || proyecto.estado === 'liquidada'
 

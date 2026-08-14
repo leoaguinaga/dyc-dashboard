@@ -54,7 +54,7 @@ function formatMonto(n: number) {
 export function JornadaDetailView({ turnoId }: Props) {
   const { data: session } = useSession()
   const role = session?.user?.role
-  const autorizado = role === 'administrador' || role === 'gerencia'
+  const autorizado = role === 'administrador' || role === 'admin_ti' || role === 'gerencia'
 
   const [jornada, setJornada] = useState<JornadaDetalle | null>(null)
   const [loading, setLoading] = useState(false)

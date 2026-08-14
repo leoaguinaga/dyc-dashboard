@@ -8,7 +8,8 @@ export type Role =
   | 'jefe_sig'
   | 'logistica'
   | 'gerencia'
-  | 'administrador';
+  | 'administrador'
+  | 'admin_ti';
 
 export type TipoRequerimiento = 'electrico' | 'civil' | 'seguridad' | 'administrativo';
 export type EstadoProyecto = 'planificacion' | 'ejecucion' | 'cierre' | 'liquidada';
@@ -19,7 +20,9 @@ export type TipoItem = 'consumible' | 'activo';
 export type UnidadMedida =
   | 'und' | 'kg' | 'm' | 'm2' | 'm3' | 'l'
   | 'gal' | 'bolsa' | 'caja' | 'rollo' | 'par' | 'juego';
-export type EstadoRequerimiento = 'borrador' | 'enviado' | 'aprobado' | 'observado';
+export type EstadoRequerimiento =
+  | 'borrador' | 'enviado' | 'aprobado' | 'observado'
+  | 'en_cotizacion' | 'pendiente_conformidad' | 'recibido';
 export type EstadoSolicitud =
   | 'borrador' | 'enviada' | 'cotizada'
   | 'seleccionada' | 'aprobada_solicitante' | 'aprobada_gerencia'
@@ -523,9 +526,51 @@ export interface Requerimiento {
   creadoEn: string;
   actualizadoEn: string;
   items: RequerimientoItem[];
-  solicitudes?: Pick<SolicitudCotizacion, 'id' | 'codigo' | 'estado' | 'creadoEn'>[];
+  solicitudes?: RequerimientoSeguimientoSolicitud[];
   historial?: RequerimientoHistorial[];
   _count?: { solicitudes: number };
+
+  recepcionFotoUrl?: string | null;
+  recepcionComentario?: string | null;
+  recepcionEn?: string | null;
+  recepcionPorId?: string | null;
+  recepcionPor?: Pick<User, 'id' | 'name'> | null;
+}
+
+export interface RequerimientoSeguimientoOrden {
+  id: string;
+  numero: string;
+  estado: EstadoOrdenCompra;
+  fechaEmision?: string | null;
+  fechaEntrega?: string | null;
+  fechaEntregaReal?: string | null;
+  proveedor?: { id: string; razonSocial: string } | null;
+  proveedorNombreLibre?: string | null;
+}
+
+export interface RequerimientoSeguimientoCotizacionItem {
+  descripcionProveedor: string;
+  precioUnit: string;
+  cantidad: string;
+  unidad: UnidadMedida;
+}
+
+export interface RequerimientoSeguimientoCotizacion {
+  id: string;
+  proveedor: { id: string; razonSocial: string };
+  items: RequerimientoSeguimientoCotizacionItem[];
+}
+
+export interface RequerimientoSeguimientoSolicitud {
+  id: string;
+  codigo: string;
+  estado: EstadoSolicitud;
+  creadoEn: string;
+  aprobadaSolicitanteEn?: string | null;
+  aprobadaSolicitantePorRole?: Role | null;
+  aprobadaSolicitantePor?: Pick<User, 'id' | 'name'> | null;
+  cotizaciones: RequerimientoSeguimientoCotizacion[];
+  ordenes: RequerimientoSeguimientoOrden[];
 }
 
 export interface RequerimientoHistorial {
@@ -634,6 +679,11 @@ export interface SolicitudCotizacion {
   cotizaciones: Cotizacion[];
   ordenes?: Pick<OrdenCompra, 'id' | 'numero' | 'estado'>[];
   _count?: { items: number; cotizaciones: number };
+
+  aprobadaSolicitantePorId?: string | null;
+  aprobadaSolicitantePor?: Pick<User, 'id' | 'name' | 'role'> | null;
+  aprobadaSolicitantePorRole?: Role | null;
+  aprobadaSolicitanteEn?: string | null;
 }
 
 export interface OrdenCompraItem {
@@ -715,7 +765,7 @@ export interface CompraSimple {
   codigo: string;
   nombre: string;
   tipo: TipoRequerimiento;
-  urgente: boolean;
+  esRendicion: boolean;
   proyectoId: string;
   proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'>;
   creadoPorId: string;
@@ -726,9 +776,12 @@ export interface CompraSimple {
   grupos: OrdenCompra[];
 }
 
+export type TipoArchivoCompraSimple = 'comprobante' | 'foto_producto';
+
 export interface CompraSimpleGrupoArchivo {
   id: string;
   grupoId: string;
+  tipo: TipoArchivoCompraSimple;
   url: string;
   nombreOriginal: string;
   mimeType: string;
@@ -768,6 +821,8 @@ export interface Pago {
   metodoPago?: string | null;
   numeroOperacion?: string | null;
   nota?: string | null;
+  comprobanteNombre?: string | null;
+  comprobanteUrl?: string | null;
   registradoPorId: string;
   registradoPor: Pick<User, 'id' | 'name'>;
   pagadoPorId?: string | null;

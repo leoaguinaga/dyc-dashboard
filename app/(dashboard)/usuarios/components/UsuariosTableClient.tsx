@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/u
 import type { Role, User } from '@/types/api'
 
 const ROLE_LABELS: Record<Role, string> = {
-  administrador:        'TI',
+  administrador:        'Administrador',
+  admin_ti:             'Admin TI',
   gerencia:             'Gerencia',
   logistica:            'Logística',
   supervisor:           'Supervisor',
@@ -23,6 +24,7 @@ const ROLE_LABELS: Record<Role, string> = {
 
 const ROLE_COLORS: Record<Role, string> = {
   administrador:        'bg-primary/10 text-primary',
+  admin_ti:             'bg-violet-500/10 text-violet-600',
   gerencia:             'bg-chart-1/15 text-chart-1',
   logistica:            'bg-chart-2/15 text-chart-2',
   supervisor:           'bg-muted text-muted-foreground',
@@ -79,10 +81,14 @@ export function UsuariosTableClient({ usuarios }: Props) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los roles</SelectItem>
-            <SelectItem value="administrador">TI</SelectItem>
+            <SelectItem value="admin_ti">Admin TI</SelectItem>
+            <SelectItem value="administrador">Administrador</SelectItem>
             <SelectItem value="gerencia">Gerencia</SelectItem>
             <SelectItem value="logistica">Logística</SelectItem>
             <SelectItem value="supervisor">Supervisor</SelectItem>
+            <SelectItem value="supervisor_civil">Supervisor Civil</SelectItem>
+            <SelectItem value="supervisor_electrico">Supervisor Eléctrico</SelectItem>
+            <SelectItem value="pdr">PDR (Seguridad)</SelectItem>
             <SelectItem value="ing_civil">Ing. Civil</SelectItem>
             <SelectItem value="ing_electrico">Ing. Eléctrico</SelectItem>
             <SelectItem value="jefe_sig">Jefe SIG</SelectItem>

@@ -5,7 +5,7 @@ import { serverFetch } from '@/lib/api/server'
 import { EditProyectoForm } from './components/EditProyectoForm'
 import type { Cliente, Proyecto, Role, Trabajador, User } from '@/types/api'
 
-const CON_ACCESO_EDICION: Role[] = ['administrador', 'gerencia']
+const CON_ACCESO_EDICION: Role[] = ['administrador', 'admin_ti', 'gerencia']
 
 interface Props {
   params: Promise<{ id: string }>

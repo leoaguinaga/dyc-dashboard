@@ -27,6 +27,9 @@ const ESTADO_LABEL: Record<EstadoRequerimiento, string> = {
   enviado: 'Enviado',
   aprobado: 'Aprobado',
   observado: 'Observado',
+  en_cotizacion: 'En cotización',
+  pendiente_conformidad: 'Pendiente de conformidad',
+  recibido: 'Recibido',
 }
 
 const ESTADO_CLASS: Record<EstadoRequerimiento, string> = {
@@ -34,6 +37,9 @@ const ESTADO_CLASS: Record<EstadoRequerimiento, string> = {
   enviado: 'bg-blue-500/15 text-blue-600',
   aprobado: 'bg-chart-2/15 text-chart-2',
   observado: 'bg-amber-500/15 text-amber-600',
+  en_cotizacion: 'bg-violet-500/15 text-violet-600',
+  pendiente_conformidad: 'bg-orange-500/15 text-orange-600',
+  recibido: 'bg-chart-2/15 text-chart-2',
 }
 
 function fmt(iso: string) {

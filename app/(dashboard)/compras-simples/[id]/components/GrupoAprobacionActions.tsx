@@ -10,14 +10,14 @@ import type { OrdenCompra, Role, TipoRequerimiento } from '@/types/api'
 
 // Paso 1 (técnico), espejo de TIPO_APPROVERS_TECNICO del backend
 const TIPO_APPROVERS_TECNICO: Record<TipoRequerimiento, Role[]> = {
-  civil: ['ing_civil', 'administrador'],
-  electrico: ['ing_electrico', 'administrador'],
-  seguridad: ['jefe_sig', 'administrador'],
-  administrativo: ['logistica', 'administrador'],
+  civil: ['ing_civil', 'administrador', 'admin_ti'],
+  electrico: ['ing_electrico', 'administrador', 'admin_ti'],
+  seguridad: ['jefe_sig', 'administrador', 'admin_ti'],
+  administrativo: ['logistica', 'administrador', 'admin_ti'],
 }
 
 // Paso 2 (final, genera el pago)
-const ROLES_APROBACION_GERENCIA: Role[] = ['gerencia', 'administrador']
+const ROLES_APROBACION_GERENCIA: Role[] = ['gerencia', 'administrador', 'admin_ti']
 
 interface Props {
   grupo: OrdenCompra

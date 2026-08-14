@@ -31,7 +31,7 @@ function formatMonto(n: number) {
 export function PlanillasGlobalView({ proyectos }: Props) {
   const { data: session } = useSession()
   const role = session?.user?.role
-  const autorizado = role === 'administrador' || role === 'gerencia'
+  const autorizado = role === 'administrador' || role === 'admin_ti' || role === 'gerencia'
 
   const [rango, setRango] = useState<DateRangeValue>({})
   const [proyectoId, setProyectoId] = useState('todos')

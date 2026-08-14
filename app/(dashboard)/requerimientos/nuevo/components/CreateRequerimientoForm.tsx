@@ -47,6 +47,7 @@ const ROLE_TIPOS: Partial<Record<Role, TipoRequerimiento[]>> = {
   jefe_sig: ['seguridad'],
   logistica: ['civil', 'electrico', 'seguridad', 'administrativo'],
   administrador: ['civil', 'electrico', 'seguridad', 'administrativo'],
+  admin_ti: ['civil', 'electrico', 'seguridad', 'administrativo'],
 }
 
 export function CreateRequerimientoForm({ proyectos }: Props) {

@@ -15,7 +15,7 @@ interface Props {
 export function RequerimientoItemsCard({ requerimiento: r }: Props) {
   const { data: session } = useSession()
   const role = session?.user?.role
-  const esCreador = r.creadoPorId === session?.user?.id || role === 'administrador'
+  const esCreador = r.creadoPorId === session?.user?.id || role === 'administrador' || role === 'admin_ti'
   const esRevisor = role ? TIPO_APPROVERS[r.tipo].includes(role) : false
 
   // El solicitante corrige en "observado"; el revisor puede corregir directamente

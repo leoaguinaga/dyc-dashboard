@@ -5,6 +5,7 @@ import { serverFetch } from '@/lib/api/server'
 import { cn } from '@/lib/utils'
 import { GrupoAprobacionActions } from './components/GrupoAprobacionActions'
 import { GrupoFacturaSection } from './components/GrupoFacturaSection'
+import { GrupoEditarItemsForm } from './components/GrupoEditarItemsForm'
 import type { CompraSimple, EstadoAprobacionCompra, TipoRequerimiento } from '@/types/api'
 
 interface Props {
@@ -85,7 +86,7 @@ export default async function CompraSimpleDetailPage({ params }: Props) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-3">
-              {c.urgente && (
+              {c.esRendicion && (
                 <div className="flex size-10 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
                   <AlertTriangle className="size-5" />
                 </div>
@@ -103,10 +104,10 @@ export default async function CompraSimpleDetailPage({ params }: Props) {
             <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', TIPO_CLASS[c.tipo])}>
               {TIPO_LABEL[c.tipo]}
             </span>
-            {c.urgente && (
+            {c.esRendicion && (
               <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600">
                 <AlertTriangle className="size-3" />
-                Urgente
+                Rendición
               </span>
             )}
             <p className="text-sm text-muted-foreground">
@@ -228,6 +229,8 @@ export default async function CompraSimpleDetailPage({ params }: Props) {
                 </div>
               )}
 
+              <GrupoEditarItemsForm grupo={g} tipo={c.tipo} esRendicion={c.esRendicion} />
+
               <GrupoAprobacionActions grupo={g} creadoPorId={c.creadoPorId} tipo={c.tipo} />
 
               <GrupoFacturaSection
@@ -235,6 +238,7 @@ export default async function CompraSimpleDetailPage({ params }: Props) {
                 archivos={g.archivos ?? []}
                 estadoAprobacion={g.estadoAprobacion}
                 creadoPorId={c.creadoPorId}
+                esRendicion={c.esRendicion}
               />
 
               {g.historial && g.historial.length > 0 && (

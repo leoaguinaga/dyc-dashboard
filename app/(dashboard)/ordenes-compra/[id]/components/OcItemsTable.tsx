@@ -33,7 +33,7 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const role = session?.user?.role
-  const canEdit = editable && (role === 'administrador' || role === 'logistica' || role === 'gerencia')
+  const canEdit = editable && (role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia')
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editLinea, setEditLinea] = useState<LineaItem>(emptyLinea())

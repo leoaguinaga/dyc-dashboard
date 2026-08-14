@@ -43,7 +43,7 @@ export function OrdenCompraActions({ oc }: Props) {
   const [calificacionCalidad, setCalificacionCalidad] = useState(0)
 
   const role = session?.user?.role
-  const canAct = role === 'administrador' || role === 'logistica' || role === 'gerencia'
+  const canAct = role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia'
 
   const nextLabel = NEXT_LABEL[oc.estado]
   const nextEndpoint = NEXT_ENDPOINT[oc.estado]

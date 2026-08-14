@@ -5,7 +5,7 @@ import { serverFetch } from '@/lib/api/server'
 import { CreateProyectoForm } from './components/CreateProyectoForm'
 import type { Cliente, Proyecto, Trabajador, User } from '@/types/api'
 
-const CON_ACCESO_CREACION = ['administrador', 'gerencia']
+const CON_ACCESO_CREACION = ['administrador', 'admin_ti', 'gerencia']
 
 export default async function NuevoProyectoPage() {
   const [clientes, trabajadores, proyectos, user] = await Promise.all([

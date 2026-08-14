@@ -38,7 +38,8 @@ const ROLES: { value: Role; label: string }[] = [
   { value: 'jefe_sig', label: 'Jefe SIG' },
   { value: 'logistica', label: 'Logística' },
   { value: 'gerencia', label: 'Gerencia' },
-  { value: 'administrador', label: 'TI' },
+  { value: 'administrador', label: 'Administrador' },
+  { value: 'admin_ti', label: 'Admin TI' },
 ]
 
 const CARGOS = [

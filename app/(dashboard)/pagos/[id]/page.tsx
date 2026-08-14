@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
+import { API_ORIGIN } from '@/lib/api/client'
 import type { Pago } from '@/types/api'
 import { cn, formatCurrency, formatDateOnly, formatPercent } from '@/lib/utils'
 import { MarcarPagadoCard } from './components/MarcarPagadoCard'
@@ -79,6 +80,31 @@ export default async function PagoDetailPage({ params }: Props) {
         <DatoCard label="Registrado por" value={pago.registradoPor.name} />
         {pago.pagadoPor && <DatoCard label="Pagado por" value={pago.pagadoPor.name} />}
       </div>
+
+      {pago.comprobanteUrl && (
+        <div className="rounded-xl border border-border bg-white p-5 space-y-3">
+          <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Factura / boleta</h2>
+          {pago.comprobanteUrl.endsWith('.pdf') ? (
+            <a
+              href={`${API_ORIGIN}${pago.comprobanteUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+            >
+              {pago.comprobanteNombre ?? 'Ver comprobante (PDF)'}
+            </a>
+          ) : (
+            <a href={`${API_ORIGIN}${pago.comprobanteUrl}`} target="_blank" rel="noopener noreferrer">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`${API_ORIGIN}${pago.comprobanteUrl}`}
+                alt="Comprobante de pago"
+                className="w-full max-w-sm rounded-lg border border-border"
+              />
+            </a>
+          )}
+        </div>
+      )}
 
       {pago.estado === 'pendiente' && <MarcarPagadoCard pago={pago} />}
     </div>

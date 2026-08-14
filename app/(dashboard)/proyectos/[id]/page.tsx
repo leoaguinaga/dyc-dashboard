@@ -23,7 +23,7 @@ import { CierreObraSection } from './components/CierreObraSection'
 import { TomarAsistenciaButton } from './components/TomarAsistenciaButton'
 import type { Proyecto, Role, Trabajador, User } from '@/types/api'
 
-const CON_ACCESO_EDICION: Role[] = ['administrador', 'gerencia']
+const CON_ACCESO_EDICION: Role[] = ['administrador', 'admin_ti', 'gerencia']
 
 interface Props {
   params: Promise<{ id: string }>
@@ -72,10 +72,14 @@ export default async function ProyectoDetailPage({ params }: Props) {
 
   const o = result
   const puedeEditar = !!user && CON_ACCESO_EDICION.includes(user.role)
-  const puedeAsignarSupervisores = user?.role === 'administrador' || user?.role === 'gerencia'
+  const puedeAsignarSupervisores =
+    user?.role === 'administrador' || user?.role === 'admin_ti' || user?.role === 'gerencia'
   // Debe coincidir con @Roles de POST/DELETE .../proyectos/:id/trabajadores
   const puedeAsignarTrabajadores =
-    user?.role === 'administrador' || user?.role === 'gerencia' || user?.role === 'logistica'
+    user?.role === 'administrador' ||
+    user?.role === 'admin_ti' ||
+    user?.role === 'gerencia' ||
+    user?.role === 'logistica'
   const usuarios = puedeAsignarSupervisores
     ? await serverFetch<User[]>('/users').catch(() => [] as User[])
     : []

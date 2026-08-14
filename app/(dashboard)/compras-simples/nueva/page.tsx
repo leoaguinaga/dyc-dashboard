@@ -6,7 +6,7 @@ import { CreateCompraSimpleForm } from './components/CreateCompraSimpleForm'
 import type { Proyecto, Proveedor, User } from '@/types/api'
 
 // Debe coincidir con ROLES_CREACION en compras-simples.service.ts
-const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador']
+const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador', 'admin_ti']
 
 export default async function NuevaCompraSimplePage() {
   const [proyectos, proveedores, user] = await Promise.all([

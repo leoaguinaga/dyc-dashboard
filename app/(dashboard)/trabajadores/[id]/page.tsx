@@ -21,7 +21,8 @@ const ROLE_LABELS: Record<string, string> = {
   jefe_sig: 'Jefe SIG',
   logistica: 'Logística',
   gerencia: 'Gerencia',
-  administrador: 'TI',
+  administrador: 'Administrador',
+  admin_ti: 'Admin TI',
 }
 
 const ESTADO_PROYECTO: Record<string, string> = {

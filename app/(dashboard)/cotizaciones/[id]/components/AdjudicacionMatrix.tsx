@@ -26,7 +26,7 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
   const router = useRouter()
 
   const role = session?.user?.role
-  const canAct = role === 'administrador' || role === 'logistica' || role === 'gerencia'
+  const canAct = role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia'
 
   const received = cotizaciones.filter((c) => c.items.length > 0)
 
@@ -120,11 +120,22 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
 
   return (
     <div className="rounded-xl border border-border bg-white p-5 space-y-5 col-span-full">
-      <div className="flex items-center gap-2">
-        <Trophy className="size-4 text-muted-foreground" />
-        <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Adjudicación — comparación de cotizaciones
-        </h2>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Trophy className="size-4 text-muted-foreground" />
+          <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Adjudicación — comparación de cotizaciones
+          </h2>
+        </div>
+        {canGenerar && (
+          <div className="flex items-center gap-2">
+            <Button onClick={generarOcs} disabled={submitting} size="sm" className="gap-2">
+              <ShoppingCart className="size-4" />
+              {submitting ? 'Generando…' : summary.size === 1 ? 'Generar orden de compra' : `Generar ${summary.size} órdenes de compra`}
+            </Button>
+            {err && <p className="text-xs text-destructive">{err}</p>}
+          </div>
+        )}
       </div>
 
       {/* Matriz comparativa */}
@@ -251,19 +262,11 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
       )}
 
       {/* Acciones */}
-      {(canAdjudicar || canGenerar) && (
+      {canAdjudicar && (
         <div className="flex items-center gap-3 pt-1">
-          {canAdjudicar && (
-            <Button onClick={adjudicar} disabled={submitting}>
-              {submitting ? 'Guardando…' : 'Confirmar adjudicación'}
-            </Button>
-          )}
-          {canGenerar && (
-            <Button onClick={generarOcs} disabled={submitting} className="gap-2">
-              <ShoppingCart className="size-4" />
-              {submitting ? 'Generando…' : summary.size === 1 ? 'Generar orden de compra' : `Generar ${summary.size} órdenes de compra`}
-            </Button>
-          )}
+          <Button onClick={adjudicar} disabled={submitting}>
+            {submitting ? 'Guardando…' : 'Confirmar adjudicación'}
+          </Button>
           {!allSelected && (
             <p className="text-xs text-muted-foreground">
               Selecciona un proveedor para cada ítem para continuar

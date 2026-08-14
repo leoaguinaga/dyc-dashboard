@@ -46,7 +46,7 @@ function quincena(tipo: 1 | 2): DateRangeValue {
 export function ConsolidadoAsistenciaSection({ proyectoId }: Props) {
   const { data: session } = useSession()
   const role = session?.user?.role
-  const autorizado = role === 'administrador' || role === 'gerencia'
+  const autorizado = role === 'administrador' || role === 'admin_ti' || role === 'gerencia'
 
   const [rango, setRango] = useState<DateRangeValue>(quincena(1))
   const [consolidado, setConsolidado] = useState<ConsolidadoObra | null>(null)

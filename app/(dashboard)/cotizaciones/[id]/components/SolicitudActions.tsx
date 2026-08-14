@@ -15,12 +15,19 @@ const TRANSICION: Partial<Record<EstadoSolicitud, { label: string; endpoint: str
   seleccionada: {
     label: 'Aprobar (solicitante)',
     endpoint: 'aprobar-solicitante',
-    rolesPermitidos: ['administrador', 'logistica', 'gerencia'],
+    // Debe coincidir con @Roles del endpoint POST .../aprobar-solicitante.
+    // supervisor/supervisor_civil/supervisor_electrico/pdr solo pueden aprobar
+    // su propio requerimiento (verificado en el backend); logística/gerencia/
+    // admin pueden aprobar cualquiera, para no bloquear el flujo por premura.
+    rolesPermitidos: [
+      'administrador', 'admin_ti', 'logistica', 'gerencia',
+      'supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr',
+    ],
   },
   aprobada_solicitante: {
     label: 'Aprobar gerencia',
     endpoint: 'aprobar-gerencia',
-    rolesPermitidos: ['administrador', 'gerencia'],
+    rolesPermitidos: ['administrador', 'admin_ti', 'gerencia'],
   },
 }
 
@@ -35,7 +42,7 @@ export function SolicitudActions({ solicitud }: Props) {
   const accion = TRANSICION[solicitud.estado]
   // Debe coincidir con @Roles del endpoint POST .../cancelar
   const puedeCancelar =
-    (role === 'administrador' || role === 'logistica' || role === 'gerencia') &&
+    (role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia') &&
     solicitud.estado !== 'aprobada_gerencia' &&
     solicitud.estado !== 'cancelada'
 
