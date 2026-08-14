@@ -9,7 +9,7 @@ import { useSession } from '@/lib/auth/session'
 import type { CompraSimple, TipoRequerimiento } from '@/types/api'
 
 // Debe coincidir con ROLES_CREACION en compras-simples.service.ts
-const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador']
+const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador', 'admin_ti']
 
 const TIPO_LABEL: Record<TipoRequerimiento, string> = {
   civil: 'Civil',
@@ -116,7 +116,7 @@ export function ComprasSimplesTableClient({ compras }: Props) {
                       <Link href={`/compras-simples/${c.id}`} className="hover:underline underline-offset-4">
                         <span className="flex items-center gap-1.5 font-mono text-sm font-medium tabular-nums">
                           {c.codigo}
-                          {c.urgente && <AlertTriangle className="size-3.75 text-amber-500 shrink-0" />}
+                          {c.esRendicion && <AlertTriangle className="size-3.75 text-amber-500 shrink-0" />}
                         </span>
                         <span className="block text-xs text-muted-foreground">{c.nombre}</span>
                       </Link>

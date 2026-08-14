@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { ProyectosTableClient } from './ProyectosTableClient'
 import type { Proyecto, User } from '@/types/api'
 
-const CON_ACCESO_CREACION = ['administrador', 'gerencia']
+const CON_ACCESO_CREACION = ['administrador', 'admin_ti', 'gerencia']
 
 export async function ProyectosTable() {
   const [result, user] = await Promise.all([

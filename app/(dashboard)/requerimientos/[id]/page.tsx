@@ -4,6 +4,7 @@ import { ArrowLeft, AlertTriangle, CalendarDays, User, Building2 } from 'lucide-
 import { serverFetch } from '@/lib/api/server'
 import { cn } from '@/lib/utils'
 import { RequerimientoActions } from './components/RequerimientoActions'
+import { RequerimientoRecepcion } from './components/RequerimientoRecepcion'
 import { RequerimientoItemsCard } from './components/RequerimientoItemsCard'
 import type { Requerimiento, TipoRequerimiento } from '@/types/api'
 
@@ -16,6 +17,9 @@ const ESTADO_LABEL = {
   enviado: 'Enviado',
   aprobado: 'Aprobado',
   observado: 'Observado',
+  en_cotizacion: 'En cotización',
+  pendiente_conformidad: 'Pendiente de conformidad',
+  recibido: 'Recibido',
 } as const
 
 const TIPO_LABEL: Record<TipoRequerimiento, string> = {
@@ -37,6 +41,9 @@ const ESTADO_CLASS = {
   enviado: 'bg-blue-500/15 text-blue-600',
   aprobado: 'bg-chart-2/15 text-chart-2',
   observado: 'bg-amber-500/15 text-amber-600',
+  en_cotizacion: 'bg-violet-500/15 text-violet-600',
+  pendiente_conformidad: 'bg-orange-500/15 text-orange-600',
+  recibido: 'bg-chart-2/15 text-chart-2',
 } as const
 
 function fmt(iso: string) {
@@ -155,6 +162,9 @@ export default async function RequerimientoDetailPage({ params }: Props) {
 
           {/* Acciones */}
           <RequerimientoActions requerimiento={r} />
+
+          {/* Recepción */}
+          <RequerimientoRecepcion requerimiento={r} />
 
           {/* Historial */}
           {r.historial && r.historial.length > 0 && (

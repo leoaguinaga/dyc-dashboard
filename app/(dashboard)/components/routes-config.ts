@@ -40,7 +40,10 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/dashboard',
         label: 'Dashboard',
         icon: Home,
-        roles: ['supervisor', 'logistica', 'gerencia', 'administrador'],
+        roles: [
+          'supervisor', 'logistica', 'gerencia', 'administrador',
+          'ing_civil', 'ing_electrico', 'jefe_sig',
+        ],
       },
       {
         href: '/proyectos',
@@ -56,7 +59,10 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/clientes',
         label: 'Clientes',
         icon: Building,
-        roles: ['administrador', 'gerencia', 'logistica'],
+        roles: [
+          'administrador', 'gerencia', 'logistica',
+          'ing_civil', 'ing_electrico', 'jefe_sig',
+        ],
       },
     ],
   },
@@ -67,13 +73,19 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/trabajadores',
         label: 'Trabajadores',
         icon: Users,
-        roles: ['administrador', 'logistica', 'gerencia'],
+        roles: [
+          'administrador', 'logistica', 'gerencia',
+          'ing_civil', 'ing_electrico', 'jefe_sig',
+        ],
       },
       {
         href: '/proveedores',
         label: 'Proveedores',
         icon: Truck,
-        roles: ['administrador', 'logistica', 'gerencia'],
+        roles: [
+          'administrador', 'logistica', 'gerencia',
+          'ing_civil', 'ing_electrico', 'jefe_sig',
+        ],
       },
     ],
   },
@@ -94,19 +106,28 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/cotizaciones',
         label: 'Cotizaciones',
         icon: FileText,
-        roles: ['administrador', 'gerencia', 'logistica'],
+        roles: [
+          'administrador', 'gerencia', 'logistica',
+          'ing_civil', 'ing_electrico', 'jefe_sig',
+        ],
       },
       {
         href: '/almacenes',
         label: 'Almacenes',
         icon: Warehouse,
-        roles: ['administrador', 'logistica', 'gerencia'],
+        roles: [
+          'administrador', 'logistica', 'gerencia',
+          'ing_civil', 'ing_electrico', 'jefe_sig',
+        ],
       },
       {
         href: '/ordenes-compra',
         label: 'Órdenes compra',
         icon: ShoppingCart,
-        roles: ['administrador', 'gerencia', 'logistica'],
+        roles: [
+          'administrador', 'gerencia', 'logistica',
+          'ing_civil', 'ing_electrico', 'jefe_sig',
+        ],
       },
       {
         href: '/compras-simples',
@@ -168,6 +189,8 @@ export const NAV_GROUPS: NavGroup[] = [
 ]
 
 export function getVisibleGroups(role: Role | undefined): NavGroup[] {
+  if (role === 'admin_ti') return NAV_GROUPS
+
   return NAV_GROUPS.map((group) => ({
     ...group,
     items: group.items.filter((item) => !role || item.roles.includes(role)),

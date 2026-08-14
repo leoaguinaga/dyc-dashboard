@@ -21,7 +21,7 @@ export function LugarEntregaEditor({ ocId, lugarEntrega }: Props) {
   const [err, setErr] = useState<string | null>(null)
 
   const role = session?.user?.role
-  const canEdit = role === 'administrador' || role === 'logistica'
+  const canEdit = role === 'administrador' || role === 'admin_ti' || role === 'logistica'
 
   async function save() {
     setSaving(true)

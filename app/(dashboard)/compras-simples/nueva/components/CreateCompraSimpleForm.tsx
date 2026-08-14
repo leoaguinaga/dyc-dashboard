@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Trash2, Building2 } from 'lucide-react'
+import { Plus, Trash2, Building2, Upload } from 'lucide-react'
 import { api } from '@/lib/api/client'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -76,6 +76,7 @@ const ROLE_TIPOS: Partial<Record<Role, TipoRequerimiento[]>> = {
   supervisor_electrico: ['electrico'],
   pdr: ['seguridad'],
   administrador: ['civil', 'electrico', 'seguridad', 'administrativo'],
+  admin_ti: ['civil', 'electrico', 'seguridad', 'administrativo'],
 }
 
 function fmtMoney(v: number) {
@@ -92,7 +93,9 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
   const [tipo, setTipo] = useState<TipoRequerimiento>(
     allowedTipos.length === 1 ? allowedTipos[0] : 'civil',
   )
-  const [urgente, setUrgente] = useState(false)
+  const [esRendicion, setEsRendicion] = useState(false)
+  const [comprobante, setComprobante] = useState<File | null>(null)
+  const [fotoProducto, setFotoProducto] = useState<File | null>(null)
   const [proyectoId, setProyectoId] = useState('')
   const [nota, setNota] = useState('')
   const [grupos, setGrupos] = useState<Grupo[]>([emptyGrupo()])
@@ -140,7 +143,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
       if (!g.sinProveedor && !g.proveedorId) next[`g${gi}_proveedor`] = 'Selecciona un proveedor o marca "sin proveedor registrado"'
       if (g.sinProveedor && !g.proveedorNombreLibre.trim()) next[`g${gi}_proveedor`] = 'Ingresa la razón social'
 
-      if (g.destinoPago === 'empresa') {
+      if (!esRendicion && g.destinoPago === 'empresa') {
         if (!g.pagoBanco.trim()) next[`g${gi}_pagoBanco`] = 'Ingresa el banco'
         if (!g.pagoNumeroCuenta.trim()) next[`g${gi}_pagoNumeroCuenta`] = 'Ingresa el número de cuenta'
         if (!g.pagoRazonSocial.trim()) next[`g${gi}_pagoRazonSocial`] = 'Ingresa la razón social de la cuenta'
@@ -165,6 +168,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
         if (!it.precioUnitario || isNaN(price) || price < 0) next[`g${gi}_i${ii}_precioUnitario`] = 'Precio inválido'
       })
     })
+    if (esRendicion && !comprobante) next.comprobante = 'Adjunta el comprobante (boleta/factura) de la compra'
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -176,24 +180,24 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
     setServerError(null)
 
     try {
-      const result = await api.post<{ id: string }>('/compras-simples', {
+      const result = await api.post<{ id: string; grupos: { id: string }[] }>('/compras-simples', {
         nombre: nombre.trim(),
         tipo,
-        urgente,
+        esRendicion,
         proyectoId,
         nota: nota.trim() || undefined,
         grupos: grupos.map((g) => ({
           proveedorId: g.sinProveedor ? undefined : g.proveedorId,
           proveedorNombreLibre: g.sinProveedor ? g.proveedorNombreLibre.trim() : undefined,
           fechaEntrega: g.fechaEntrega || undefined,
-          destinoPago: g.destinoPago,
-          pagoBanco: g.destinoPago === 'empresa' ? g.pagoBanco.trim() : undefined,
-          pagoNumeroCuenta: g.destinoPago === 'empresa' ? g.pagoNumeroCuenta.trim() : undefined,
-          pagoRazonSocial: g.destinoPago === 'empresa' ? g.pagoRazonSocial.trim() : undefined,
-          pagoMetodo: g.destinoPago === 'trabajador' ? g.pagoMetodo : undefined,
-          pagoTrabajadorBanco: g.destinoPago === 'trabajador' && g.pagoMetodo === 'transferencia' ? g.pagoTrabajadorBanco.trim() : undefined,
-          pagoTrabajadorNumeroCuenta: g.destinoPago === 'trabajador' && g.pagoMetodo === 'transferencia' ? g.pagoTrabajadorNumeroCuenta.trim() : undefined,
-          pagoTrabajadorNumero: g.destinoPago === 'trabajador' && (g.pagoMetodo === 'yape' || g.pagoMetodo === 'plin') ? g.pagoTrabajadorNumero.trim() : undefined,
+          destinoPago: esRendicion ? 'trabajador' : g.destinoPago,
+          pagoBanco: !esRendicion && g.destinoPago === 'empresa' ? g.pagoBanco.trim() : undefined,
+          pagoNumeroCuenta: !esRendicion && g.destinoPago === 'empresa' ? g.pagoNumeroCuenta.trim() : undefined,
+          pagoRazonSocial: !esRendicion && g.destinoPago === 'empresa' ? g.pagoRazonSocial.trim() : undefined,
+          pagoMetodo: esRendicion || g.destinoPago === 'trabajador' ? g.pagoMetodo : undefined,
+          pagoTrabajadorBanco: (esRendicion || g.destinoPago === 'trabajador') && g.pagoMetodo === 'transferencia' ? g.pagoTrabajadorBanco.trim() : undefined,
+          pagoTrabajadorNumeroCuenta: (esRendicion || g.destinoPago === 'trabajador') && g.pagoMetodo === 'transferencia' ? g.pagoTrabajadorNumeroCuenta.trim() : undefined,
+          pagoTrabajadorNumero: (esRendicion || g.destinoPago === 'trabajador') && (g.pagoMetodo === 'yape' || g.pagoMetodo === 'plin') ? g.pagoTrabajadorNumero.trim() : undefined,
           items: g.items.map((it) => ({
             descripcion: it.descripcion.trim(),
             cantidad: parseFloat(it.cantidad),
@@ -202,6 +206,23 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
           })),
         })),
       })
+
+      if (esRendicion && comprobante) {
+        const grupoId = result.grupos[0]?.id
+        if (grupoId) {
+          const comprobanteForm = new FormData()
+          comprobanteForm.append('archivo', comprobante)
+          comprobanteForm.append('tipo', 'comprobante')
+          await api.upload(`/compras-simples/grupos/${grupoId}/archivos`, comprobanteForm)
+
+          if (fotoProducto) {
+            const fotoForm = new FormData()
+            fotoForm.append('archivo', fotoProducto)
+            fotoForm.append('tipo', 'foto_producto')
+            await api.upload(`/compras-simples/grupos/${grupoId}/archivos`, fotoForm)
+          }
+        }
+      }
 
       router.push(`/compras-simples/${result.id}`)
       router.refresh()
@@ -285,25 +306,59 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
         <label className="flex items-center gap-2 cursor-pointer w-fit">
           <input
             type="checkbox"
-            checked={urgente}
-            onChange={(e) => setUrgente(e.target.checked)}
+            checked={esRendicion}
+            onChange={(e) => {
+              const checked = e.target.checked
+              setEsRendicion(checked)
+              if (checked) {
+                setGrupos((p) => {
+                  const first = p[0] ?? emptyGrupo()
+                  return [{ ...first, destinoPago: 'trabajador' }]
+                })
+              }
+              setErrors((p) => { const n = { ...p }; delete n.comprobante; return n })
+            }}
             className="size-4 rounded border-border accent-primary"
           />
-          <span className="text-sm font-medium">Marcar como urgente</span>
+          <span className="text-sm font-medium">Marcar como rendición (ya compré, necesito reembolso)</span>
         </label>
+
+        {esRendicion && (
+          <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Sube el comprobante de la compra (boleta/factura). El pago se depositará únicamente a ti, no a la empresa.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <FileField
+                label="Comprobante (boleta/factura)"
+                required
+                file={comprobante}
+                onChange={(f) => { setComprobante(f); setErrors((p) => { const n = { ...p }; delete n.comprobante; return n }) }}
+                error={errors.comprobante}
+              />
+              <FileField
+                label="Foto de los productos (opcional)"
+                file={fotoProducto}
+                onChange={setFotoProducto}
+              />
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className={sectionTitleCn}>Empresas / grupos de compra</h2>
-          <button
-            type="button"
-            onClick={() => setGrupos((p) => [...p, emptyGrupo()])}
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors duration-[120ms]"
-          >
-            <Plus className="size-3.5" />
-            Agregar empresa
-          </button>
+          {!esRendicion && (
+            <button
+              type="button"
+              onClick={() => setGrupos((p) => [...p, emptyGrupo()])}
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors duration-[120ms]"
+            >
+              <Plus className="size-3.5" />
+              Agregar empresa
+            </button>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -314,7 +369,8 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
               index={gi}
               proveedores={proveedores}
               errors={errors}
-              canRemove={grupos.length > 1}
+              canRemove={grupos.length > 1 && !esRendicion}
+              esRendicion={esRendicion}
               total={grupoTotal(g)}
               solicitanteNombre={session?.user?.name}
               miTrabajador={miTrabajador}
@@ -354,6 +410,7 @@ interface GrupoCardProps {
   proveedores: Proveedor[]
   errors: Record<string, string>
   canRemove: boolean
+  esRendicion: boolean
   total: number
   solicitanteNombre?: string
   miTrabajador: MiTrabajador | null
@@ -365,6 +422,38 @@ interface GrupoCardProps {
   onRemoveGrupo: () => void
 }
 
+function FileField({
+  label, file, onChange, required, error,
+}: { label: string; file: File | null; onChange: (f: File | null) => void; required?: boolean; error?: string }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  return (
+    <div>
+      <label className={labelCn}>
+        {label} {required && <span className="text-destructive">*</span>}
+      </label>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="application/pdf,image/*"
+        className="hidden"
+        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className={cn(
+          'flex h-9 w-full items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm text-muted-foreground hover:text-foreground transition-colors duration-[120ms]',
+          error && 'border-destructive',
+        )}
+      >
+        <Upload className="size-3.5 shrink-0" />
+        <span className="truncate">{file ? file.name : 'Seleccionar archivo…'}</span>
+      </button>
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+    </div>
+  )
+}
+
 const METODO_TRABAJADOR_LABELS: Record<MetodoPagoTrabajador, string> = {
   registrado: 'Usar banco/cuenta ya registrados',
   transferencia: 'Transferencia a otra cuenta',
@@ -373,7 +462,7 @@ const METODO_TRABAJADOR_LABELS: Record<MetodoPagoTrabajador, string> = {
 }
 
 function GrupoCard({
-  grupo, index, proveedores, errors, canRemove, total, solicitanteNombre, miTrabajador, miTrabajadorCargado,
+  grupo, index, proveedores, errors, canRemove, esRendicion, total, solicitanteNombre, miTrabajador, miTrabajadorCargado,
   onChange, onChangeItem, onAddItem, onRemoveItem, onRemoveGrupo,
 }: GrupoCardProps) {
   const proveedorError = errors[`g${index}_proveedor`]
@@ -461,34 +550,40 @@ function GrupoCard({
       <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-3">
         <p className={sectionTitleCn}>Condiciones de pago</p>
 
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => onChange({ destinoPago: 'empresa' })}
-            className={cn(
-              'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors duration-[120ms]',
-              grupo.destinoPago === 'empresa'
-                ? 'border-primary bg-primary/5 text-primary'
-                : 'border-border text-muted-foreground hover:text-foreground',
-            )}
-          >
-            Depositar a la empresa
-          </button>
-          <button
-            type="button"
-            onClick={() => onChange({ destinoPago: 'trabajador' })}
-            className={cn(
-              'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors duration-[120ms]',
-              grupo.destinoPago === 'trabajador'
-                ? 'border-primary bg-primary/5 text-primary'
-                : 'border-border text-muted-foreground hover:text-foreground',
-            )}
-          >
-            Depositarme a mí (solicitante)
-          </button>
-        </div>
+        {esRendicion ? (
+          <p className="text-xs text-muted-foreground">
+            Rendición: el pago se depositará únicamente al solicitante, no a la empresa.
+          </p>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => onChange({ destinoPago: 'empresa' })}
+              className={cn(
+                'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors duration-[120ms]',
+                grupo.destinoPago === 'empresa'
+                  ? 'border-primary bg-primary/5 text-primary'
+                  : 'border-border text-muted-foreground hover:text-foreground',
+              )}
+            >
+              Depositar a la empresa
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange({ destinoPago: 'trabajador' })}
+              className={cn(
+                'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors duration-[120ms]',
+                grupo.destinoPago === 'trabajador'
+                  ? 'border-primary bg-primary/5 text-primary'
+                  : 'border-border text-muted-foreground hover:text-foreground',
+              )}
+            >
+              Depositarme a mí (solicitante)
+            </button>
+          </div>
+        )}
 
-        {grupo.destinoPago === 'empresa' ? (
+        {!esRendicion && grupo.destinoPago === 'empresa' ? (
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
               <label className={labelCn}>Banco <span className="text-destructive">*</span></label>

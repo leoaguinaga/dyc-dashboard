@@ -13,12 +13,15 @@ interface Props {
   archivos: CompraSimpleGrupoArchivo[]
   estadoAprobacion: EstadoAprobacionCompra | null | undefined
   creadoPorId: string
+  esRendicion?: boolean
 }
 
-export function GrupoFacturaSection({ grupoId, archivos, estadoAprobacion, creadoPorId }: Props) {
+export function GrupoFacturaSection({ grupoId, archivos, estadoAprobacion, creadoPorId, esRendicion }: Props) {
   const { data: session } = useSession()
   const userId = session?.user?.id
-  const puedeSubir = estadoAprobacion === 'aprobada' && userId === creadoPorId
+  const puedeSubir =
+    (estadoAprobacion === 'aprobada' || (esRendicion && estadoAprobacion === 'pendiente')) &&
+    userId === creadoPorId
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -52,7 +55,9 @@ export function GrupoFacturaSection({ grupoId, archivos, estadoAprobacion, cread
 
   return (
     <div className="border-t border-border pt-3 space-y-2">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Factura</h3>
+      <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {esRendicion ? 'Comprobante de compra' : 'Factura'}
+      </h3>
 
       {archivos.length > 0 && (
         <ul className="space-y-1.5">
@@ -66,6 +71,9 @@ export function GrupoFacturaSection({ grupoId, archivos, estadoAprobacion, cread
               >
                 <FileText className="size-3.5 shrink-0" />
                 {a.nombreOriginal}
+                {a.tipo === 'foto_producto' && (
+                  <span className="text-xs text-muted-foreground">(foto de producto)</span>
+                )}
               </a>
             </li>
           ))}

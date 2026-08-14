@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Check, X, Trash2, AlertTriangle } from 'lucide-react'
+import { Plus, Check, X, AlertTriangle, ChevronRight } from 'lucide-react'
 import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Input } from '@/components/ui/input'
@@ -35,7 +35,7 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const role = session?.user?.role
-  const canManage = role === 'administrador' || role === 'logistica' || role === 'gerencia'
+  const canManage = role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia'
 
   const [pagos, setPagos] = useState(initialPagos)
   const [adding, setAdding] = useState(false)
@@ -44,7 +44,6 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
   const [nota, setNota] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [payingId, setPayingId] = useState<string | null>(null)
 
   const activos = pagos.filter((p) => p.estado !== 'cancelado')
   const porcentajePlanificado = activos.reduce((s, p) => s + Number(p.porcentaje), 0)
@@ -83,34 +82,6 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
       setError(e instanceof Error ? e.message : 'Error al registrar el pago')
     } finally {
       setSaving(false)
-    }
-  }
-
-  async function marcarPagado(id: string) {
-    setPayingId(id)
-    setError(null)
-    try {
-      await api.post(`/pagos/${id}/marcar-pagado`, {})
-      await refresh()
-      router.refresh()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al marcar como pagado')
-    } finally {
-      setPayingId(null)
-    }
-  }
-
-  async function cancelarPago(id: string) {
-    setPayingId(id)
-    setError(null)
-    try {
-      await api.post(`/pagos/${id}/cancelar`, {})
-      await refresh()
-      router.refresh()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al cancelar el pago')
-    } finally {
-      setPayingId(null)
     }
   }
 
@@ -153,12 +124,16 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
               <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Monto</th>
               <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Estado</th>
               <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Nota</th>
-              {canManage && <th className="px-4 py-2.5 w-24" />}
+              <th className="px-4 py-2.5 w-10" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {pagos.map((p) => (
-              <tr key={p.id} className="group">
+              <tr
+                key={p.id}
+                className="group cursor-pointer hover:bg-muted/20"
+                onClick={() => router.push(`/pagos/${p.id}`)}
+              >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
                     {p.estadoEfectivo === 'vencido' && <AlertTriangle className="size-3.5 text-destructive" />}
@@ -176,30 +151,9 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs">{p.nota ?? '—'}</td>
-                {canManage && (
-                  <td className="px-2 py-3">
-                    {(p.estado === 'pendiente') && (
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => marcarPagado(p.id)}
-                          disabled={payingId === p.id}
-                          title="Marcar como pagado"
-                          className="flex size-7 items-center justify-center rounded text-chart-2 hover:bg-chart-2/10"
-                        >
-                          <Check className="size-3.5" />
-                        </button>
-                        <button
-                          onClick={() => cancelarPago(p.id)}
-                          disabled={payingId === p.id}
-                          title="Cancelar"
-                          className="flex size-7 items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/5"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                )}
+                <td className="px-2 py-3 text-muted-foreground/50 group-hover:text-foreground">
+                  <ChevronRight className="size-3.5" />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -208,7 +162,7 @@ export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
               <td className="px-4 py-3 text-right text-sm font-medium">Planificado</td>
               <td className="px-4 py-3 text-right tabular-nums font-bold">{porcentajePlanificado.toFixed(2)}%</td>
               <td className="px-4 py-3 text-right tabular-nums font-bold">{formatCurrency(totalPlanificado)}</td>
-              <td colSpan={canManage ? 3 : 2} className="px-4 py-3 text-xs text-muted-foreground">
+              <td colSpan={2} className="px-4 py-3 text-xs text-muted-foreground">
                 {cubre100
                   ? 'Cubre el 100% de la OC'
                   : `Disponible por planificar: ${porcentajeDisponible.toFixed(2)}%`}

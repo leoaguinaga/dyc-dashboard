@@ -7,7 +7,7 @@ import { ComprasSimplesTableClient } from './ComprasSimplesTableClient'
 import type { CompraSimple, User } from '@/types/api'
 
 // Debe coincidir con ROLES_CREACION en compras-simples.service.ts
-const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador']
+const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador', 'admin_ti']
 
 export async function ComprasSimplesTable() {
   const [result, user] = await Promise.all([
