@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, User, Building2, CalendarDays, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, User, Building2, CalendarDays, AlertTriangle, ShieldCheck } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { cn } from '@/lib/utils'
 import { GrupoAprobacionActions } from './components/GrupoAprobacionActions'
@@ -145,6 +145,15 @@ export default async function CompraSimpleDetailPage({ params }: Props) {
                   <dd className="font-medium">{fmt(c.creadoEn)}</dd>
                 </div>
               </div>
+              {c.esRendicion && c.aprobadoInformalPor && (
+                <div className="flex items-start gap-2">
+                  <ShieldCheck className="size-4 mt-0.5 text-muted-foreground shrink-0" />
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Aprobó la compra (respaldo)</dt>
+                    <dd className="font-medium">{c.aprobadoInformalPor.name}</dd>
+                  </div>
+                </div>
+              )}
               {c.nota && (
                 <div className="rounded-lg bg-muted/50 px-3 py-2">
                   <p className="text-xs text-muted-foreground mb-0.5">Nota</p>

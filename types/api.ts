@@ -646,6 +646,8 @@ export interface Cotizacion {
   condicionPago?: string;
   incluyeIgv: boolean;
   nota?: string;
+  creadoPorId?: string | null;
+  creadoPor?: Pick<User, 'id' | 'name' | 'role'> | null;
   creadoEn: string;
   items: CotizacionItem[];
   archivos?: CotizacionArchivo[];
@@ -684,6 +686,11 @@ export interface SolicitudCotizacion {
   aprobadaSolicitantePor?: Pick<User, 'id' | 'name' | 'role'> | null;
   aprobadaSolicitantePorRole?: Role | null;
   aprobadaSolicitanteEn?: string | null;
+
+  aprobadaGerenciaPorId?: string | null;
+  aprobadaGerenciaPor?: Pick<User, 'id' | 'name' | 'role'> | null;
+  aprobadaGerenciaPorRole?: Role | null;
+  aprobadaGerenciaEn?: string | null;
 }
 
 export interface OrdenCompraItem {
@@ -770,6 +777,8 @@ export interface CompraSimple {
   proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'>;
   creadoPorId: string;
   creadoPor: Pick<User, 'id' | 'name' | 'email' | 'role'>;
+  aprobadoInformalPorId?: string | null;
+  aprobadoInformalPor?: Pick<User, 'id' | 'name' | 'role'> | null;
   nota?: string | null;
   creadoEn: string;
   actualizadoEn: string;

@@ -4,6 +4,7 @@ import { ArrowLeft, AlertTriangle, CalendarDays, User, Building2 } from 'lucide-
 import { serverFetch } from '@/lib/api/server'
 import { cn } from '@/lib/utils'
 import { RequerimientoActions } from './components/RequerimientoActions'
+import { RequerimientoFlowStepper } from './components/RequerimientoFlowStepper'
 import { RequerimientoRecepcion } from './components/RequerimientoRecepcion'
 import { RequerimientoItemsCard } from './components/RequerimientoItemsCard'
 import type { Requerimiento, TipoRequerimiento } from '@/types/api'
@@ -62,6 +63,7 @@ export default async function RequerimientoDetailPage({ params }: Props) {
   }
 
   const r = result
+  const entregaVencida = r.fechaEntregaRequerida && new Date(r.fechaEntregaRequerida) < new Date() && r.estado !== 'recibido'
 
   return (
     <div className="space-y-4">
@@ -74,30 +76,17 @@ export default async function RequerimientoDetailPage({ params }: Props) {
           Volver a requerimientos
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {r.urgente && (
-              <div className="flex size-10 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
-                <AlertTriangle className="size-5" />
-              </div>
-            )}
-            <div>
-              <div className="flex items-baseline gap-2">
-                <h1 className="text-2xl font-semibold tracking-tight">{r.nombre}</h1>
-                <span className="font-mono text-xs text-muted-foreground">{r.codigo}</span>
-              </div>
-              <p className="text-sm text-muted-foreground">{r.proyecto.nombre}</p>
+          <div>
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight">{r.nombre}</h1>
+              <span className="font-mono text-xs text-muted-foreground">{r.codigo}</span>
             </div>
+            <p className="text-sm text-muted-foreground">{r.proyecto.nombre}</p>
           </div>
           <div className="flex items-center gap-2">
             <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', TIPO_CLASS[r.tipo])}>
               {TIPO_LABEL[r.tipo]}
             </span>
-            {r.urgente && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600">
-                <AlertTriangle className="size-3" />
-                Urgente
-              </span>
-            )}
             <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', ESTADO_CLASS[r.estado])}>
               {ESTADO_LABEL[r.estado]}
             </span>
@@ -105,10 +94,38 @@ export default async function RequerimientoDetailPage({ params }: Props) {
         </div>
       </div>
 
+      {/* Alerta principal: lo más urgente va primero, no perdido entre badges */}
+      {(r.urgente || entregaVencida) && (
+        <div className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-600">
+            <AlertTriangle className="size-4.5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-amber-700">
+              {entregaVencida ? 'Entrega requerida vencida' : 'Requerimiento urgente'}
+            </p>
+            <p className="text-xs text-amber-700/80">
+              {entregaVencida
+                ? `Se necesitaba antes del ${new Date(r.fechaEntregaRequerida!).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })}`
+                : 'Priorizar sobre el resto de la cola de trabajo'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Progreso del flujo: lo primero que se lee, de un vistazo */}
+      <RequerimientoFlowStepper requerimiento={r} />
+
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Info + acciones */}
+        {/* Acciones + info */}
         <div className="space-y-4">
-          <div className="rounded-xl border border-border bg-white p-5 space-y-4">
+          {/* Acciones (destacada cuando requiere intervención) */}
+          <RequerimientoActions requerimiento={r} />
+
+          {/* Recepción */}
+          <RequerimientoRecepcion requerimiento={r} />
+
+          <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
             <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Información</h2>
             <dl className="space-y-3 text-sm">
               <div className="flex items-start gap-2">
@@ -136,17 +153,17 @@ export default async function RequerimientoDetailPage({ params }: Props) {
               </div>
               {r.fechaEntregaRequerida && (
                 <div className="flex items-start gap-2">
-                  <CalendarDays className="size-4 mt-0.5 text-amber-500 shrink-0" />
+                  <CalendarDays className={cn('size-4 mt-0.5 shrink-0', entregaVencida ? 'text-destructive' : 'text-amber-500')} />
                   <div>
                     <dt className="text-xs text-muted-foreground">Entrega requerida</dt>
-                    <dd className="font-medium text-amber-600">
+                    <dd className={cn('font-medium', entregaVencida ? 'text-destructive' : 'text-amber-600')}>
                       {new Date(r.fechaEntregaRequerida).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })}
                     </dd>
                   </div>
                 </div>
               )}
               {r.nota && (
-                <div className="rounded-lg bg-muted/50 px-3 py-2">
+                <div className="rounded-lg bg-white px-3 py-2 border border-border/60">
                   <p className="text-xs text-muted-foreground mb-0.5">Nota</p>
                   <p className="text-sm">{r.nota}</p>
                 </div>
@@ -160,17 +177,32 @@ export default async function RequerimientoDetailPage({ params }: Props) {
             </dl>
           </div>
 
-          {/* Acciones */}
-          <RequerimientoActions requerimiento={r} />
+          {/* Solicitudes vinculadas */}
+          {r.solicitudes && r.solicitudes.length > 0 && (
+            <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-3">
+              <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Solicitudes de cotización</h2>
+              <div className="space-y-2">
+                {r.solicitudes.map((s) => (
+                  <Link
+                    key={s.id}
+                    href={`/cotizaciones/${s.id}`}
+                    className="flex items-center justify-between rounded-lg border border-border bg-white px-3 py-2 text-sm hover:bg-muted/40 transition-colors duration-[120ms]"
+                  >
+                    <span className="font-mono text-xs font-medium">{s.codigo}</span>
+                    <span className="text-xs text-muted-foreground">{s.estado}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
-          {/* Recepción */}
-          <RequerimientoRecepcion requerimiento={r} />
-
-          {/* Historial */}
+          {/* Historial: colapsado por defecto, es lo menos urgente */}
           {r.historial && r.historial.length > 0 && (
-            <div className="rounded-xl border border-border bg-white p-5 space-y-3">
-              <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Historial</h2>
-              <ol className="space-y-2.5">
+            <details className="group rounded-xl border border-border bg-muted/20 p-5">
+              <summary className="cursor-pointer select-none text-xs font-medium uppercase tracking-wide text-muted-foreground [&::-webkit-details-marker]:hidden">
+                Historial ({r.historial.length})
+              </summary>
+              <ol className="mt-3 space-y-2.5">
                 {r.historial.map((h) => (
                   <li key={h.id} className="flex items-start gap-2 text-sm">
                     <span className={cn('mt-0.5 inline-flex shrink-0 items-center rounded-md px-1.5 py-0.5 text-xs font-medium', ESTADO_CLASS[h.estado])}>
@@ -186,30 +218,11 @@ export default async function RequerimientoDetailPage({ params }: Props) {
                   </li>
                 ))}
               </ol>
-            </div>
-          )}
-
-          {/* Solicitudes vinculadas */}
-          {r.solicitudes && r.solicitudes.length > 0 && (
-            <div className="rounded-xl border border-border bg-white p-5 space-y-3">
-              <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Solicitudes de cotización</h2>
-              <div className="space-y-2">
-                {r.solicitudes.map((s) => (
-                  <Link
-                    key={s.id}
-                    href={`/cotizaciones/${s.id}`}
-                    className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm hover:bg-muted/40 transition-colors duration-[120ms]"
-                  >
-                    <span className="font-mono text-xs font-medium">{s.codigo}</span>
-                    <span className="text-xs text-muted-foreground">{s.estado}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
+            </details>
           )}
         </div>
 
-        {/* Ítems */}
+        {/* Ítems: el contenido principal, con más espacio */}
         <div className="lg:col-span-2">
           <RequerimientoItemsCard requerimiento={r} />
         </div>

@@ -100,6 +100,14 @@ export default async function SolicitudDetailPage({ params }: Props) {
           <p className="text-xs text-muted-foreground">
             Aprobado como solicitante por {s.aprobadaSolicitantePor.name}
             {s.aprobadaSolicitantePorRole && ` (${s.aprobadaSolicitantePorRole})`}
+            {s.aprobadaSolicitanteEn && ` · ${fmt(s.aprobadaSolicitanteEn)}`}
+          </p>
+        )}
+        {s.aprobadaGerenciaPor && (
+          <p className="text-xs text-muted-foreground">
+            Aprobado por gerencia: {s.aprobadaGerenciaPor.name}
+            {s.aprobadaGerenciaPorRole && ` (${s.aprobadaGerenciaPorRole})`}
+            {s.aprobadaGerenciaEn && ` · ${fmt(s.aprobadaGerenciaEn)}`}
           </p>
         )}
       </div>
