@@ -3,6 +3,7 @@ import { ShoppingCart } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import type { EstadoOrdenCompra, OrdenCompra } from '@/types/api'
 import { cn, formatCurrency } from '@/lib/utils'
+import { ordenBasePath } from '@/lib/ordenes'
 
 const ESTADO_LABEL: Record<EstadoOrdenCompra, string> = {
   borrador: 'Borrador',
@@ -27,7 +28,7 @@ export async function ProyectoOrdenesCompraSection({ proyectoId }: { proyectoId:
     <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-2">
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Órdenes de compra ({ordenes.length})
+          Órdenes de compra y servicio ({ordenes.length})
         </h2>
         <Link
           href={`/ordenes-compra?proyectoId=${proyectoId}`}
@@ -47,7 +48,7 @@ export async function ProyectoOrdenesCompraSection({ proyectoId }: { proyectoId:
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">N° OC</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">N°</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Proveedor</th>
                 <th className="px-4 py-2.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">Monto</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</th>
@@ -59,7 +60,7 @@ export async function ProyectoOrdenesCompraSection({ proyectoId }: { proyectoId:
                 <tr key={oc.id} className="transition-colors duration-[120ms] hover:bg-muted/40">
                   <td className="px-4 py-3">
                     <Link
-                      href={`/ordenes-compra/${oc.id}`}
+                      href={`${ordenBasePath(oc.tipo)}/${oc.id}`}
                       className="font-mono font-medium hover:underline underline-offset-2"
                     >
                       {oc.numero}

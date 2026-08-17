@@ -6,11 +6,13 @@ import { OrdenCompraActions } from './components/OrdenCompraActions'
 import { LugarEntregaEditor } from './components/LugarEntregaEditor'
 import { FormaPagoEditor } from './components/FormaPagoEditor'
 import { NombreOcEditor } from './components/NombreOcEditor'
+import { NumeroTipoEditor } from './components/NumeroTipoEditor'
 import { ReferenciaConceptoEditor } from './components/ReferenciaConceptoEditor'
 import { OcItemsTable } from './components/OcItemsTable'
 import { PagoPlanCard } from './components/PagoPlanCard'
 import type { EstadoOrdenCompra, OrdenCompra, Pago, TipoRequerimiento } from '@/types/api'
 import { cn, formatCurrency } from '@/lib/utils'
+import { ordenBasePath, ordenLabelPlural } from '@/lib/ordenes'
 
 const ESTADO_LABEL: Record<EstadoOrdenCompra, string> = {
   borrador: 'Borrador',
@@ -48,12 +50,12 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
     <div className="space-y-6 w-full">
       <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
         <div className="space-y-1">
-          <Link href="/ordenes-compra" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-120">
+          <Link href={ordenBasePath(oc.tipo)} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-120">
             <ArrowLeft className="size-3.5" />
-            Órdenes de compra
+            {ordenLabelPlural(oc.tipo)}
           </Link>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-semibold tracking-tight font-mono">{oc.numero}</h1>
+            <NumeroTipoEditor ocId={oc.id} numero={oc.numero} tipo={oc.tipo} />
             <a
               href={`/api/ordenes-compra/${oc.id}/pdf`}
               target="_blank"

@@ -26,13 +26,14 @@ export type EstadoRequerimiento =
 export type EstadoSolicitud =
   | 'borrador' | 'enviada' | 'cotizada'
   | 'seleccionada' | 'aprobada_solicitante' | 'aprobada_gerencia'
-  | 'cancelada';
+  | 'orden_generada' | 'cancelada';
 export type EstadoCotizacion = 'pendiente' | 'recibida' | 'aprobada' | 'rechazada' | 'sin_respuesta';
 export type EstadoOrdenCompra = 'borrador' | 'emitida' | 'recibida_parcial' | 'recibida' | 'cancelada';
 export type EstadoPago = 'pendiente' | 'pagado' | 'cancelado';
 export type EstadoPagoEfectivo = EstadoPago | 'vencido';
 export type TipoBeneficiario = 'proveedor' | 'trabajador';
 export type OrigenOrdenCompra = 'macro' | 'simple';
+export type TipoOrdenCompra = 'compra' | 'servicio';
 export type EstadoAprobacionCompra = 'pendiente' | 'aprobada_tecnico' | 'aprobada' | 'observada';
 export type DestinoPago = 'empresa' | 'trabajador';
 export type MetodoPagoTrabajador = 'registrado' | 'transferencia' | 'yape' | 'plin';
@@ -673,6 +674,7 @@ export interface SolicitudCotizacion {
   proyectoId: string;
   proyecto?: Pick<Proyecto, 'id' | 'nombre' | 'codigo'>;
   requerimientoId?: string;
+  requerimiento?: Pick<Requerimiento, 'id' | 'nombre'> | null;
   estado: EstadoSolicitud;
   nota?: string;
   creadoEn: string;
@@ -718,6 +720,7 @@ export interface OrdenCompra {
   }) | null;
   proveedorNombreLibre?: string | null;
   origen: OrigenOrdenCompra;
+  tipo: TipoOrdenCompra;
   compraSimpleId?: string | null;
   estadoAprobacion?: EstadoAprobacionCompra | null;
   aprobadoPorId?: string | null;
@@ -747,6 +750,7 @@ export interface OrdenCompra {
   adelantoPorcentaje?: string | null;
   saldoPorcentaje?: string | null;
   detraccionPorcentaje?: string | null;
+  retencionPorcentaje?: string | null;
   incluyeIgv: boolean;
   tipoCambio?: string | null;
   contactoProveedorNombre?: string | null;

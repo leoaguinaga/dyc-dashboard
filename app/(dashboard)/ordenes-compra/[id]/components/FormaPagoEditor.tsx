@@ -27,6 +27,7 @@ interface Props {
     | 'adelantoPorcentaje'
     | 'saldoPorcentaje'
     | 'detraccionPorcentaje'
+    | 'retencionPorcentaje'
     | 'incluyeIgv'
     | 'tipoCambio'
     | 'contactoProveedorNombre'
@@ -44,6 +45,7 @@ type FormState = {
   adelantoPorcentaje: string
   saldoPorcentaje: string
   detraccionPorcentaje: string
+  retencionPorcentaje: string
   incluyeIgv: boolean
   tipoCambio: string
   contactoProveedorNombre: string
@@ -61,6 +63,7 @@ function toForm(oc: Props['oc']): FormState {
     adelantoPorcentaje: oc.adelantoPorcentaje ?? '',
     saldoPorcentaje: oc.saldoPorcentaje ?? '',
     detraccionPorcentaje: oc.detraccionPorcentaje ?? '',
+    retencionPorcentaje: oc.retencionPorcentaje ?? '',
     incluyeIgv: oc.incluyeIgv,
     tipoCambio: oc.tipoCambio ?? '',
     contactoProveedorNombre: oc.contactoProveedorNombre ?? '',
@@ -92,6 +95,10 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
   }
 
   async function save() {
+    if (form.detraccionPorcentaje !== '' && form.retencionPorcentaje !== '') {
+      setErr('Una orden no puede tener detracción y retención a la vez')
+      return
+    }
     setSaving(true)
     setErr(null)
     try {
@@ -99,6 +106,7 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
         adelantoPorcentaje: form.adelantoPorcentaje !== '' ? Number(form.adelantoPorcentaje) : null,
         saldoPorcentaje: form.saldoPorcentaje !== '' ? Number(form.saldoPorcentaje) : null,
         detraccionPorcentaje: form.detraccionPorcentaje !== '' ? Number(form.detraccionPorcentaje) : null,
+        retencionPorcentaje: form.retencionPorcentaje !== '' ? Number(form.retencionPorcentaje) : null,
         incluyeIgv: form.incluyeIgv,
         tipoCambio: form.tipoCambio !== '' ? Number(form.tipoCambio) : null,
         contactoProveedorNombre: form.contactoProveedorNombre.trim() || null,
@@ -127,7 +135,7 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
 
   if (!editing) {
     const hasData =
-      oc.adelantoPorcentaje || oc.saldoPorcentaje || oc.detraccionPorcentaje ||
+      oc.adelantoPorcentaje || oc.saldoPorcentaje || oc.detraccionPorcentaje || oc.retencionPorcentaje ||
       oc.tipoCambio || oc.contactoProveedorNombre || oc.contactoProveedorTelefono || oc.condicionPago ||
       oc.tiempoEntrega || oc.contactoDycNombre || oc.contactoDycArea || oc.contactoDycCelular || oc.contactoDycTelefono
 
@@ -150,6 +158,10 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
             <div>
               <dt className="text-xs text-muted-foreground">Detracción</dt>
               <dd className="font-medium">{oc.detraccionPorcentaje ? formatPercent(oc.detraccionPorcentaje) : '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Retención IGV</dt>
+              <dd className="font-medium">{oc.retencionPorcentaje ? formatPercent(oc.retencionPorcentaje) : '—'}</dd>
             </div>
             <div>
               <dt className="text-xs text-muted-foreground">IGV</dt>
@@ -276,6 +288,32 @@ export function FormaPagoEditor({ ocId, oc }: Props) {
             value={form.detraccionPorcentaje}
             onChange={(e) => set('detraccionPorcentaje', e.target.value)}
             placeholder="10"
+            disabled={form.retencionPorcentaje !== ''}
+          />
+        </div>
+        <div>
+          <div className="mb-1 flex items-center gap-1">
+            <label className="text-xs text-muted-foreground">Retención IGV (%)</label>
+            <Popover>
+              <PopoverTrigger className="text-muted-foreground hover:text-foreground">
+                <Info className="size-3" />
+              </PopoverTrigger>
+              <PopoverContent className="w-72">
+                <p className="text-xs text-foreground">
+                  Régimen de retenciones del IGV (SUNAT): 3% sobre operaciones mayores a S/ 700, solo si D&amp;C está
+                  designada como agente de retención. No aplica junto con detracción sobre la misma operación.
+                </p>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            value={form.retencionPorcentaje}
+            onChange={(e) => set('retencionPorcentaje', e.target.value)}
+            placeholder="3"
+            disabled={form.detraccionPorcentaje !== ''}
           />
         </div>
         <div className="flex items-center gap-2 pt-4">

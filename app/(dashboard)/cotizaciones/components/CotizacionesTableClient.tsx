@@ -15,6 +15,7 @@ const ESTADO_LABEL: Record<EstadoSolicitud, string> = {
   seleccionada: 'Seleccionada',
   aprobada_solicitante: 'Aprobada (sol.)',
   aprobada_gerencia: 'Aprobada',
+  orden_generada: 'Orden generada',
   cancelada: 'Cancelada',
 }
 
@@ -25,6 +26,7 @@ const ESTADO_CLASS: Record<EstadoSolicitud, string> = {
   seleccionada: 'bg-purple-500/15 text-purple-600',
   aprobada_solicitante: 'bg-chart-2/10 text-chart-2',
   aprobada_gerencia: 'bg-chart-2/15 text-chart-2',
+  orden_generada: 'bg-slate-500/15 text-slate-600',
   cancelada: 'bg-destructive/10 text-destructive',
 }
 
@@ -50,6 +52,7 @@ export function CotizacionesTableClient({ solicitudes }: Props) {
       result = result.filter(
         (s) =>
           s.codigo.toLowerCase().includes(q) ||
+          s.requerimiento?.nombre.toLowerCase().includes(q) ||
           s.proyecto?.nombre.toLowerCase().includes(q) ||
           s.proyecto?.codigo?.toLowerCase().includes(q),
       )
@@ -64,7 +67,7 @@ export function CotizacionesTableClient({ solicitudes }: Props) {
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Buscar por código o proyecto…"
+            placeholder="Buscar por código, concepto o proyecto…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
@@ -111,10 +114,13 @@ export function CotizacionesTableClient({ solicitudes }: Props) {
             <tbody className="divide-y divide-border">
               {filtered.map((s) => (
                 <tr key={s.id} className="transition-colors duration-120 hover:bg-muted/40">
-                  <td className="px-4 py-3 font-mono text-sm font-medium tabular-nums">
-                    <Link href={`/cotizaciones/${s.id}`} className='hover:underline underline-offset-4'>
+                  <td className="px-4 py-3">
+                    <Link href={`/cotizaciones/${s.id}`} className="font-mono text-sm font-medium tabular-nums hover:underline underline-offset-4">
                       {s.codigo}
                     </Link>
+                    {s.requerimiento?.nombre && (
+                      <p className="text-xs text-muted-foreground">{s.requerimiento.nombre}</p>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-medium">{s.proyecto?.nombre ?? '—'}</p>
