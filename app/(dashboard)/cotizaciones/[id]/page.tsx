@@ -23,6 +23,7 @@ const ESTADO_LABEL: Record<EstadoSolicitud, string> = {
   seleccionada: 'Seleccionada',
   aprobada_solicitante: 'Aprobada (solicitante)',
   aprobada_gerencia: 'Aprobada',
+  orden_generada: 'Orden generada',
   cancelada: 'Cancelada',
 }
 
@@ -33,6 +34,7 @@ const ESTADO_CLASS: Record<EstadoSolicitud, string> = {
   seleccionada: 'bg-purple-500/15 text-purple-600',
   aprobada_solicitante: 'bg-chart-2/15 text-chart-2',
   aprobada_gerencia: 'bg-chart-2/15 text-chart-2',
+  orden_generada: 'bg-slate-500/15 text-slate-600',
   cancelada: 'bg-destructive/10 text-destructive',
 }
 
@@ -56,7 +58,7 @@ export default async function SolicitudDetailPage({ params }: Props) {
 
   const s = solicitud
   const proveedoresInvitados = s.cotizaciones.map((c) => c.proveedorId)
-  const puedeInvitar = s.estado !== 'aprobada_gerencia' && s.estado !== 'cancelada'
+  const puedeInvitar = s.estado !== 'aprobada_gerencia' && s.estado !== 'orden_generada' && s.estado !== 'cancelada'
   const puedeAprobar = s.estado === 'cotizada' &&
     !!user?.role && CON_ACCESO_APROBAR_COTIZACION.includes(user.role)
   const receivedCotizaciones = s.cotizaciones.filter((c) => c.items.length > 0)

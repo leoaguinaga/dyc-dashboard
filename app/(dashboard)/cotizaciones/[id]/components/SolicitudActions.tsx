@@ -44,6 +44,7 @@ export function SolicitudActions({ solicitud }: Props) {
   const puedeCancelar =
     (role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia') &&
     solicitud.estado !== 'aprobada_gerencia' &&
+    solicitud.estado !== 'orden_generada' &&
     solicitud.estado !== 'cancelada'
 
   const puedeAvanzar = accion && role && accion.rolesPermitidos.includes(role)

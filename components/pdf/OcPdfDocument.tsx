@@ -273,23 +273,31 @@ export function OcPdfDocument({ oc }: Props) {
 
   const adelantoPct = oc.adelantoPorcentaje ? parseFloat(oc.adelantoPorcentaje) : 50
   const saldoPct = oc.saldoPorcentaje ? parseFloat(oc.saldoPorcentaje) : 50
-  const detraccionPct = oc.detraccionPorcentaje ? parseFloat(oc.detraccionPorcentaje) : 10
+
+  const detraccionRaw = oc.detraccionPorcentaje ? parseFloat(oc.detraccionPorcentaje) : null
+  const retencionRaw = oc.retencionPorcentaje ? parseFloat(oc.retencionPorcentaje) : null
+  // Detracción y retención son excluyentes; si ninguna está definida se asume detracción
+  // de referencia (10%), comportamiento histórico de este documento.
+  const descuentoLabel = retencionRaw != null && detraccionRaw == null ? 'Retención' : 'Detracción'
+  const descuentoPct = detraccionRaw ?? retencionRaw ?? 10
 
   const adelantoBruto = round1(total * (adelantoPct / 100))
   const saldoBruto = round1(total * (saldoPct / 100))
-  const adelantoNeto = round1(adelantoBruto * (1 - detraccionPct / 100))
-  const saldoNeto = round1(saldoBruto * (1 - detraccionPct / 100))
-  const detraccionTotal = round1(total * (detraccionPct / 100))
-  const netoADepositarTotal = round1(total - detraccionTotal)
+  const adelantoNeto = round1(adelantoBruto * (1 - descuentoPct / 100))
+  const saldoNeto = round1(saldoBruto * (1 - descuentoPct / 100))
+  const descuentoTotal = round1(total * (descuentoPct / 100))
+  const netoADepositarTotal = round1(total - descuentoTotal)
 
   const requerimiento = oc.solicitud?.requerimiento
   // El PDF solo se exporta para OCs del flujo macro, donde el proveedor siempre está presente.
   const proveedor = oc.proveedor!
   const contactoProveedor = proveedor.contactos?.[0]
 
+  const docLabel = oc.tipo === 'servicio' ? 'Orden de Servicio' : 'Orden de Compra'
+
   return (
     <Document
-      title={`${oc.numero} - Orden de Compra`}
+      title={`${oc.numero} - ${docLabel}`}
       author="D&C Ingeniería y Proyectos"
     >
       <Page size="A4" style={s.page}>
@@ -301,7 +309,7 @@ export function OcPdfDocument({ oc }: Props) {
             <Text style={s.companyTagline}>{EMPRESA.tagline}</Text>
           </View>
           <View style={s.docBlock}>
-            <Text style={s.docLabel}>ORDEN DE COMPRA</Text>
+            <Text style={s.docLabel}>{docLabel.toUpperCase()}</Text>
             <Text style={s.docSubLabel}>GUÍA DE INTERNAMIENTO</Text>
             <Text style={s.docNumero}>N° {oc.numero}</Text>
             {oc.nombre && <Text style={s.docNombre}>{oc.nombre}</Text>}
@@ -469,10 +477,10 @@ export function OcPdfDocument({ oc }: Props) {
                 {oc.tipoCambio ? Number(oc.tipoCambio).toLocaleString('es-PE', { maximumFractionDigits: 4 }) : '0'}
               </Text>
             </View>
-            <Text style={[s.paymentTitle, { marginTop: 8 }]}>Detracción</Text>
+            <Text style={[s.paymentTitle, { marginTop: 8 }]}>{descuentoLabel}</Text>
             <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>{fmtPercent(detraccionPct)}</Text>
-              <Text style={s.paymentValue}>{fmtMoney(detraccionTotal)}</Text>
+              <Text style={s.paymentLabel}>{fmtPercent(descuentoPct)}</Text>
+              <Text style={s.paymentValue}>{fmtMoney(descuentoTotal)}</Text>
             </View>
             <View style={s.paymentLine}>
               <Text style={s.paymentLabel}>Total</Text>

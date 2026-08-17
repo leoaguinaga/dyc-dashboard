@@ -10,6 +10,7 @@ import {
   Warehouse,
   ShoppingCart,
   ShoppingBag,
+  Wrench,
   BarChart2,
   Wallet,
   UserCheck,
@@ -122,7 +123,7 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       {
         href: '/ordenes-compra',
-        label: 'Órdenes compra',
+        label: 'Ord. compra',
         icon: ShoppingCart,
         roles: [
           'administrador', 'gerencia', 'logistica',
@@ -130,8 +131,17 @@ export const NAV_GROUPS: NavGroup[] = [
         ],
       },
       {
+        href: '/ordenes-servicio',
+        label: 'Ord. servicio',
+        icon: Wrench,
+        roles: [
+          'administrador', 'gerencia', 'logistica',
+          'ing_civil', 'ing_electrico', 'jefe_sig',
+        ],
+      },
+      {
         href: '/compras-simples',
-        label: 'Compras simples',
+        label: 'Compras',
         icon: ShoppingBag,
         roles: [
           'administrador', 'gerencia', 'logistica',

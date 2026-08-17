@@ -1,6 +1,7 @@
 import { serverFetch } from '@/lib/api/server'
 import { formatCurrency } from '@/lib/utils'
-import type { OrdenCompra } from '@/types/api'
+import { ordenPrefijo } from '@/lib/ordenes'
+import type { OrdenCompra, TipoOrdenCompra } from '@/types/api'
 
 function KpiCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -12,8 +13,12 @@ function KpiCard({ label, value, sub }: { label: string; value: string | number;
   )
 }
 
-export async function OrdenesCompraKpis() {
-  const ordenes = await serverFetch<OrdenCompra[]>('/ordenes-compra').catch(() => [] as OrdenCompra[])
+interface Props {
+  tipo: TipoOrdenCompra
+}
+
+export async function OrdenesCompraKpis({ tipo }: Props) {
+  const ordenes = await serverFetch<OrdenCompra[]>(`/ordenes-compra?tipo=${tipo}`).catch(() => [] as OrdenCompra[])
 
   const emitidas = ordenes.filter((o) => o.estado === 'emitida').length
   const enTransito = ordenes.filter((o) => o.estado === 'recibida_parcial').length
@@ -24,7 +29,7 @@ export async function OrdenesCompraKpis() {
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <KpiCard label="Total OC" value={ordenes.length} />
+      <KpiCard label={`Total ${ordenPrefijo(tipo)}`} value={ordenes.length} />
       <KpiCard label="Emitidas" value={emitidas} sub="Esperando recepción" />
       <KpiCard label="Recepción parcial" value={enTransito} />
       <KpiCard label="Monto comprometido" value={formatCurrency(montoTotal)} sub="Excluye canceladas" />

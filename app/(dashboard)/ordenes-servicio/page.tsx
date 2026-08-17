@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
-import { OrdenesCompraKpis } from './components/OrdenesCompraKpis'
-import { OrdenesCompraTable } from './components/OrdenesCompraTable'
+import { OrdenesCompraKpis } from '../ordenes-compra/components/OrdenesCompraKpis'
+import { OrdenesCompraTable } from '../ordenes-compra/components/OrdenesCompraTable'
 
 function KpisSkeleton() {
   return (
@@ -25,14 +25,14 @@ function TableSkeleton() {
   )
 }
 
-export default function OrdenesCompraPage() {
+export default function OrdenesServicioPage() {
   return (
     <div className="space-y-3">
       <Suspense fallback={<KpisSkeleton />}>
-        <OrdenesCompraKpis tipo="compra" />
+        <OrdenesCompraKpis tipo="servicio" />
       </Suspense>
       <Suspense fallback={<TableSkeleton />}>
-        <OrdenesCompraTable tipo="compra" />
+        <OrdenesCompraTable tipo="servicio" />
       </Suspense>
     </div>
   )

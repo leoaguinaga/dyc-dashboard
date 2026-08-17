@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { Search } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn, formatCurrency } from '@/lib/utils'
-import type { EstadoOrdenCompra, OrdenCompra } from '@/types/api'
+import { ordenBasePath, ordenPrefijo } from '@/lib/ordenes'
+import type { EstadoOrdenCompra, OrdenCompra, TipoOrdenCompra } from '@/types/api'
 
 const ESTADO_LABEL: Record<EstadoOrdenCompra, string> = {
   borrador: 'Borrador',
@@ -27,9 +28,12 @@ type EstadoFilter = 'todos' | EstadoOrdenCompra
 
 interface Props {
   ordenes: OrdenCompra[]
+  tipo: TipoOrdenCompra
 }
 
-export function OrdenesCompraTableClient({ ordenes }: Props) {
+export function OrdenesCompraTableClient({ ordenes, tipo }: Props) {
+  const basePath = ordenBasePath(tipo)
+  const prefijo = ordenPrefijo(tipo)
   const [search, setSearch] = useState('')
   const [estado, setEstado] = useState<EstadoFilter>('todos')
   const [proyectoId, setProyectoId] = useState<string>('todos')
@@ -70,7 +74,7 @@ export function OrdenesCompraTableClient({ ordenes }: Props) {
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Buscar por N° OC, proveedor, proyecto o solicitud…"
+            placeholder={`Buscar por N° ${prefijo}, proveedor, proyecto o solicitud…`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
@@ -103,7 +107,7 @@ export function OrdenesCompraTableClient({ ordenes }: Props) {
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-border bg-white py-16 text-center space-y-2">
           <p className="text-sm font-medium text-muted-foreground">
-            {search.trim() ? `Sin resultados para "${search}"` : 'No hay órdenes de compra con los filtros seleccionados'}
+            {search.trim() ? `Sin resultados para "${search}"` : 'No hay órdenes con los filtros seleccionados'}
           </p>
         </div>
       ) : (
@@ -111,7 +115,7 @@ export function OrdenesCompraTableClient({ ordenes }: Props) {
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-muted/30">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">N° OC</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">N° {prefijo}</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Proveedor</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Proyecto</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Solicitud</th>
@@ -124,7 +128,7 @@ export function OrdenesCompraTableClient({ ordenes }: Props) {
               {filtered.map((oc) => (
                 <tr key={oc.id} className="hover:bg-muted/30 transition-colors duration-[120ms]">
                   <td className="px-4 py-3">
-                    <Link href={`/ordenes-compra/${oc.id}`} className="hover:text-primary transition-colors duration-[120ms]">
+                    <Link href={`${basePath}/${oc.id}`} className="hover:text-primary transition-colors duration-[120ms]">
                       <span className="block font-mono font-medium">{oc.numero}</span>
                       {oc.nombre && <span className="block text-xs text-muted-foreground">{oc.nombre}</span>}
                     </Link>
