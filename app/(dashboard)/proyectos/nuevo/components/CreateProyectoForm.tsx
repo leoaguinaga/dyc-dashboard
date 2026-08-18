@@ -34,6 +34,7 @@ type FormData = {
   ciudad: string
   direccion: string
   comuna: string
+  enlaceOneDrive: string
   coordinadorClienteId: string
   coordinadorEmpresaId: string
   ejecutorId: string
@@ -55,6 +56,7 @@ const initial: FormData = {
   ciudad: '',
   direccion: '',
   comuna: '',
+  enlaceOneDrive: '',
   coordinadorClienteId: '',
   coordinadorEmpresaId: '',
   ejecutorId: '',
@@ -399,6 +401,16 @@ export function CreateProyectoForm({ clientes, trabajadores, proyectos }: Props)
                 value={form.direccion}
                 onChange={(e) => set('direccion', e.target.value)}
                 placeholder="Ej. Panamericana Norte Km 754"
+              />
+            </div>
+
+            <div>
+              <label className={labelCn}>Enlace a carpeta de OneDrive</label>
+              <Input
+                type="url"
+                value={form.enlaceOneDrive}
+                onChange={(e) => set('enlaceOneDrive', e.target.value)}
+                placeholder="https://onedrive.live.com/..."
               />
             </div>
           </div>

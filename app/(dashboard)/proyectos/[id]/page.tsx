@@ -10,6 +10,7 @@ import {
   Globe,
   FileText,
   FolderTree,
+  FolderOpen,
 } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -183,6 +184,18 @@ export default async function ProyectoDetailPage({ params }: Props) {
             {o.ambitoGeografico !== 'local' && o.direccion && (
               <InfoRow icon={<MapPin className="size-4" />} label="Direccion">
                 <span className="font-medium">{o.direccion}</span>
+              </InfoRow>
+            )}
+            {o.enlaceOneDrive && (
+              <InfoRow icon={<FolderOpen className="size-4" />} label="OneDrive">
+                <a
+                  href={o.enlaceOneDrive}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-primary hover:underline break-all"
+                >
+                  Abrir carpeta
+                </a>
               </InfoRow>
             )}
             {!o.ambitoGeografico && !o.ciudad && !o.direccion && !o.comuna && (
