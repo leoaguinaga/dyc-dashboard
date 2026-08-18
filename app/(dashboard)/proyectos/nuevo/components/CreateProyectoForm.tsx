@@ -280,7 +280,10 @@ export function CreateProyectoForm({ clientes, trabajadores, proyectos }: Props)
                 >
                   <SelectTrigger className="w-full" aria-invalid={!!errors.clienteId}>
                     <SelectValue placeholder="Seleccionar cliente...">
-                      <option>{form.clienteId ? clientes.find((x) => x.id === form.clienteId)?.nombreComercial ?? clientes.find((x) => x.id === form.clienteId)?.razonSocial : 'Seleccionar cliente...'}</option>
+                      {(value: string) => {
+                        const c = clientes.find((x) => x.id === value)
+                        return c ? (c.nombreComercial ?? c.razonSocial) : 'Seleccionar cliente...'
+                      }}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -414,9 +417,10 @@ export function CreateProyectoForm({ clientes, trabajadores, proyectos }: Props)
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder={form.clienteId ? 'Sin asignar' : 'Sin cliente seleccionado'}>
-                      {form.coordinadorClienteId
-                        ? (() => { const c = contactos.find((x) => x.id === form.coordinadorClienteId); return c ? `${c.nombre}${c.cargo ? ` — ${c.cargo}` : ''}` : null })()
-                        : null}
+                      {(value: string) => {
+                        const c = contactos.find((x) => x.id === value)
+                        return c ? `${c.nombre}${c.cargo ? ` — ${c.cargo}` : ''}` : null
+                      }}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
