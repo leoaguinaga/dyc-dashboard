@@ -15,6 +15,7 @@ import {
   Wallet,
   UserCheck,
   Receipt,
+  Landmark,
   type LucideIcon,
 } from 'lucide-react'
 import type { Role } from '@/types/api'
@@ -164,6 +165,12 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/pagos',
         label: 'Pagos',
         icon: Wallet,
+        roles: ['administrador', 'gerencia'],
+      },
+      {
+        href: '/cobros',
+        label: 'Cobros',
+        icon: Landmark,
         roles: ['administrador', 'gerencia'],
       },
       {

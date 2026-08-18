@@ -35,6 +35,7 @@ type FormData = {
   ciudad: string
   direccion: string
   comuna: string
+  enlaceOneDrive: string
   coordinadorClienteId: string
   coordinadorEmpresaId: string
   ejecutorId: string
@@ -68,6 +69,7 @@ export function EditProyectoForm({ proyecto: o, clientes, trabajadores, proyecto
     ciudad: o.ciudad ?? '',
     direccion: o.direccion ?? '',
     comuna: o.comuna ?? '',
+    enlaceOneDrive: o.enlaceOneDrive ?? '',
     coordinadorClienteId: o.coordinadorClienteId ?? '',
     coordinadorEmpresaId: o.coordinadorEmpresaId ?? '',
     ejecutorId: o.ejecutorId ?? '',
@@ -290,6 +292,16 @@ export function EditProyectoForm({ proyecto: o, clientes, trabajadores, proyecto
             value={form.direccion}
             onChange={(e) => set('direccion', e.target.value)}
             placeholder="Ej. Panamericana Norte Km 754"
+          />
+        </div>
+
+        <div>
+          <label className={labelCn}>Enlace a carpeta de OneDrive</label>
+          <Input
+            type="url"
+            value={form.enlaceOneDrive}
+            onChange={(e) => set('enlaceOneDrive', e.target.value)}
+            placeholder="https://onedrive.live.com/..."
           />
         </div>
       </section>

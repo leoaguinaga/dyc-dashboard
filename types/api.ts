@@ -93,6 +93,7 @@ export interface Proyecto {
   ciudad?: string;
   direccion?: string;
   comuna?: string;
+  enlaceOneDrive?: string;
   ambitoGeografico?: AmbitoGeografico;
 
   parentId?: string;
@@ -849,6 +850,35 @@ export interface ResumenPagos {
   totalVencido: number;
   proximos7dias: number;
   pagadoMes: number;
+}
+
+export type EstadoCobro = 'pendiente' | 'cobrado' | 'cancelado';
+export type EstadoCobroEfectivo = EstadoCobro | 'vencido';
+
+export interface Cobro {
+  id: string;
+  proyectoId: string;
+  proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'>;
+  monto: string;
+  fechaProgramada: string;
+  fechaCobrada?: string | null;
+  estado: EstadoCobro;
+  estadoEfectivo: EstadoCobroEfectivo;
+  actaConformidadNombre: string;
+  actaConformidadUrl: string;
+  registradoPorId: string;
+  registradoPor: Pick<User, 'id' | 'name'>;
+  cobradoPorId?: string | null;
+  cobradoPor?: Pick<User, 'id' | 'name'> | null;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+export interface ResumenCobros {
+  totalPendiente: number;
+  totalVencido: number;
+  proximos7dias: number;
+  cobradoMes: number;
 }
 
 export interface ReporteGastoPorProyecto {
