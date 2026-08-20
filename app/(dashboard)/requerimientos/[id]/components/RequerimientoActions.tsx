@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle2, XCircle, Send, ClipboardList, FileDown } from 'lucide-react'
+import { CheckCircle2, XCircle, Send, ClipboardList, FileDown, Ban } from 'lucide-react'
 import { api } from '@/lib/api/client'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { useSession } from '@/lib/auth/session'
@@ -15,6 +15,10 @@ import type { Requerimiento, Role } from '@/types/api'
 
 // Roles que representan al solicitante real (quien generó el requerimiento).
 const ROLES_SOLICITANTE: Role[] = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr']
+const ROLES_ADMIN_GERENCIA: Role[] = ['administrador', 'admin_ti', 'gerencia']
+// El solicitante solo puede cancelar antes de que exista una solicitud de
+// cotización en curso; admin/gerencia pueden cancelar en cualquier estado no terminal.
+const ESTADOS_PRE_COTIZACION: Requerimiento['estado'][] = ['borrador', 'enviado', 'aprobado', 'observado']
 
 interface Props {
   requerimiento: Requerimiento
@@ -27,6 +31,8 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
   const [loading, setLoading] = useState<string | null>(null)
   const [notaObservacion, setNotaObservacion] = useState('')
   const [showObservar, setShowObservar] = useState(false)
+  const [motivoCancelar, setMotivoCancelar] = useState('')
+  const [showCancelar, setShowCancelar] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
 
@@ -67,9 +73,15 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
   const canAprobarObservar = r.estado === 'enviado' && approvers.includes(role!)
   const canCrearCotizacion = r.estado === 'aprobado' && (role === 'logistica' || role === 'administrador' || role === 'admin_ti' || role === 'gerencia')
   const canExportarPDF = r.estado === 'aprobado'
+  const esCreador = r.creadoPorId === session?.user?.id
+  const esTerminal = r.estado === 'cancelado' || r.estado === 'recibido'
+  const canCancelar = !esTerminal && !!role && (
+    ROLES_ADMIN_GERENCIA.includes(role) ||
+    (esCreador && ESTADOS_PRE_COTIZACION.includes(r.estado))
+  )
 
   const requiereAccion = canEnviar || canAprobarObservar || canCrearCotizacion
-  const hayAlgoQueMostrar = canEnviar || canAprobarObservar || canCrearCotizacion || canExportarPDF || (r.solicitudes?.length ?? 0) > 0
+  const hayAlgoQueMostrar = canEnviar || canAprobarObservar || canCrearCotizacion || canExportarPDF || canCancelar || (r.solicitudes?.length ?? 0) > 0
   if (!hayAlgoQueMostrar) return null
 
   return (
@@ -255,6 +267,51 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
           <FileDown className="size-4" />
           {pdfLoading ? 'Generando PDF…' : 'Exportar solicitud de materiales'}
         </Button>
+      )}
+
+      {canCancelar && (
+        <div className="space-y-2">
+          {!showCancelar ? (
+            <Button
+              variant="outline"
+              className="w-full text-destructive border-destructive/30 hover:bg-destructive/5"
+              disabled={loading !== null}
+              onClick={() => setShowCancelar(true)}
+            >
+              <Ban className="size-4" />
+              Cancelar requerimiento
+            </Button>
+          ) : (
+            <div className="space-y-2">
+              <textarea
+                value={motivoCancelar}
+                onChange={(e) => setMotivoCancelar(e.target.value)}
+                placeholder="Motivo de la cancelación (opcional)…"
+                rows={3}
+                className="w-full rounded-lg border border-border px-3 py-2 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms] resize-none"
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setShowCancelar(false)}
+                >
+                  Volver
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5"
+                  disabled={loading !== null}
+                  onClick={() => action('cancelar', { motivo: motivoCancelar.trim() || undefined })}
+                >
+                  {loading === 'cancelar' ? 'Cancelando…' : 'Confirmar cancelación'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {error && (

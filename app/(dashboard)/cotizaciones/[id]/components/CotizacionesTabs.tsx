@@ -4,15 +4,17 @@ import { useState } from 'react'
 import { Check, UserX } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CotizacionCard } from './CotizacionCard'
-import type { Cotizacion, SolicitudItem } from '@/types/api'
+import type { Cotizacion, SolicitudItem, EstadoSolicitud, Role } from '@/types/api'
 
 interface Props {
   cotizaciones: Cotizacion[]
   solicitudItems: SolicitudItem[]
   canApprove: boolean
+  solicitudEstado: EstadoSolicitud
+  role?: Role
 }
 
-export function CotizacionesTabs({ cotizaciones, solicitudItems, canApprove }: Props) {
+export function CotizacionesTabs({ cotizaciones, solicitudItems, canApprove, solicitudEstado, role }: Props) {
   const [activeId, setActiveId] = useState(cotizaciones[0]?.id)
   const active = cotizaciones.find((c) => c.id === activeId) ?? cotizaciones[0]
 
@@ -68,6 +70,8 @@ export function CotizacionesTabs({ cotizaciones, solicitudItems, canApprove }: P
           cotizacion={active}
           solicitudItems={solicitudItems}
           canApprove={canApprove}
+          solicitudEstado={solicitudEstado}
+          role={role}
         />
       )}
     </div>

@@ -10,9 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePicker } from '@/components/ui/date-picker'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
-import type { SolicitudItem, UnidadMedida } from '@/types/api'
-
-const UNIDADES: UnidadMedida[] = ['und', 'kg', 'm', 'm2', 'm3', 'l', 'gal', 'bolsa', 'caja', 'rollo', 'par', 'juego']
+import { UNIDAD_OPTIONS } from '@/lib/inventario'
+import type { Cotizacion, SolicitudItem, UnidadMedida } from '@/types/api'
 
 interface LineaItem {
   descripcionProveedor: string
@@ -31,6 +30,9 @@ interface Props {
   cotizacionId: string
   solicitudItems: SolicitudItem[]
   onCancel: () => void
+  /** Cuando se pasa, el formulario precarga estos datos para corregir una
+   * respuesta ya registrada (recibida/aprobada) en lugar de partir en blanco. */
+  cotizacionExistente?: Cotizacion
 }
 
 const emptyLinea = (solicitudItem?: SolicitudItem): LineaItem => ({
@@ -41,17 +43,33 @@ const emptyLinea = (solicitudItem?: SolicitudItem): LineaItem => ({
   unidad: solicitudItem?.unidad ?? 'und',
 })
 
-export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel }: Props) {
+function lineaFromCotizacionItem(item: Cotizacion['items'][number]): LineaItem {
+  return {
+    descripcionProveedor: item.descripcionProveedor,
+    solicitudItemId: item.solicitudItemId ?? '',
+    precioUnit: String(parseFloat(item.precioUnit)),
+    cantidad: String(parseFloat(item.cantidad)),
+    unidad: item.unidad,
+  }
+}
+
+export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, cotizacionExistente: c }: Props) {
   const router = useRouter()
-  const [fechaEntrega, setFechaEntrega] = useState('')
-  const [validezDias, setValidezDias] = useState('')
-  const [condicionesServicio, setCondicionesServicio] = useState('')
-  const [condicionesPago, setCondicionesPago] = useState<CondicionPago[]>([{ porcentaje: '100', fecha: '' }])
-  const [condicionPago, setCondicionPago] = useState('')
-  const [incluyeIgv, setIncluyeIgv] = useState(false)
-  const [nota, setNota] = useState('')
+  const [fechaEntrega, setFechaEntrega] = useState(c?.fechaEntrega?.slice(0, 10) ?? '')
+  const [validezDias, setValidezDias] = useState(c?.validezDias ? String(c.validezDias) : '')
+  const [condicionesServicio, setCondicionesServicio] = useState(c?.condicionesServicio ?? '')
+  const [condicionesPago, setCondicionesPago] = useState<CondicionPago[]>(
+    c && c.condicionesPago.length > 0
+      ? c.condicionesPago.map((cp) => ({ porcentaje: String(cp.porcentaje), fecha: cp.fecha.slice(0, 10) }))
+      : [{ porcentaje: '100', fecha: '' }],
+  )
+  const [condicionPago, setCondicionPago] = useState(c?.condicionPago ?? '')
+  const [incluyeIgv, setIncluyeIgv] = useState(c?.incluyeIgv ?? false)
+  const [nota, setNota] = useState(c?.nota ?? '')
   const [lineas, setLineas] = useState<LineaItem[]>(
-    solicitudItems.length > 0 ? solicitudItems.map((si) => emptyLinea(si)) : [emptyLinea()],
+    c && c.items.length > 0
+      ? c.items.map(lineaFromCotizacionItem)
+      : solicitudItems.length > 0 ? solicitudItems.map((si) => emptyLinea(si)) : [emptyLinea()],
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState<string | null>(null)
@@ -290,7 +308,7 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel }
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {UNIDADES.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                  {UNIDAD_OPTIONS.map(([u, label]) => <SelectItem key={u} value={u}>{label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -331,7 +349,7 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel }
         )}
         <Button type="button" variant="outline" size="sm" onClick={onCancel}>Cancelar</Button>
         <Button type="submit" size="sm" disabled={loading || !puedeRegistrar}>
-          {loading ? 'Guardando…' : 'Registrar respuesta'}
+          {loading ? 'Guardando…' : c ? 'Guardar corrección' : 'Registrar respuesta'}
         </Button>
       </div>
     </form>

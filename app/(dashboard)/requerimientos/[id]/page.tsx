@@ -21,6 +21,7 @@ const ESTADO_LABEL = {
   en_cotizacion: 'En cotización',
   pendiente_conformidad: 'Pendiente de conformidad',
   recibido: 'Recibido',
+  cancelado: 'Cancelado',
 } as const
 
 const TIPO_LABEL: Record<TipoRequerimiento, string> = {
@@ -45,6 +46,7 @@ const ESTADO_CLASS = {
   en_cotizacion: 'bg-violet-500/15 text-violet-600',
   pendiente_conformidad: 'bg-orange-500/15 text-orange-600',
   recibido: 'bg-chart-2/15 text-chart-2',
+  cancelado: 'bg-destructive/15 text-destructive',
 } as const
 
 function fmt(iso: string) {

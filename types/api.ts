@@ -18,11 +18,14 @@ export type CumplimientoHito = 'si' | 'no' | 'programado';
 export type TipoAlmacen = 'fijo' | 'temporal';
 export type TipoItem = 'consumible' | 'activo';
 export type UnidadMedida =
-  | 'und' | 'kg' | 'm' | 'm2' | 'm3' | 'l'
-  | 'gal' | 'bolsa' | 'caja' | 'rollo' | 'par' | 'juego';
+  | 'und' | 'kg' | 'g' | 'm' | 'm2' | 'm3' | 'l' | 'ml'
+  | 'gal' | 'bolsa' | 'caja' | 'rollo' | 'par' | 'juego'
+  | 'docena' | 'ciento' | 'medio_ciento' | 'millar' | 'medio_millar'
+  | 'balde' | 'galonera' | 'cilindro' | 'varilla' | 'plancha' | 'tubo'
+  | 'pieza' | 'global';
 export type EstadoRequerimiento =
   | 'borrador' | 'enviado' | 'aprobado' | 'observado'
-  | 'en_cotizacion' | 'pendiente_conformidad' | 'recibido';
+  | 'en_cotizacion' | 'pendiente_conformidad' | 'recibido' | 'cancelado';
 export type EstadoSolicitud =
   | 'borrador' | 'enviada' | 'cotizada'
   | 'seleccionada' | 'aprobada_solicitante' | 'aprobada_gerencia'

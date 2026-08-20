@@ -10,9 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ProveedorMultiCombobox } from '@/components/ui/proveedor-multi-combobox'
 import { cn } from '@/lib/utils'
+import { UNIDAD_OPTIONS } from '@/lib/inventario'
 import type { Proveedor, Requerimiento, TipoRequerimiento, UnidadMedida } from '@/types/api'
-
-const UNIDADES: UnidadMedida[] = ['und', 'kg', 'm', 'm2', 'm3', 'l', 'gal', 'bolsa', 'caja', 'rollo', 'par', 'juego']
 
 interface LineaItem {
   descripcion: string
@@ -243,8 +242,8 @@ export function CreateSolicitudForm({ requerimientos, proveedores, requerimiento
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {UNIDADES.map((u) => (
-                      <SelectItem key={u} value={u}>{u}</SelectItem>
+                    {UNIDAD_OPTIONS.map(([u, label]) => (
+                      <SelectItem key={u} value={u}>{label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

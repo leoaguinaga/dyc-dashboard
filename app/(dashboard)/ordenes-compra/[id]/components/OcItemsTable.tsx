@@ -8,9 +8,8 @@ import { api } from '@/lib/api/client'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn, formatCurrency } from '@/lib/utils'
+import { UNIDAD_OPTIONS } from '@/lib/inventario'
 import type { OrdenCompraItem, UnidadMedida } from '@/types/api'
-
-const UNIDADES: UnidadMedida[] = ['und', 'kg', 'm', 'm2', 'm3', 'l', 'gal', 'bolsa', 'caja', 'rollo', 'par', 'juego']
 
 interface Props {
   ocId: string
@@ -161,7 +160,7 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
                   <td className="px-2 py-2 w-28">
                     <Select value={editLinea.unidad} onValueChange={(v) => setEditLinea((p) => ({ ...p, unidad: (v ?? 'und') as UnidadMedida }))}>
                       <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-                      <SelectContent>{UNIDADES.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+                      <SelectContent>{UNIDAD_OPTIONS.map(([u, label]) => <SelectItem key={u} value={u}>{label}</SelectItem>)}</SelectContent>
                     </Select>
                   </td>
                   <td className="px-2 py-2 w-28">
@@ -225,7 +224,7 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
               <td className="px-2 py-2 w-28">
                 <Select value={nueva.unidad} onValueChange={(v) => setNueva((p) => ({ ...p, unidad: (v ?? 'und') as UnidadMedida }))}>
                   <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>{UNIDADES.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+                  <SelectContent>{UNIDAD_OPTIONS.map(([u, label]) => <SelectItem key={u} value={u}>{label}</SelectItem>)}</SelectContent>
                 </Select>
               </td>
               <td className="px-2 py-2 w-28">
