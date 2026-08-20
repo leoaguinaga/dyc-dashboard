@@ -38,9 +38,9 @@ const TIPO_LABELS: Record<TipoRequerimiento, string> = {
 
 // Which tipos each role is allowed to create (must match backend ROLE_TIPOS)
 const ROLE_TIPOS: Partial<Record<Role, TipoRequerimiento[]>> = {
-  supervisor: ['civil'],
-  supervisor_civil: ['civil'],
-  supervisor_electrico: ['electrico'],
+  supervisor: ['civil', 'electrico', 'seguridad', 'administrativo'],
+  supervisor_civil: ['civil', 'electrico', 'seguridad', 'administrativo'],
+  supervisor_electrico: ['civil', 'electrico', 'seguridad', 'administrativo'],
   pdr: ['seguridad'],
   ing_civil: ['civil'],
   ing_electrico: ['electrico'],

@@ -7,6 +7,7 @@ import { InviteProveedorForm } from './components/InviteProveedorForm'
 import { CotizacionesTabs } from './components/CotizacionesTabs'
 import { AdjudicacionMatrix } from './components/AdjudicacionMatrix'
 import { SolicitudActions } from './components/SolicitudActions'
+import { SolicitudItemsEditor } from './components/SolicitudItemsEditor'
 import type { SolicitudCotizacion, Proveedor, EstadoSolicitud, OrdenCompra, User } from '@/types/api'
 
 interface Props {
@@ -165,6 +166,14 @@ export default async function SolicitudDetailPage({ params }: Props) {
               <p className="text-xs text-muted-foreground italic">&ldquo;{s.nota}&rdquo;</p>
             </div>
           )}
+
+          <SolicitudItemsEditor
+            solicitudId={s.id}
+            estado={s.estado}
+            items={s.items}
+            nota={s.nota}
+            role={user?.role}
+          />
         </div>
 
         {/* Cotizaciones */}
@@ -200,6 +209,8 @@ export default async function SolicitudDetailPage({ params }: Props) {
               cotizaciones={s.cotizaciones}
               solicitudItems={s.items}
               canApprove={puedeAprobar}
+              solicitudEstado={s.estado}
+              role={user?.role}
             />
           )}
         </div>

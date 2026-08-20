@@ -7,7 +7,7 @@ import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { cn, formatDateOnly } from '@/lib/utils'
 import { ReceiveCotizacionForm } from './ReceiveCotizacionForm'
-import type { Cotizacion, SolicitudItem, EstadoCotizacion } from '@/types/api'
+import type { Cotizacion, SolicitudItem, EstadoCotizacion, EstadoSolicitud, Role } from '@/types/api'
 
 const ESTADO_LABEL: Record<EstadoCotizacion, string> = {
   pendiente: 'Pendiente',
@@ -29,13 +29,18 @@ function fmtPEN(value: string | number) {
   return `S/ ${parseFloat(String(value)).toFixed(2)}`
 }
 
+const ROLES_GERENCIA: Role[] = ['gerencia', 'administrador', 'admin_ti']
+const ROLES_EDITORES: Role[] = ['logistica', ...ROLES_GERENCIA]
+
 interface Props {
   cotizacion: Cotizacion
   solicitudItems: SolicitudItem[]
   canApprove: boolean
+  solicitudEstado: EstadoSolicitud
+  role?: Role
 }
 
-export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props) {
+export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicitudEstado, role }: Props) {
   const router = useRouter()
   const [showReceive, setShowReceive] = useState(false)
   const [approving, setApproving] = useState(false)
@@ -48,6 +53,14 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
   )
 
   const puedeRegistrarRespuesta = cotizacion.estado === 'pendiente' || cotizacion.estado === 'sin_respuesta'
+  // Corregir una respuesta ya recibida/aprobada — debe coincidir con las
+  // reglas de CotizacionesService.receiveCotizacion: no si ya hay OC/OS
+  // generada, y solo gerencia una vez que la solicitud fue aprobada por gerencia.
+  const puedeEditarRespuesta =
+    (cotizacion.estado === 'recibida' || cotizacion.estado === 'aprobada') &&
+    !!role && ROLES_EDITORES.includes(role) &&
+    solicitudEstado !== 'orden_generada' && solicitudEstado !== 'cancelada' &&
+    (solicitudEstado !== 'aprobada_gerencia' || ROLES_GERENCIA.includes(role))
 
   async function handleAprobar() {
     setApproving(true)
@@ -106,15 +119,16 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
         <p className="text-sm text-orange-600 py-2">El proveedor no respondió a la solicitud.</p>
       )}
 
-      {showReceive && puedeRegistrarRespuesta && (
+      {showReceive && (puedeRegistrarRespuesta || puedeEditarRespuesta) && (
         <ReceiveCotizacionForm
           cotizacionId={cotizacion.id}
           solicitudItems={solicitudItems}
           onCancel={() => setShowReceive(false)}
+          cotizacionExistente={puedeEditarRespuesta ? cotizacion : undefined}
         />
       )}
 
-      {cotizacion.items.length > 0 && (
+      {!showReceive && cotizacion.items.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-xs">
             <thead>
@@ -222,6 +236,12 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove }: Props
           <Button size="sm" onClick={handleAprobar} disabled={approving}>
             <CheckCircle2 className="size-3.5" />
             {approving ? 'Aprobando…' : 'Aprobar cotización'}
+          </Button>
+        )}
+        {puedeEditarRespuesta && !showReceive && (
+          <Button variant="outline" size="sm" onClick={() => setShowReceive(true)}>
+            <ClipboardEdit className="size-3.5" />
+            Editar cotización
           </Button>
         )}
       </div>
