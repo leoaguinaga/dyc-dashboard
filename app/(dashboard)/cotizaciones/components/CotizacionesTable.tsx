@@ -3,7 +3,7 @@ import { FileText, Plus, ShieldAlert } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { CotizacionesTableClient } from './CotizacionesTableClient'
+import { CotizacionesView } from './CotizacionesView'
 import type { SolicitudCotizacion } from '@/types/api'
 
 export async function CotizacionesTable() {
@@ -44,5 +44,5 @@ export async function CotizacionesTable() {
     )
   }
 
-  return <CotizacionesTableClient solicitudes={result} />
+  return <CotizacionesView solicitudes={result} />
 }

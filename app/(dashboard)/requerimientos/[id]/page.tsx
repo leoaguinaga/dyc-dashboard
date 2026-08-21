@@ -7,11 +7,14 @@ import { RequerimientoActions } from './components/RequerimientoActions'
 import { RequerimientoFlowStepper } from './components/RequerimientoFlowStepper'
 import { RequerimientoRecepcion } from './components/RequerimientoRecepcion'
 import { RequerimientoItemsCard } from './components/RequerimientoItemsCard'
-import type { Requerimiento, TipoRequerimiento } from '@/types/api'
+import type { Requerimiento, TipoRequerimiento, User as ApiUser, Role } from '@/types/api'
 
 interface Props {
   params: Promise<{ id: string }>
 }
+
+// Los solicitantes no deben ver el enlace a la solicitud de cotización.
+const ROLES_SOLICITANTE: Role[] = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr']
 
 const ESTADO_LABEL = {
   borrador: 'Borrador',
@@ -57,7 +60,10 @@ function fmt(iso: string) {
 
 export default async function RequerimientoDetailPage({ params }: Props) {
   const { id } = await params
-  const result = await serverFetch<Requerimiento>(`/requerimientos/${id}`).catch((e: Error) => e)
+  const [result, user] = await Promise.all([
+    serverFetch<Requerimiento>(`/requerimientos/${id}`).catch((e: Error) => e),
+    serverFetch<ApiUser>('/users/me').catch(() => null),
+  ])
 
   if (result instanceof Error) {
     if (result.message.includes('404')) notFound()
@@ -66,6 +72,13 @@ export default async function RequerimientoDetailPage({ params }: Props) {
 
   const r = result
   const entregaVencida = r.fechaEntregaRequerida && new Date(r.fechaEntregaRequerida) < new Date() && r.estado !== 'recibido'
+
+  // Solo logística/área técnica y roles administrativos ven el enlace a la cotización.
+  const puedeVerSolicitud = !!user?.role && !ROLES_SOLICITANTE.includes(user.role)
+  const solicitudDestacada = r.solicitudes?.find((s) => s.estado !== 'cancelada')
+    ?? [...(r.solicitudes ?? [])]
+      .filter((s) => s.estado === 'cancelada')
+      .sort((a, b) => new Date(b.creadoEn).getTime() - new Date(a.creadoEn).getTime())[0]
 
   return (
     <div className="space-y-4">
@@ -179,22 +192,17 @@ export default async function RequerimientoDetailPage({ params }: Props) {
             </dl>
           </div>
 
-          {/* Solicitudes vinculadas */}
-          {r.solicitudes && r.solicitudes.length > 0 && (
+          {/* Cotización vinculada: solo la activa, o la última cancelada si no hay activa */}
+          {puedeVerSolicitud && solicitudDestacada && (
             <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-3">
-              <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Solicitudes de cotización</h2>
-              <div className="space-y-2">
-                {r.solicitudes.map((s) => (
-                  <Link
-                    key={s.id}
-                    href={`/cotizaciones/${s.id}`}
-                    className="flex items-center justify-between rounded-lg border border-border bg-white px-3 py-2 text-sm hover:bg-muted/40 transition-colors duration-[120ms]"
-                  >
-                    <span className="font-mono text-xs font-medium">{s.codigo}</span>
-                    <span className="text-xs text-muted-foreground">{s.estado}</span>
-                  </Link>
-                ))}
-              </div>
+              <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Cotización</h2>
+              <Link
+                href={`/cotizaciones/${solicitudDestacada.id}`}
+                className="flex items-center justify-between rounded-lg border border-border bg-white px-3 py-2 text-sm hover:bg-muted/40 transition-colors duration-[120ms]"
+              >
+                <span className="font-mono text-xs font-medium">{solicitudDestacada.codigo}</span>
+                <span className="text-xs text-muted-foreground">{solicitudDestacada.estado}</span>
+              </Link>
             </div>
           )}
 

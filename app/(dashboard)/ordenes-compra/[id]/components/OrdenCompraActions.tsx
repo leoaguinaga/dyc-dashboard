@@ -23,13 +23,13 @@ interface Props {
 
 const NEXT_LABEL: Partial<Record<string, string>> = {
   borrador: 'Emitir orden',
-  emitida: 'Registrar recepción parcial',
+  emitida: 'Registrar recepción completa',
   recibida_parcial: 'Registrar recepción completa',
 }
 
 const NEXT_ENDPOINT: Partial<Record<string, string>> = {
   borrador: 'emitir',
-  emitida: 'recibir-parcial',
+  emitida: 'recibir',
   recibida_parcial: 'recibir',
 }
 

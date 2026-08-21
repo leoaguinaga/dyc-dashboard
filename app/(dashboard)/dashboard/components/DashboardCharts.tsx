@@ -90,7 +90,7 @@ const ETAPA_LABEL: Record<string, string> = {
   borrador: 'Borrador',
   enviada: 'Enviada',
   cotizada: 'Cotizada',
-  seleccionada: 'Seleccionada',
+  seleccionada: 'Adjudicada',
   aprobada: 'Aprobada',
 }
 

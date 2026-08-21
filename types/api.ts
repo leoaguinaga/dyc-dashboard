@@ -75,6 +75,19 @@ export interface Cliente {
   _count?: { proyectos: number; contactos: number };
 }
 
+export interface HelpVideo {
+  id: string;
+  titulo: string;
+  descripcion?: string;
+  youtubeId: string;
+  modulo: string;
+  roles: Role[];
+  orden: number;
+  creadoPorId: string;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
 export interface Hito {
   id: string;
   proyectoId: string;
@@ -678,7 +691,7 @@ export interface SolicitudCotizacion {
   proyectoId: string;
   proyecto?: Pick<Proyecto, 'id' | 'nombre' | 'codigo'>;
   requerimientoId?: string;
-  requerimiento?: Pick<Requerimiento, 'id' | 'nombre'> | null;
+  requerimiento?: Pick<Requerimiento, 'id' | 'codigo' | 'nombre'> | null;
   estado: EstadoSolicitud;
   nota?: string;
   creadoEn: string;
@@ -697,6 +710,8 @@ export interface SolicitudCotizacion {
   aprobadaGerenciaPor?: Pick<User, 'id' | 'name' | 'role'> | null;
   aprobadaGerenciaPorRole?: Role | null;
   aprobadaGerenciaEn?: string | null;
+
+  canceladaEn?: string | null;
 }
 
 export interface OrdenCompraItem {

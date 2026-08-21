@@ -3,7 +3,7 @@ import { ClipboardList, Plus } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { RequerimientosTableClient } from './RequerimientosTableClient'
+import { RequerimientosView } from './RequerimientosView'
 import type { Requerimiento } from '@/types/api'
 
 export async function RequerimientosTable() {
@@ -35,5 +35,5 @@ export async function RequerimientosTable() {
     )
   }
 
-  return <RequerimientosTableClient requerimientos={result} />
+  return <RequerimientosView requerimientos={result} />
 }
