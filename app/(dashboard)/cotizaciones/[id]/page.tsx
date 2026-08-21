@@ -21,8 +21,8 @@ const ESTADO_LABEL: Record<EstadoSolicitud, string> = {
   borrador: 'Borrador',
   enviada: 'Enviada',
   cotizada: 'Cotizada',
-  seleccionada: 'Seleccionada',
-  aprobada_solicitante: 'Aprobada (solicitante)',
+  seleccionada: 'Adjudicada',
+  aprobada_solicitante: 'Esperando gerencia',
   aprobada_gerencia: 'Aprobada',
   orden_generada: 'Orden generada',
   cancelada: 'Cancelada',
@@ -33,7 +33,7 @@ const ESTADO_CLASS: Record<EstadoSolicitud, string> = {
   enviada: 'bg-blue-500/15 text-blue-600',
   cotizada: 'bg-amber-500/15 text-amber-600',
   seleccionada: 'bg-purple-500/15 text-purple-600',
-  aprobada_solicitante: 'bg-chart-2/15 text-chart-2',
+  aprobada_solicitante: 'bg-orange-500/15 text-orange-600',
   aprobada_gerencia: 'bg-chart-2/15 text-chart-2',
   orden_generada: 'bg-slate-500/15 text-slate-600',
   cancelada: 'bg-destructive/10 text-destructive',
@@ -90,6 +90,18 @@ export default async function SolicitudDetailPage({ params }: Props) {
               ) : <span>—</span>}
               {s.proyecto?.codigo && <span className="font-mono text-xs">({s.proyecto.codigo})</span>}
             </div>
+            {s.requerimiento && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Requerimiento:{' '}
+                <Link
+                  href={`/requerimientos/${s.requerimiento.id}`}
+                  className="font-mono hover:text-foreground hover:underline underline-offset-2 transition-colors duration-[120ms]"
+                >
+                  {s.requerimiento.codigo}
+                </Link>
+                {' · '}{s.requerimiento.nombre}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground mt-0.5">{fmt(s.creadoEn)}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0 mt-1">
