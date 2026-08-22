@@ -63,6 +63,33 @@ const emptyGrupo = (): Grupo => ({
   pagoTrabajadorNumero: '',
 })
 
+const DRAFT_KEY = 'compras-simples-nueva-draft'
+
+interface Draft {
+  nombre: string
+  tipo: TipoRequerimiento
+  esRendicion: boolean
+  proyectoId: string
+  nota: string
+  grupos: Grupo[]
+  aprobadoInformalPorId: string
+}
+
+function loadDraft(): Draft | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY)
+    return raw ? (JSON.parse(raw) as Draft) : null
+  } catch {
+    return null
+  }
+}
+
+function clearDraft() {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(DRAFT_KEY)
+}
+
 const TIPO_LABELS: Record<TipoRequerimiento, string> = {
   civil: 'Civil',
   electrico: 'Eléctrico',
@@ -107,6 +134,41 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
   const [miTrabajadorCargado, setMiTrabajadorCargado] = useState(false)
   const [aprobadores, setAprobadores] = useState<AprobadorInformal[]>([])
   const [aprobadoInformalPorId, setAprobadoInformalPorId] = useState('')
+  const [draftRestored, setDraftRestored] = useState(false)
+  const draftReady = useRef(false)
+
+  useEffect(() => {
+    const draft = loadDraft()
+    if (draft) {
+      setNombre(draft.nombre)
+      setTipo(draft.tipo)
+      setEsRendicion(draft.esRendicion)
+      setProyectoId(draft.proyectoId)
+      setNota(draft.nota)
+      setGrupos(draft.grupos)
+      setAprobadoInformalPorId(draft.aprobadoInformalPorId)
+      setDraftRestored(true)
+    }
+    draftReady.current = true
+  }, [])
+
+  useEffect(() => {
+    if (!draftReady.current) return
+    const draft: Draft = { nombre, tipo, esRendicion, proyectoId, nota, grupos, aprobadoInformalPorId }
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+  }, [nombre, tipo, esRendicion, proyectoId, nota, grupos, aprobadoInformalPorId])
+
+  function discardDraft() {
+    clearDraft()
+    setNombre('')
+    setTipo(allowedTipos.length === 1 ? allowedTipos[0] : 'civil')
+    setEsRendicion(false)
+    setProyectoId('')
+    setNota('')
+    setGrupos([emptyGrupo()])
+    setAprobadoInformalPorId('')
+    setDraftRestored(false)
+  }
 
   useEffect(() => {
     api.get<MiTrabajador | null>('/compras-simples/mi-trabajador')
@@ -189,8 +251,9 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
     setLoading(true)
     setServerError(null)
 
+    let result: { id: string; grupos: { id: string }[] } | null = null
     try {
-      const result = await api.post<{ id: string; grupos: { id: string }[] }>('/compras-simples', {
+      result = await api.post<{ id: string; grupos: { id: string }[] }>('/compras-simples', {
         nombre: nombre.trim(),
         tipo,
         esRendicion,
@@ -221,20 +284,28 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
       if (esRendicion && comprobante) {
         const grupoId = result.grupos[0]?.id
         if (grupoId) {
-          const comprobanteForm = new FormData()
-          comprobanteForm.append('archivo', comprobante)
-          comprobanteForm.append('tipo', 'comprobante')
-          await api.upload(`/compras-simples/grupos/${grupoId}/archivos`, comprobanteForm)
+          try {
+            const comprobanteForm = new FormData()
+            comprobanteForm.append('archivo', comprobante)
+            comprobanteForm.append('tipo', 'comprobante')
+            await api.upload(`/compras-simples/grupos/${grupoId}/archivos`, comprobanteForm)
 
-          if (fotoProducto) {
-            const fotoForm = new FormData()
-            fotoForm.append('archivo', fotoProducto)
-            fotoForm.append('tipo', 'foto_producto')
-            await api.upload(`/compras-simples/grupos/${grupoId}/archivos`, fotoForm)
+            if (fotoProducto) {
+              const fotoForm = new FormData()
+              fotoForm.append('archivo', fotoProducto)
+              fotoForm.append('tipo', 'foto_producto')
+              await api.upload(`/compras-simples/grupos/${grupoId}/archivos`, fotoForm)
+            }
+          } catch {
+            clearDraft()
+            router.push(`/compras-simples/${result.id}?adjuntoError=1`)
+            router.refresh()
+            return
           }
         }
       }
 
+      clearDraft()
       router.push(`/compras-simples/${result.id}`)
       router.refresh()
     } catch (err) {
@@ -246,6 +317,18 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
+      {draftRestored && (
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+          <p>Se restauró un borrador que tenías sin enviar. Los archivos adjuntos deben seleccionarse de nuevo.</p>
+          <button
+            type="button"
+            onClick={discardDraft}
+            className="shrink-0 text-xs font-medium underline underline-offset-2 hover:text-amber-800"
+          >
+            Descartar
+          </button>
+        </div>
+      )}
       <section className="space-y-4">
         <h2 className={sectionTitleCn}>Información general</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
