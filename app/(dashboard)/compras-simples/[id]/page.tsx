@@ -10,6 +10,7 @@ import type { CompraSimple, EstadoAprobacionCompra, TipoRequerimiento } from '@/
 
 interface Props {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ adjuntoError?: string }>
 }
 
 const ESTADO_LABEL: Record<EstadoAprobacionCompra, string> = {
@@ -61,8 +62,9 @@ function fmtMoney(v: string) {
   return `S/ ${Number(v).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-export default async function CompraSimpleDetailPage({ params }: Props) {
+export default async function CompraSimpleDetailPage({ params, searchParams }: Props) {
   const { id } = await params
+  const { adjuntoError } = await searchParams
   const result = await serverFetch<CompraSimple>(`/compras-simples/${id}`).catch((e: Error) => e)
 
   if (result instanceof Error) {
@@ -75,6 +77,15 @@ export default async function CompraSimpleDetailPage({ params }: Props) {
 
   return (
     <div className="space-y-4">
+      {adjuntoError && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+          <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+          <p>
+            La compra simple se registró correctamente, pero no se pudo subir el comprobante o la foto
+            (probablemente por una conexión inestable). Súbelo manualmente desde la sección de abajo.
+          </p>
+        </div>
+      )}
       <div className="space-y-1">
         <Link
           href="/compras-simples"
