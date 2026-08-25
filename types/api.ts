@@ -691,7 +691,7 @@ export interface SolicitudCotizacion {
   proyectoId: string;
   proyecto?: Pick<Proyecto, 'id' | 'nombre' | 'codigo'>;
   requerimientoId?: string;
-  requerimiento?: Pick<Requerimiento, 'id' | 'codigo' | 'nombre'> | null;
+  requerimiento?: Pick<Requerimiento, 'id' | 'codigo' | 'nombre' | 'tipo'> | null;
   estado: EstadoSolicitud;
   nota?: string;
   creadoEn: string;

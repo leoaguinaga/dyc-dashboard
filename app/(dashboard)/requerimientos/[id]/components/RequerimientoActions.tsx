@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle2, XCircle, Send, ClipboardList, FileDown, Ban } from 'lucide-react'
+import { CheckCircle2, XCircle, Send, ClipboardList, FileDown, Ban, RotateCcw } from 'lucide-react'
 import { api } from '@/lib/api/client'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { useSession } from '@/lib/auth/session'
@@ -79,9 +79,10 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
     ROLES_ADMIN_GERENCIA.includes(role) ||
     (esCreador && ESTADOS_PRE_COTIZACION.includes(r.estado))
   )
+  const canReabrir = r.estado === 'cancelado' && !!role && ROLES_ADMIN_GERENCIA.includes(role)
 
-  const requiereAccion = canEnviar || canAprobarObservar || canCrearCotizacion
-  const hayAlgoQueMostrar = canEnviar || canAprobarObservar || canCrearCotizacion || canExportarPDF || canCancelar || (r.solicitudes?.length ?? 0) > 0
+  const requiereAccion = canEnviar || canAprobarObservar || canCrearCotizacion || canReabrir
+  const hayAlgoQueMostrar = canEnviar || canAprobarObservar || canCrearCotizacion || canExportarPDF || canCancelar || canReabrir || (r.solicitudes?.length ?? 0) > 0
   if (!hayAlgoQueMostrar) return null
 
   return (
@@ -251,6 +252,18 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
           <ClipboardList className="size-4" />
           Crear solicitud de cotización
         </Link>
+      )}
+
+      {canReabrir && (
+        <Button
+          variant="outline"
+          className="w-full"
+          disabled={loading !== null}
+          onClick={() => action('reabrir')}
+        >
+          <RotateCcw className="size-4" />
+          {loading === 'reabrir' ? 'Reabriendo…' : 'Reabrir para cotizar'}
+        </Button>
       )}
 
       {canExportarPDF && (
