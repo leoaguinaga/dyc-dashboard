@@ -137,6 +137,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Lienzo claro: profundidad sutil sin competir con las superficies. */
+    background: linear-gradient(
+      135deg,
+      oklch(0.995 0.001 250) 0%,
+      oklch(0.97 0.003 250) 100%
+    );
+    background-attachment: fixed;
   }
   html {
     @apply font-sans;
@@ -148,6 +155,11 @@
     font-variant-numeric: tabular-nums;
     font-family: var(--font-mono);
   }
+}
+
+/* El modo oscuro conserva su superficie de trabajo original. */
+.dark body {
+  background: var(--background);
 }
 
 /* ─── Micro-interactions ─────────────────────────────────── */

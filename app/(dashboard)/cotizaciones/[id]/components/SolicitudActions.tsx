@@ -5,6 +5,14 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import type { EstadoSolicitud, Role, SolicitudCotizacion } from '@/types/api'
 
 interface Props {
@@ -36,6 +44,7 @@ export function SolicitudActions({ solicitud }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
 
   const role = session?.user?.role
 
@@ -48,14 +57,18 @@ export function SolicitudActions({ solicitud }: Props) {
     solicitud.estado !== 'cancelada'
 
   const puedeAvanzar = accion && role && accion.rolesPermitidos.includes(role)
+  const puedeReabrir =
+    solicitud.estado === 'cancelada' &&
+    (role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia')
 
-  if (!puedeAvanzar && !puedeCancelar) return null
+  if (!puedeAvanzar && !puedeCancelar && !puedeReabrir) return null
 
   async function avanzar(endpoint: string) {
     setLoading(true)
     setError(null)
     try {
       await api.post(`/solicitudes-cotizacion/${solicitud.id}/${endpoint}`, {})
+      if (endpoint === 'cancelar') setCancelDialogOpen(false)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al actualizar estado')
@@ -79,14 +92,51 @@ export function SolicitudActions({ solicitud }: Props) {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => avanzar('cancelar')}
+          onClick={() => setCancelDialogOpen(true)}
           disabled={loading}
           className="text-destructive hover:text-destructive hover:bg-destructive/5"
         >
           Cancelar solicitud
         </Button>
       )}
+      {puedeReabrir && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => avanzar('reabrir')}
+          disabled={loading}
+        >
+          {loading ? 'Procesando…' : 'Reabrir solicitud'}
+        </Button>
+      )}
       {error && <p className="w-full text-xs text-destructive">{error}</p>}
+
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent showCloseButton={!loading}>
+          <DialogHeader>
+            <DialogTitle>¿Cancelar esta solicitud de cotización?</DialogTitle>
+            <DialogDescription>
+              Se detendrá su avance actual. Las cotizaciones recibidas se conservarán como historial y la solicitud solo podrá reabrirse si el requerimiento no tiene otra solicitud activa.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={loading}
+              onClick={() => setCancelDialogOpen(false)}
+            >
+              Volver
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={loading}
+              onClick={() => avanzar('cancelar')}
+            >
+              {loading ? 'Cancelando…' : 'Sí, cancelar solicitud'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

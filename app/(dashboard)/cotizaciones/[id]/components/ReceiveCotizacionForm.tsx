@@ -82,6 +82,12 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, 
   const puedeRegistrar = sumaCompleta && pagosCompletos
 
   function updateLinea(i: number, field: keyof LineaItem, value: string) {
+    if (field === 'precioUnit') {
+      const parts = value.split('.')
+      if (parts.length > 1 && parts[1].length > 4) {
+        return
+      }
+    }
     setLineas((prev) => prev.map((l, idx) => (idx === i ? { ...l, [field]: value } : l)))
     setErrors((prev) => { const next = { ...prev }; delete next[`l_${i}_${field}`]; return next })
   }
@@ -105,7 +111,14 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, 
     const next: Record<string, string> = {}
     lineas.forEach((l, i) => {
       if (!l.descripcionProveedor.trim()) next[`l_${i}_desc`] = 'Requerido'
-      if (!l.precioUnit || parseFloat(l.precioUnit) <= 0) next[`l_${i}_precio`] = 'Requerido'
+      if (!l.precioUnit || parseFloat(l.precioUnit) <= 0) {
+        next[`l_${i}_precio`] = 'Requerido'
+      } else {
+        const parts = l.precioUnit.split('.')
+        if (parts.length > 1 && parts[1].length > 4) {
+          next[`l_${i}_precio`] = 'Máximo 4 decimales'
+        }
+      }
       if (!l.cantidad || parseFloat(l.cantidad) <= 0) next[`l_${i}_cantidad`] = 'Requerido'
     })
     setErrors(next)
@@ -132,7 +145,7 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, 
         items: lineas.map((l) => ({
           descripcionProveedor: l.descripcionProveedor.trim(),
           solicitudItemId: l.solicitudItemId || undefined,
-          precioUnit: parseFloat(l.precioUnit),
+          precioUnit: parseFloat(Number(parseFloat(l.precioUnit)).toFixed(4)),
           cantidad: parseFloat(l.cantidad),
           unidad: l.unidad,
         })),
@@ -283,11 +296,11 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, 
             <div>
               <Input
                 type="number"
-                min="0.01"
-                step="0.01"
+                min="0.0001"
+                step="0.0001"
                 value={l.precioUnit}
                 onChange={(e) => updateLinea(i, 'precioUnit', e.target.value)}
-                placeholder="0.00"
+                placeholder="0.0000"
                 className={cn('h-8 text-sm font-mono', errors[`l_${i}_precio`] && 'border-destructive')}
               />
             </div>

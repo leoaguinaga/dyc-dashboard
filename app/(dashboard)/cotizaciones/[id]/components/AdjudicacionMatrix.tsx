@@ -19,8 +19,16 @@ interface Props {
   ordenesExistentes: Pick<OrdenCompra, 'id' | 'numero'>[]
 }
 
+function fmtUnitPrice(n: string | number) {
+  const num = parseFloat(String(n))
+  if (isNaN(num)) return '—'
+  return `S/ ${num.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`
+}
+
 function fmt(n: string | number) {
-  return `S/ ${parseFloat(String(n)).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const num = parseFloat(String(n))
+  if (isNaN(num)) return '—'
+  return `S/ ${num.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, estado, ordenesExistentes }: Props) {
@@ -84,7 +92,11 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
     }
   }
 
-  const canAdjudicar = canAct && estado === 'cotizada' && allSelected
+  // Normalmente se adjudica antes de la aprobación. También permitimos
+  // completar una adjudicación pendiente ya aprobada por gerencia para
+  // recuperar solicitudes históricas que quedaron sin ítems seleccionados.
+  const puedeSeleccionar = canAct && (estado === 'cotizada' || estado === 'aprobada_gerencia')
+  const canAdjudicar = puedeSeleccionar && allSelected
   const canGenerar = canAct && estado === 'aprobada_gerencia' && ordenesExistentes.length === 0 && allSelected
 
   // ── actions ──────────────────────────────────────────────────────────────
@@ -195,11 +207,11 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
                     return (
                       <td key={cot.id} className="py-2.5 px-3 border-b border-border/60 align-top">
                         <button
-                          onClick={() => canAct && estado === 'cotizada'
+                          onClick={() => puedeSeleccionar
                             ? setSelections((prev) => ({ ...prev, [si.id]: ci.id }))
                             : undefined
                           }
-                          disabled={!canAct || estado !== 'cotizada'}
+                          disabled={!puedeSeleccionar}
                           className={cn(
                             'w-full text-left rounded-md px-2 py-1.5 transition-all',
                             isSelected
@@ -207,12 +219,12 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
                               : isLowest
                               ? 'bg-chart-2/5 hover:bg-chart-2/10 cursor-pointer'
                               : 'hover:bg-muted/60 cursor-pointer',
-                            (!canAct || estado !== 'cotizada') && 'cursor-default',
+                            !puedeSeleccionar && 'cursor-default',
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div>
-                              <p className="font-medium tabular-nums text-xs">{fmt(unitPrice)}/u</p>
+                              <p className="font-medium tabular-nums text-xs font-mono">{fmtUnitPrice(unitPrice)}/u</p>
                               <p className="text-xs text-muted-foreground tabular-nums">{fmt(total)}</p>
                             </div>
                             {isSelected && <Check className="size-3.5 text-chart-2 shrink-0" />}
@@ -228,6 +240,29 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
               )
             })}
           </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-border bg-muted/30">
+              <td className="py-2.5 pr-4 text-xs font-semibold text-foreground align-top">
+                Subtotal
+              </td>
+              {received.map((cot) => {
+                const subtotal = cot.items.reduce(
+                  (sum, ci) => sum + parseFloat(ci.precioUnit) * parseFloat(ci.cantidad),
+                  0,
+                )
+                return (
+                  <td key={cot.id} className="py-2.5 px-3 align-top">
+                    <p className="font-semibold tabular-nums text-xs font-mono text-foreground">
+                      {fmt(subtotal)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {cot.incluyeIgv ? 'Inc. IGV' : '+ IGV'}
+                    </p>
+                  </td>
+                )
+              })}
+            </tr>
+          </tfoot>
         </table>
       </div>
 
@@ -277,7 +312,11 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
       {canAdjudicar && (
         <div className="flex items-center gap-3 pt-1">
           <Button onClick={adjudicar} disabled={submitting}>
-            {submitting ? 'Guardando…' : 'Confirmar adjudicación'}
+            {submitting
+              ? 'Guardando…'
+              : estado === 'aprobada_gerencia'
+                ? 'Completar adjudicación'
+                : 'Confirmar adjudicación'}
           </Button>
           {!allSelected && (
             <p className="text-xs text-muted-foreground">

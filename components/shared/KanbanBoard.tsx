@@ -63,32 +63,32 @@ export function KanbanBoard<T, S extends string>({
         const colItems = grouped.get(col.key) ?? []
         const isCollapsed = collapsed.has(col.key)
 
-        if (isCollapsed) {
-          return (
-            <button
-              key={col.key}
-              type="button"
-              onClick={() => toggleCollapsed(col.key)}
-              className="flex w-10 shrink-0 flex-col items-center gap-3 rounded-xl border border-border bg-card py-3 shadow-sm transition-colors hover:bg-muted/40"
-            >
-              <ChevronRight className="size-4 text-muted-foreground" />
-              <span
-                className={cn(
-                  'inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium tabular-nums',
-                  col.colorClass,
-                )}
-              >
-                {colItems.length}
-              </span>
-              <span
-                className="mt-1 whitespace-nowrap text-xs font-medium text-foreground"
-                style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-              >
-                {col.label}
-              </span>
-            </button>
-          )
-        }
+        // if (isCollapsed) {
+        //   return (
+        //     <button
+        //       key={col.key}
+        //       type="button"
+        //       onClick={() => toggleCollapsed(col.key)}
+        //       className="flex w-10 shrink-0 flex-col items-center gap-3 rounded-xl border border-border bg-card py-3 shadow-sm transition-colors hover:bg-muted/40"
+        //     >
+        //       <ChevronRight className="size-4 text-muted-foreground" />
+        //       <span
+        //         className={cn(
+        //           'inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium tabular-nums',
+        //           col.colorClass,
+        //         )}
+        //       >
+        //         {colItems.length}
+        //       </span>
+        //       <span
+        //         className="mt-1 whitespace-nowrap text-xs font-medium text-foreground"
+        //         style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+        //       >
+        //         {col.label}
+        //       </span>
+        //     </button>
+        //   )
+        // }
 
         return (
           <div
@@ -109,14 +109,14 @@ export function KanbanBoard<T, S extends string>({
                   {colItems.length}
                 </span>
               </div>
-              <button
+              {/* <button
                 type="button"
                 onClick={() => toggleCollapsed(col.key)}
                 className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-label={`Contraer columna ${col.label}`}
               >
                 <ChevronDown className="size-4" />
-              </button>
+              </button> */}
             </div>
             <div className="flex max-h-[calc(100vh-16rem)] flex-col gap-2 overflow-y-auto p-2">
               {colItems.length === 0 ? (

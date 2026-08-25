@@ -126,19 +126,13 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/ordenes-compra',
         label: 'Ord. compra',
         icon: ShoppingCart,
-        roles: [
-          'administrador', 'gerencia', 'logistica',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
-        ],
+        roles: ['administrador', 'admin_ti', 'gerencia', 'logistica'],
       },
       {
         href: '/ordenes-servicio',
         label: 'Ord. servicio',
         icon: Wrench,
-        roles: [
-          'administrador', 'gerencia', 'logistica',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
-        ],
+        roles: ['administrador', 'admin_ti', 'gerencia', 'logistica'],
       },
       {
         href: '/compras-simples',

@@ -25,8 +25,16 @@ const ESTADO_CLASS: Record<EstadoCotizacion, string> = {
   sin_respuesta: 'bg-orange-500/15 text-orange-600',
 }
 
+function fmtUnitPrice(value: string | number) {
+  const n = parseFloat(String(value))
+  if (isNaN(n)) return '—'
+  return `S/ ${n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`
+}
+
 function fmtPEN(value: string | number) {
-  return `S/ ${parseFloat(String(value)).toFixed(2)}`
+  const n = parseFloat(String(value))
+  if (isNaN(n)) return '—'
+  return `S/ ${n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 const ROLES_GERENCIA: Role[] = ['gerencia', 'administrador', 'admin_ti']
@@ -150,7 +158,7 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums">{fmtPEN(item.precioUnit)}</td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums">{fmtUnitPrice(item.precioUnit)}</td>
                   <td className="px-3 py-2 text-right font-mono tabular-nums">
                     {parseFloat(item.cantidad).toFixed(2)} {item.unidad}
                   </td>
