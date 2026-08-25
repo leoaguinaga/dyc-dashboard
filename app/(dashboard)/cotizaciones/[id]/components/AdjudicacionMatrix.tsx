@@ -72,7 +72,13 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
     return prices.length ? Math.min(...prices) : Infinity
   }
 
-  const allSelected = solicitudItems.every((si) => selections[si.id])
+  const selectedCount = Object.keys(selections).length
+  const itemsSinAdjudicar = solicitudItems.filter(
+    (si) => !received.some((cot) => cot.items.some(
+      (item) => item.solicitudItemId === si.id && item.seleccionado,
+    )),
+  )
+  const tieneAdjudicacion = itemsSinAdjudicar.length < solicitudItems.length
 
   // Summary: group selected items by proveedorId
   const summary = new Map<string, { nombre: string; subtotal: number; items: { desc: string; precio: string }[] }>()
@@ -92,12 +98,11 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
     }
   }
 
-  // Normalmente se adjudica antes de la aprobación. También permitimos
-  // completar una adjudicación pendiente ya aprobada por gerencia para
-  // recuperar solicitudes históricas que quedaron sin ítems seleccionados.
+  // Se puede adjudicar parcialmente: los ítems sin oferta o no seleccionados
+  // no deben impedir comprar los que sí fueron adjudicados.
   const puedeSeleccionar = canAct && (estado === 'cotizada' || estado === 'aprobada_gerencia')
-  const canAdjudicar = puedeSeleccionar && allSelected
-  const canGenerar = canAct && estado === 'aprobada_gerencia' && ordenesExistentes.length === 0 && allSelected
+  const puedeEditarAdjudicacion = puedeSeleccionar && !tieneAdjudicacion
+  const canGenerar = canAct && estado === 'aprobada_gerencia' && ordenesExistentes.length === 0 && tieneAdjudicacion
 
   // ── actions ──────────────────────────────────────────────────────────────
   async function adjudicar() {
@@ -142,7 +147,7 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
             Adjudicación — comparación de cotizaciones
           </h2>
         </div>
-        {canGenerar && (
+        {canGenerar ? (
           <div className="flex items-center gap-2">
             <Select value={tipo} onValueChange={(v) => setTipo(v as TipoOrdenCompra)}>
               <SelectTrigger className="w-44">
@@ -159,7 +164,23 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
             </Button>
             {err && <p className="text-xs text-destructive">{err}</p>}
           </div>
-        )}
+        ) : puedeSeleccionar ? (
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-muted-foreground">
+              {selectedCount > 0
+                ? `${selectedCount} ${selectedCount === 1 ? 'ítem adjudicado' : 'ítems adjudicados'} · los demás pueden quedar pendientes`
+                : 'Selecciona al menos un ítem para adjudicar'}
+            </p>
+            <Button onClick={adjudicar} disabled={selectedCount === 0 || submitting} size="sm">
+              {submitting
+                ? 'Guardando…'
+                : estado === 'aprobada_gerencia'
+                  ? 'Guardar adjudicación'
+                  : 'Confirmar adjudicación'}
+            </Button>
+            {err && <p className="text-xs text-destructive">{err}</p>}
+          </div>
+        ) : null}
       </div>
 
       {/* Matriz comparativa */}
@@ -207,11 +228,11 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
                     return (
                       <td key={cot.id} className="py-2.5 px-3 border-b border-border/60 align-top">
                         <button
-                          onClick={() => puedeSeleccionar
+                          onClick={() => puedeEditarAdjudicacion
                             ? setSelections((prev) => ({ ...prev, [si.id]: ci.id }))
                             : undefined
                           }
-                          disabled={!puedeSeleccionar}
+                          disabled={!puedeEditarAdjudicacion}
                           className={cn(
                             'w-full text-left rounded-md px-2 py-1.5 transition-all',
                             isSelected
@@ -219,7 +240,7 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
                               : isLowest
                               ? 'bg-chart-2/5 hover:bg-chart-2/10 cursor-pointer'
                               : 'hover:bg-muted/60 cursor-pointer',
-                            !puedeSeleccionar && 'cursor-default',
+                            !puedeEditarAdjudicacion && 'cursor-default',
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
@@ -308,24 +329,6 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
         </div>
       )}
 
-      {/* Acciones */}
-      {canAdjudicar && (
-        <div className="flex items-center gap-3 pt-1">
-          <Button onClick={adjudicar} disabled={submitting}>
-            {submitting
-              ? 'Guardando…'
-              : estado === 'aprobada_gerencia'
-                ? 'Completar adjudicación'
-                : 'Confirmar adjudicación'}
-          </Button>
-          {!allSelected && (
-            <p className="text-xs text-muted-foreground">
-              Selecciona un proveedor para cada ítem para continuar
-            </p>
-          )}
-          {err && <p className="text-xs text-destructive">{err}</p>}
-        </div>
-      )}
     </div>
   )
 }
