@@ -70,6 +70,9 @@ function FilaPago({ p, fechaLabel }: { p: Pago; fechaLabel: 'programada' | 'real
         <div className="min-w-0">
           <span className="font-mono text-sm font-medium">{p.ordenCompra.numero}</span>
           <p className="truncate text-xs text-muted-foreground">
+            {p.ordenCompra.concepto ?? 'Sin concepto'}
+          </p>
+          <p className="truncate text-xs text-muted-foreground/80">
             {p.tipoBeneficiario === 'trabajador'
               ? `Depósito a ${p.beneficiarioTrabajador?.nombre ?? p.ordenCompra.creadoPor.name}`
               : (p.ordenCompra.proveedor?.razonSocial ?? p.ordenCompra.proveedorNombreLibre)}
@@ -101,9 +104,12 @@ function GrupoFecha({ grupo, fechaLabel }: { grupo: Grupo; fechaLabel: 'programa
       </div>
       {porProyecto.map(({ proyecto, pagos }) => (
         <div key={proyecto.id} className="border-b border-border last:border-b-0">
-          <div className="px-4 pt-2 text-xs font-medium text-muted-foreground">
-            <Link href={`/proyectos/${proyecto.id}`} className="hover:text-foreground transition-colors duration-[120ms]">
-              {proyecto.codigo ?? proyecto.nombre}
+          <div className="px-4 py-2.5">
+            <Link href={`/proyectos/${proyecto.id}`} className="block min-w-0 hover:text-foreground transition-colors duration-[120ms]">
+              <span className="block truncate text-sm font-semibold text-foreground">{proyecto.nombre}</span>
+              <span className="block truncate font-mono text-xs text-muted-foreground">
+                {proyecto.codigo ?? 'Sin código'}
+              </span>
             </Link>
           </div>
           <div className="divide-y divide-border">

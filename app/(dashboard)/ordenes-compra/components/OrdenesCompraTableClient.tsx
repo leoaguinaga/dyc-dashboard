@@ -134,9 +134,12 @@ export function OrdenesCompraTableClient({ ordenes, tipo }: Props) {
                     </Link>
                   </td>
                   <td className="px-4 py-3 font-medium">{oc.proveedor?.razonSocial ?? oc.proveedorNombreLibre}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    <Link href={`/proyectos/${oc.proyectoId}`} className="hover:text-foreground transition-colors duration-[120ms]">
-                      {oc.proyecto.codigo ?? oc.proyecto.nombre}
+                  <td className="px-4 py-3">
+                    <Link href={`/proyectos/${oc.proyectoId}`} className="block min-w-0 hover:text-foreground transition-colors duration-[120ms]">
+                      <span className="block truncate font-medium text-foreground">{oc.proyecto.nombre}</span>
+                      <span className="block truncate font-mono text-xs text-muted-foreground">
+                        {oc.proyecto.codigo ?? 'Sin código'}
+                      </span>
                     </Link>
                   </td>
                   <td className="px-4 py-3">

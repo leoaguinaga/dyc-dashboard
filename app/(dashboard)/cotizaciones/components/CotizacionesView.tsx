@@ -90,7 +90,7 @@ export function CotizacionesView({ solicitudes }: Props) {
               {obraId === 'todos' ? 'Todas las obras' : (proyectos.find((p) => p.id === obraId)?.nombre ?? 'Obra')}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-full">
             <SelectItem value="todos">Todas las obras</SelectItem>
             {proyectos.map((p) => (
               <SelectItem key={p.id} value={p.id}>

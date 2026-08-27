@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "D&C Ingeniería y Proyectos",
   description: "Sistema interno de gestión de proyectos y cotizaciones",
+  icons: {
+    icon: [{ url: "/favicon.svg?v=2", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({

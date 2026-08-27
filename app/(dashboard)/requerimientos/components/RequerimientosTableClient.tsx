@@ -9,7 +9,7 @@ export const TIPO_LABEL: Record<TipoRequerimiento, string> = {
   civil: 'Civil',
   electrico: 'Eléctrico',
   seguridad: 'Seguridad',
-  administrativo: 'Admin.',
+  administrativo: 'Administrativo',
 }
 
 export const TIPO_CLASS: Record<TipoRequerimiento, string> = {
@@ -17,6 +17,13 @@ export const TIPO_CLASS: Record<TipoRequerimiento, string> = {
   electrico: 'bg-amber-500/10 text-amber-600',
   seguridad: 'bg-orange-500/10 text-orange-600',
   administrativo: 'bg-purple-500/10 text-purple-600',
+}
+
+export const TIPO_COLOR: Record<TipoRequerimiento, string> = {
+  civil: 'bg-blue-500',
+  electrico: 'bg-amber-500',
+  seguridad: 'bg-orange-500',
+  administrativo: 'bg-purple-500',
 }
 
 export const ESTADO_LABEL: Record<EstadoRequerimiento, string> = {
