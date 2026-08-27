@@ -90,7 +90,7 @@ export function RequerimientosView({ requerimientos }: Props) {
               {obraId === 'todos' ? 'Todas las obras' : (proyectos.find((p) => p.id === obraId)?.nombre ?? 'Obra')}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-full overflow-visible">
             <SelectItem value="todos">Todas las obras</SelectItem>
             {proyectos.map((p) => (
               <SelectItem key={p.id} value={p.id}>
@@ -105,7 +105,7 @@ export function RequerimientosView({ requerimientos }: Props) {
               {tipo === 'todos' ? 'Todos los tipos' : (TIPO_LABEL[tipo as TipoRequerimiento] ?? 'Tipo')}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className='full'>
             <SelectItem value="todos">Todos los tipos</SelectItem>
             {(Object.keys(TIPO_LABEL) as TipoRequerimiento[]).map((t) => (
               <SelectItem key={t} value={t}>

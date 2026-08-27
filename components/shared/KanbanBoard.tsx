@@ -17,6 +17,7 @@ interface KanbanBoardProps<T, S extends string> {
   getId: (item: T) => string
   renderCard: (item: T) => ReactNode
   emptyMessage?: string
+  scrollRef?: React.Ref<HTMLDivElement>
 }
 
 export function KanbanBoard<T, S extends string>({
@@ -26,6 +27,7 @@ export function KanbanBoard<T, S extends string>({
   getId,
   renderCard,
   emptyMessage = 'Sin resultados',
+  scrollRef,
 }: KanbanBoardProps<T, S>) {
   const grouped = useMemo(() => {
     const map = new Map<S, T[]>()
@@ -58,7 +60,7 @@ export function KanbanBoard<T, S extends string>({
   }
 
   return (
-    <div className="flex items-start gap-3 overflow-x-auto pb-2">
+    <div ref={scrollRef} className="flex items-start gap-3 overflow-x-auto pb-2 scroll-smooth">
       {columns.map((col) => {
         const colItems = grouped.get(col.key) ?? []
         const isCollapsed = collapsed.has(col.key)
@@ -109,14 +111,6 @@ export function KanbanBoard<T, S extends string>({
                   {colItems.length}
                 </span>
               </div>
-              {/* <button
-                type="button"
-                onClick={() => toggleCollapsed(col.key)}
-                className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                aria-label={`Contraer columna ${col.label}`}
-              >
-                <ChevronDown className="size-4" />
-              </button> */}
             </div>
             <div className="flex max-h-[calc(100vh-16rem)] flex-col gap-2 overflow-y-auto p-2">
               {colItems.length === 0 ? (

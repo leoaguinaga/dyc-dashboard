@@ -836,7 +836,7 @@ export interface CompraSimpleGrupoHistorial {
 export interface Pago {
   id: string;
   ordenCompraId: string;
-  ordenCompra: Pick<OrdenCompra, 'id' | 'numero' | 'montoTotal' | 'proveedorNombreLibre'> & {
+  ordenCompra: Pick<OrdenCompra, 'id' | 'numero' | 'concepto' | 'montoTotal' | 'proveedorNombreLibre'> & {
     proveedor: Pick<Proveedor, 'id' | 'razonSocial'> | null;
     proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'>;
     creadoPor: Pick<User, 'id' | 'name'>;

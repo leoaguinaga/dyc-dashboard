@@ -45,6 +45,7 @@ export function SolicitudActions({ solicitud }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [revertDialogOpen, setRevertDialogOpen] = useState(false)
 
   const role = session?.user?.role
 
@@ -61,7 +62,11 @@ export function SolicitudActions({ solicitud }: Props) {
     solicitud.estado === 'cancelada' &&
     (role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia')
 
-  if (!puedeAvanzar && !puedeCancelar && !puedeReabrir) return null
+  const puedeRevertirAdjudicacion =
+    ['seleccionada', 'aprobada_solicitante', 'aprobada_gerencia'].includes(solicitud.estado) &&
+    (role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia')
+
+  if (!puedeAvanzar && !puedeCancelar && !puedeReabrir && !puedeRevertirAdjudicacion) return null
 
   async function avanzar(endpoint: string) {
     setLoading(true)
@@ -69,6 +74,7 @@ export function SolicitudActions({ solicitud }: Props) {
     try {
       await api.post(`/solicitudes-cotizacion/${solicitud.id}/${endpoint}`, {})
       if (endpoint === 'cancelar') setCancelDialogOpen(false)
+      if (endpoint === 'revertir-adjudicacion') setRevertDialogOpen(false)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al actualizar estado')
@@ -109,6 +115,11 @@ export function SolicitudActions({ solicitud }: Props) {
           {loading ? 'Procesando…' : 'Reabrir solicitud'}
         </Button>
       )}
+      {puedeRevertirAdjudicacion && (
+        <Button size="sm" variant="outline" onClick={() => setRevertDialogOpen(true)} disabled={loading}>
+          Revertir adjudicación
+        </Button>
+      )}
       {error && <p className="w-full text-xs text-destructive">{error}</p>}
 
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
@@ -133,6 +144,23 @@ export function SolicitudActions({ solicitud }: Props) {
               onClick={() => avanzar('cancelar')}
             >
               {loading ? 'Cancelando…' : 'Sí, cancelar solicitud'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={revertDialogOpen} onOpenChange={setRevertDialogOpen}>
+        <DialogContent showCloseButton={!loading}>
+          <DialogHeader>
+            <DialogTitle>¿Revertir esta adjudicación?</DialogTitle>
+            <DialogDescription>
+              La solicitud volverá a “Cotizada”, se quitarán los ítems seleccionados y se conservarán las cotizaciones recibidas para repartir la compra entre proveedores. Solo es posible si aún no existe ninguna orden de compra.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" disabled={loading} onClick={() => setRevertDialogOpen(false)}>Volver</Button>
+            <Button disabled={loading} onClick={() => avanzar('revertir-adjudicacion')}>
+              {loading ? 'Revirtiendo…' : 'Sí, revertir adjudicación'}
             </Button>
           </DialogFooter>
         </DialogContent>
