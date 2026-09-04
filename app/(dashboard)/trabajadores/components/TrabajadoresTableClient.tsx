@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ChevronRight, Search, UserPlus } from 'lucide-react'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Trabajador } from '@/types/api'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
@@ -94,12 +93,6 @@ export function TrabajadoresTableClient({ trabajadores }: Props) {
             </SelectContent>
           </Select>
         )}
-        <Link href="/trabajadores/nuevo">
-          <Button>
-            <UserPlus className='size-4' />
-            Registrar trabajador
-          </Button>
-        </Link>
       </div>
 
       {/* Table */}
@@ -116,11 +109,11 @@ export function TrabajadoresTableClient({ trabajadores }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Nombre</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">DNI</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Cargo</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Teléfono</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Nombre</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">DNI</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Cargo</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Teléfono</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Estado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

@@ -180,6 +180,11 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
             </Button>
             {err && <p className="text-xs text-destructive">{err}</p>}
           </div>
+        ) : estado === 'orden_generada' ? (
+          <div className="flex items-center gap-1.5 text-xs font-medium text-chart-2 bg-chart-2/10 px-2.5 py-1 rounded-md border border-chart-2/30">
+            <Check className="size-3.5" />
+            <span>Adjudicación completada · Órdenes generadas</span>
+          </div>
         ) : null}
       </div>
 
@@ -287,8 +292,8 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
         </table>
       </div>
 
-      {/* Resumen de adjudicación */}
-      {summary.size > 0 && (
+      {/* Resumen de adjudicación (solo previo a la generación de órdenes) */}
+      {summary.size > 0 && estado !== 'orden_generada' && (
         <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Resumen — {summary.size === 1 ? '1 orden de compra' : `${summary.size} órdenes de compra`}
@@ -313,8 +318,8 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
         </div>
       )}
 
-      {/* Órdenes ya generadas */}
-      {ordenesExistentes.length > 0 && (
+      {/* Órdenes ya generadas (cuando no se muestra la tarjeta dedicada de órdenes) */}
+      {ordenesExistentes.length > 0 && estado !== 'orden_generada' && (
         <div className="flex flex-wrap gap-2">
           {ordenesExistentes.map((o) => (
             <a

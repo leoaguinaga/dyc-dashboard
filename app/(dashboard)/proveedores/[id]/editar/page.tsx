@@ -19,7 +19,7 @@ export default async function EditarProveedorPage({ params }: Props) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="space-y-1">
         <Link
           href={`/proveedores/${id}`}
@@ -34,7 +34,7 @@ export default async function EditarProveedorPage({ params }: Props) {
         </p>
       </div>
 
-      <div className="rounded-xl max-w-4xl border border-border bg-white p-6">
+      <div className="rounded-xl border border-border bg-white p-6">
         <EditProveedorForm proveedor={result} />
       </div>
     </div>

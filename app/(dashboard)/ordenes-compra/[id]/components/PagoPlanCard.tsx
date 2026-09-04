@@ -16,6 +16,7 @@ interface Props {
 }
 
 const ESTADO_LABEL: Record<Pago['estadoEfectivo'], string> = {
+  borrador: 'Por completar',
   pendiente: 'Pendiente',
   vencido: 'Vencido',
   pagado: 'Pagado',
@@ -23,6 +24,7 @@ const ESTADO_LABEL: Record<Pago['estadoEfectivo'], string> = {
 }
 
 const ESTADO_CLASS: Record<Pago['estadoEfectivo'], string> = {
+  borrador: 'bg-chart-3/10 text-chart-3',
   pendiente: 'bg-muted text-muted-foreground',
   vencido: 'bg-destructive/10 text-destructive',
   pagado: 'bg-chart-2/10 text-chart-2',

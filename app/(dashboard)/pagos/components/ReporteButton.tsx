@@ -58,13 +58,15 @@ function descargarBlob(blob: Blob, filename: string) {
 }
 
 export function ReporteButton({
-  tipo,
-  label,
+  tipo = 'pendientes',
+  label = 'Descargar reporte',
   fecha: fechaProp,
+  className,
 }: {
-  tipo: 'pendientes' | 'pagados'
-  label: string
+  tipo?: 'pendientes' | 'pagados'
+  label?: string
   fecha?: string
+  className?: string
 }) {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
@@ -95,15 +97,17 @@ export function ReporteButton({
   return (
     <>
       <button
+        type="button"
         onClick={handleClick}
         disabled={loading}
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium',
-          'hover:bg-muted/40 transition-colors duration-[120ms] disabled:opacity-50',
+          'inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 h-8 text-sm',
+          'hover:text-foreground hover:bg-muted/40 transition-colors duration-[120ms] disabled:opacity-50 cursor-pointer',
+          className,
         )}
       >
-        <FileImage className="size-4" />
-        {loading ? 'Generando...' : label}
+        <FileImage className="size-3.5" />
+        <span>{loading ? 'Generando...' : label}</span>
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>

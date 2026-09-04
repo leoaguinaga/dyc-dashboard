@@ -33,9 +33,11 @@ function SidebarLinks({ onLinkClick }: { onLinkClick?: () => void }) {
       <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-5">
         {groups.map((group) => (
           <div key={group.label}>
-            <span className="mb-1.5 block px-3 text-sm text-muted-foreground/60">
-              {group.label}
-            </span>
+            {!group.hideLabel && (
+              <span className="mb-1.5 block px-3 text-sm text-muted-foreground/60">
+                {group.label}
+              </span>
+            )}
             <div className="flex flex-col gap-3">
               {groups && group.items.map((item) => {
                 const active = !item.disabled && pathname.startsWith(item.href)

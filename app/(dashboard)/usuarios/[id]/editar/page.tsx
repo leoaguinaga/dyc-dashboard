@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { EditUsuarioForm } from './components/EditUsuarioForm'
+import { ImpersonateButtonHeader } from './components/ImpersonateButtonHeader'
 import type { User } from '@/types/api'
 
 interface Props {
@@ -28,10 +29,15 @@ export default async function EditarUsuarioPage({ params }: Props) {
           <ArrowLeft className="size-3.5" />
           Volver a usuarios
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Editar usuario</h1>
-        <p className="text-sm text-muted-foreground">
-          Modifica el nombre o rol de <span className="font-medium text-foreground">{result.name}</span>.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Editar usuario</h1>
+            <p className="text-sm text-muted-foreground">
+              Modifica el nombre o rol de <span className="font-medium text-foreground">{result.name}</span>.
+            </p>
+          </div>
+          <ImpersonateButtonHeader targetUser={result} />
+        </div>
       </div>
 
       <div className="rounded-xl border border-border max-w-lg bg-white p-6">

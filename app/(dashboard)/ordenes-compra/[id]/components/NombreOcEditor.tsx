@@ -10,9 +10,10 @@ import { Pencil, Check, X } from 'lucide-react'
 interface Props {
   ocId: string
   nombre: string | null | undefined
+  editable?: boolean
 }
 
-export function NombreOcEditor({ ocId, nombre }: Props) {
+export function NombreOcEditor({ ocId, nombre, editable = true }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const [editing, setEditing] = useState(false)
@@ -21,7 +22,7 @@ export function NombreOcEditor({ ocId, nombre }: Props) {
   const [err, setErr] = useState<string | null>(null)
 
   const role = session?.user?.role
-  const canEdit = role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia'
+  const canEdit = editable && (role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia')
 
   async function save() {
     setSaving(true)
@@ -52,9 +53,10 @@ export function NombreOcEditor({ ocId, nombre }: Props) {
         {canEdit && (
           <button
             onClick={() => setEditing(true)}
-            className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
           >
             <Pencil className="size-3" />
+            Editar
           </button>
         )}
       </div>

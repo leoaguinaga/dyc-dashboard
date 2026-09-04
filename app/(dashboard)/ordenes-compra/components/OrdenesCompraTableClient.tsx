@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Search } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn, formatCurrency } from '@/lib/utils'
-import { ordenBasePath, ordenPrefijo } from '@/lib/ordenes'
+import { ordenBasePath } from '@/lib/ordenes'
 import type { EstadoOrdenCompra, OrdenCompra, TipoOrdenCompra } from '@/types/api'
 
 const ESTADO_LABEL: Record<EstadoOrdenCompra, string> = {
@@ -25,16 +25,25 @@ const ESTADO_CLASS: Record<EstadoOrdenCompra, string> = {
 }
 
 type EstadoFilter = 'todos' | EstadoOrdenCompra
+type TipoFilter = 'todos' | TipoOrdenCompra
+
+const TIPO_LABEL: Record<TipoOrdenCompra, string> = {
+  compra: 'Compra',
+  servicio: 'Servicio',
+}
+
+const TIPO_CLASS: Record<TipoOrdenCompra, string> = {
+  compra: 'bg-blue-500/10 text-blue-700',
+  servicio: 'bg-violet-500/10 text-violet-700',
+}
 
 interface Props {
   ordenes: OrdenCompra[]
-  tipo: TipoOrdenCompra
 }
 
-export function OrdenesCompraTableClient({ ordenes, tipo }: Props) {
-  const basePath = ordenBasePath(tipo)
-  const prefijo = ordenPrefijo(tipo)
+export function OrdenesCompraTableClient({ ordenes }: Props) {
   const [search, setSearch] = useState('')
+  const [tipo, setTipo] = useState<TipoFilter>('todos')
   const [estado, setEstado] = useState<EstadoFilter>('todos')
   const [proyectoId, setProyectoId] = useState<string>('todos')
 
@@ -50,6 +59,7 @@ export function OrdenesCompraTableClient({ ordenes, tipo }: Props) {
 
   const filtered = useMemo(() => {
     let result = ordenes
+    if (tipo !== 'todos') result = result.filter((oc) => oc.tipo === tipo)
     if (estado !== 'todos') result = result.filter((oc) => oc.estado === estado)
     if (proyectoId !== 'todos') result = result.filter((oc) => oc.proyectoId === proyectoId)
     if (search.trim()) {
@@ -65,7 +75,7 @@ export function OrdenesCompraTableClient({ ordenes, tipo }: Props) {
       )
     }
     return result
-  }, [ordenes, estado, proyectoId, search])
+  }, [ordenes, tipo, estado, proyectoId, search])
 
   return (
     <div className="space-y-3">
@@ -73,13 +83,26 @@ export function OrdenesCompraTableClient({ ordenes, tipo }: Props) {
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
-            type="text"
-            placeholder={`Buscar por N° ${prefijo}, proveedor, proyecto o solicitud…`}
+            type="search"
+            aria-label="Buscar órdenes"
+            placeholder="Buscar por N° de orden, proveedor, proyecto o solicitud…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
           />
         </div>
+        <Select value={tipo} onValueChange={(v) => setTipo((v ?? 'todos') as TipoFilter)}>
+          <SelectTrigger className="w-40">
+            <SelectValue>
+              {tipo === 'todos' ? 'Todos los tipos' : TIPO_LABEL[tipo]}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todas las órdenes</SelectItem>
+            <SelectItem value="compra">Compra</SelectItem>
+            <SelectItem value="servicio">Servicio</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={estado} onValueChange={(v) => setEstado(v as EstadoFilter)}>
           <SelectTrigger className="w-40">
             Estados
@@ -115,7 +138,8 @@ export function OrdenesCompraTableClient({ ordenes, tipo }: Props) {
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-muted/30">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">N° {prefijo}</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">N° orden</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Tipo</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Proveedor</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Proyecto</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Solicitud</th>
@@ -128,10 +152,15 @@ export function OrdenesCompraTableClient({ ordenes, tipo }: Props) {
               {filtered.map((oc) => (
                 <tr key={oc.id} className="hover:bg-muted/30 transition-colors duration-[120ms]">
                   <td className="px-4 py-3">
-                    <Link href={`${basePath}/${oc.id}`} className="hover:text-primary transition-colors duration-[120ms]">
+                    <Link href={`${ordenBasePath(oc.tipo)}/${oc.id}`} className="hover:text-primary transition-colors duration-[120ms]">
                       <span className="block font-mono font-medium">{oc.numero}</span>
                       {oc.nombre && <span className="block text-xs text-muted-foreground">{oc.nombre}</span>}
                     </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', TIPO_CLASS[oc.tipo])}>
+                      {TIPO_LABEL[oc.tipo]}
+                    </span>
                   </td>
                   <td className="px-4 py-3 font-medium">{oc.proveedor?.razonSocial ?? oc.proveedorNombreLibre}</td>
                   <td className="px-4 py-3">

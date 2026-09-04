@@ -5,6 +5,7 @@ import type { Pago } from '@/types/api'
 import { cn } from '@/lib/utils'
 
 const ESTADO_LABEL: Record<Pago['estadoEfectivo'], string> = {
+  borrador: 'Por completar',
   pendiente: 'Pendiente',
   vencido: 'Vencido',
   pagado: 'Pagado',
@@ -12,6 +13,7 @@ const ESTADO_LABEL: Record<Pago['estadoEfectivo'], string> = {
 }
 
 const ESTADO_CLASS: Record<Pago['estadoEfectivo'], string> = {
+  borrador: 'bg-chart-3/10 text-chart-3',
   pendiente: 'bg-muted text-muted-foreground',
   vencido: 'bg-destructive/10 text-destructive',
   pagado: 'bg-chart-2/10 text-chart-2',
@@ -60,11 +62,9 @@ export async function ProyectoPagosPendientesSection({ proyectoId }: { proyectoI
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <Link href={`/ordenes-compra/${p.ordenCompraId}`} className="font-mono font-medium hover:underline underline-offset-2">
-                      {p.ordenCompra.numero}
-                    </Link>
+                    {p.ordenCompraId && p.ordenCompra ? <Link href={`/ordenes-compra/${p.ordenCompraId}`} className="font-mono font-medium hover:underline underline-offset-2">{p.ordenCompra.numero}</Link> : <Link href={`/pagos/${p.id}`} className="font-mono font-medium hover:underline underline-offset-2">MANUAL</Link>}
                   </td>
-                  <td className="hidden px-4 py-3 font-medium sm:table-cell">{p.ordenCompra.proveedor?.razonSocial ?? p.ordenCompra.proveedorNombreLibre}</td>
+                  <td className="hidden px-4 py-3 font-medium sm:table-cell">{p.beneficiarioNombre ?? p.ordenCompra?.proveedor?.razonSocial ?? p.ordenCompra?.proveedorNombreLibre ?? p.concepto ?? '—'}</td>
                   <td className="px-4 py-3 text-right tabular-nums font-medium">
                     S/ {Number(p.monto).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
                   </td>

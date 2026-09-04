@@ -26,9 +26,6 @@ export function AsistenciaHomeView({ proyectos }: Props) {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Jornadas de operarios por obra. Entra a una jornada para ver el detalle por trabajador y el control de acceso del día.
-      </p>
       <JornadasGlobalView proyectos={proyectos} />
     </div>
   )

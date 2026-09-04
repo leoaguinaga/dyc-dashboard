@@ -52,22 +52,35 @@ export function InviteProveedorForm({ solicitudId, proveedores, proveedoresYaInv
   }
 
   return (
-    <div className="flex items-start gap-2">
+    <div className="flex items-center gap-2">
       <div className="flex-1">
         <Select value={proveedorId} onValueChange={(v) => setProveedorId(v ?? '')}>
           <SelectTrigger className="w-full h-8 text-sm">
-            <SelectValue placeholder="Seleccionar proveedor…" />
+            <SelectValue placeholder="Seleccionar proveedor…">
+              {(value: string | null) =>
+                proveedores.find((p) => p.id === value)?.razonSocial ?? 'Seleccionar proveedor…'
+              }
+            </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-full min-w-64" align='end'>
             {disponibles.length === 0 ? (
               <p className="px-3 py-2 text-sm text-muted-foreground">Todos los proveedores activos ya fueron invitados</p>
             ) : (
-              disponibles.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.razonSocial}
-                  <span className="ml-1 font-mono text-xs text-muted-foreground">{p.ruc}</span>
-                </SelectItem>
-              ))
+              disponibles.map((p) => {
+                const ubicacion = [p.departamento, p.distrito].filter(Boolean).join(', ')
+                return (
+                  <SelectItem key={p.id} value={p.id} className="py-1.5">
+                    <div className="flex flex-col items-start text-left leading-tight">
+                      <span className="font-medium text-foreground">{p.razonSocial}</span>
+                      {ubicacion && (
+                        <span className="text-xs text-muted-foreground font-normal mt-0.5">
+                          {ubicacion}
+                        </span>
+                      )}
+                    </div>
+                  </SelectItem>
+                )
+              })
             )}
           </SelectContent>
         </Select>
@@ -78,7 +91,7 @@ export function InviteProveedorForm({ solicitudId, proveedores, proveedoresYaInv
       </Button>
       <button
         onClick={() => { setOpen(false); setProveedorId(''); setError(null) }}
-        className="mt-1 text-muted-foreground hover:text-foreground transition-colors duration-[120ms]"
+        className="text-muted-foreground hover:text-foreground transition-colors duration-[120ms]"
       >
         <X className="size-4" />
       </button>

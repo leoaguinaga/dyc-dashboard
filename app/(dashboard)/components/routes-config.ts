@@ -6,219 +6,285 @@ import {
   UserCog,
   Building,
   ClipboardList,
-  FileText,
   Warehouse,
   ShoppingCart,
-  ShoppingBag,
-  Wrench,
   BarChart2,
   Wallet,
   UserCheck,
   Receipt,
   Landmark,
   type LucideIcon,
-} from 'lucide-react'
-import type { Role } from '@/types/api'
+  Handshake,
+} from "lucide-react";
+import type { Role } from "@/types/api";
 
 export interface NavItem {
-  href: string
-  label: string
-  icon: LucideIcon
-  roles: Role[]
-  disabled?: boolean
-  sprint?: string
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  roles: Role[];
+  disabled?: boolean;
+  sprint?: string;
 }
 
 export interface NavGroup {
-  label: string
-  items: NavItem[]
+  label: string;
+  items: NavItem[];
+  hideLabel?: boolean;
 }
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'General',
+    label: "Inicio",
+    hideLabel: true,
     items: [
       {
-        href: '/dashboard',
-        label: 'Dashboard',
+        href: "/dashboard",
+        label: "Inicio",
         icon: Home,
         roles: [
-          'supervisor', 'logistica', 'gerencia', 'administrador',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
+          "supervisor",
+          "supervisor_civil",
+          "supervisor_electrico",
+          "pdr",
+          "logistica",
+          "gerencia",
+          "administrador",
+          "admin_ti",
+          "ing_civil",
+          "ing_electrico",
+          "jefe_sig",
         ],
       },
+    ],
+  },
+  {
+    label: "Obras",
+    items: [
       {
-        href: '/proyectos',
-        label: 'Proyectos',
+        href: "/proyectos",
+        label: "Proyectos",
         icon: Building2,
         roles: [
-          'supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
-          'logistica', 'gerencia', 'administrador',
+          "pdr",
+          "ing_civil",
+          "ing_electrico",
+          "jefe_sig",
+          "logistica",
+          "gerencia",
+          "administrador",
         ],
       },
       {
-        href: '/clientes',
-        label: 'Clientes',
-        icon: Building,
-        roles: [
-          'administrador', 'gerencia', 'logistica',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
-        ],
-      },
-    ],
-  },
-  {
-    label: 'Maestros',
-    items: [
-      {
-        href: '/trabajadores',
-        label: 'Trabajadores',
-        icon: Users,
-        roles: [
-          'administrador', 'logistica', 'gerencia',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
-        ],
-      },
-      {
-        href: '/proveedores',
-        label: 'Proveedores',
-        icon: Truck,
-        roles: [
-          'administrador', 'logistica', 'gerencia',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
-        ],
+        href: "/asistencia",
+        label: "Asistencia",
+        icon: UserCheck,
+        roles: ["administrador", "gerencia", "pdr"],
       },
     ],
   },
   {
-    label: 'Operaciones',
+    label: "Abastecimiento",
     items: [
       {
-        href: '/requerimientos',
-        label: 'Requerimientos',
+        href: "/solicitudes",
+        label: "Solicitudes",
         icon: ClipboardList,
         roles: [
-          'administrador', 'logistica', 'gerencia', 'supervisor',
-          'supervisor_civil', 'supervisor_electrico', 'pdr',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
+          "administrador",
+          "logistica",
+          "gerencia",
+          "supervisor",
+          "supervisor_civil",
+          "supervisor_electrico",
+          "pdr",
+          "ing_civil",
+          "ing_electrico",
+          "jefe_sig",
         ],
       },
+      // {
+      //   href: "/requerimientos",
+      //   label: "Requerimientos",
+      //   icon: ClipboardList,
+      //   roles: [
+      //     "administrador",
+      //     "logistica",
+      //     "gerencia",
+      //     "ing_civil",
+      //     "ing_electrico",
+      //     "jefe_sig",
+      //   ],
+      // },
       {
-        href: '/cotizaciones',
-        label: 'Cotizaciones',
-        icon: FileText,
+        href: "/cotizaciones",
+        label: "Cotizaciones",
+        icon: Handshake,
         roles: [
-          'administrador', 'gerencia', 'logistica',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
+          "administrador",
+          "gerencia",
+          "logistica",
+          "ing_civil",
+          "ing_electrico",
+          "jefe_sig",
         ],
       },
       {
-        href: '/almacenes',
-        label: 'Almacenes',
+        href: "/ordenes",
+        label: "Órdenes de C/S",
+        icon: ShoppingCart,
+        roles: ["administrador", "gerencia", "logistica"],
+      },
+      // {
+      //   href: "/compras-simples",
+      //   label: "Compras",
+      //   icon: ShoppingBag,
+      //   roles: [
+      //     "administrador",
+      //     "gerencia",
+      //     "logistica",
+      //     "ing_civil",
+      //     "ing_electrico",
+      //     "jefe_sig",
+      //   ],
+      // },
+      {
+        href: "/almacenes",
+        label: "Almacenes",
         icon: Warehouse,
         roles: [
-          'administrador', 'logistica', 'gerencia',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
+          "administrador",
+          "logistica",
+          "gerencia",
+          "ing_civil",
+          "ing_electrico",
+          "jefe_sig",
         ],
       },
       {
-        href: '/ordenes-compra',
-        label: 'Ord. compra',
-        icon: ShoppingCart,
-        roles: ['administrador', 'admin_ti', 'gerencia', 'logistica'],
-      },
-      {
-        href: '/ordenes-servicio',
-        label: 'Ord. servicio',
-        icon: Wrench,
-        roles: ['administrador', 'admin_ti', 'gerencia', 'logistica'],
-      },
-      {
-        href: '/compras-simples',
-        label: 'Compras',
-        icon: ShoppingBag,
+        href: "/proveedores",
+        label: "Proveedores",
+        icon: Truck,
         roles: [
-          'administrador', 'gerencia', 'logistica',
-          'supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr',
-          'ing_civil', 'ing_electrico', 'jefe_sig',
+          "administrador",
+          "logistica",
+          "gerencia",
+          "ing_civil",
+          "ing_electrico",
+          "jefe_sig",
+        ],
+      },
+    ],
+  },
+  {
+    label: "Finanzas",
+    items: [
+      {
+        href: "/pagos",
+        label: "Pagos",
+        icon: Wallet,
+        roles: [
+          "administrador",
+          "gerencia",
+          "logistica",
+          "supervisor",
+          "supervisor_civil",
+          "supervisor_electrico",
+          "pdr",
+          "ing_civil",
+          "ing_electrico",
+          "jefe_sig",
         ],
       },
       {
-        href: '/asistencia',
-        label: 'Asistencia',
-        icon: UserCheck,
-        roles: ['administrador', 'gerencia', 'pdr'],
-      },
-    ],
-  },
-  {
-    label: 'Finanzas',
-    items: [
-      {
-        href: '/pagos',
-        label: 'Pagos',
-        icon: Wallet,
-        roles: ['administrador', 'gerencia'],
-      },
-      {
-        href: '/cobros',
-        label: 'Cobros',
+        href: "/cobros",
+        label: "Cobros",
         icon: Landmark,
-        roles: ['administrador', 'gerencia'],
+        roles: ["administrador", "gerencia"],
       },
       {
-        href: '/planilla',
-        label: 'Planilla',
+        href: "/planilla",
+        label: "Planilla",
         icon: Receipt,
-        roles: ['administrador', 'gerencia'],
+        roles: ["administrador", "gerencia"],
       },
     ],
   },
   {
-    label: 'Reportes',
+    label: "Directorio",
     items: [
       {
-        href: '/reportes',
-        label: 'Reportes',
+        href: "/clientes",
+        label: "Clientes",
+        icon: Building,
+        roles: [
+          "administrador",
+          "gerencia",
+          "logistica",
+          "ing_civil",
+          "ing_electrico",
+          "jefe_sig",
+        ],
+      },
+      {
+        href: "/trabajadores",
+        label: "Trabajadores",
+        icon: Users,
+        roles: [
+          "administrador",
+          "logistica",
+          "gerencia",
+          "ing_civil",
+          "ing_electrico",
+          "jefe_sig",
+        ],
+      },
+    ],
+  },
+  {
+    label: "Control y sistema",
+    items: [
+      {
+        href: "/reportes",
+        label: "Reportes",
         icon: BarChart2,
-        roles: ['administrador', 'gerencia'],
+        roles: ["administrador", "gerencia"],
       },
-    ],
-  },
-  {
-    label: 'Administración',
-    items: [
       {
-        href: '/usuarios',
-        label: 'Usuarios',
+        href: "/usuarios",
+        label: "Usuarios",
         icon: UserCog,
-        roles: ['administrador', 'gerencia'],
+        roles: ["administrador", "gerencia", "admin_ti"],
       },
     ],
   },
-]
+];
 
 export function getVisibleGroups(role: Role | undefined): NavGroup[] {
-  if (role === 'admin_ti') return NAV_GROUPS
+  if (!role) return [];
+  // TI es el rol maestro del sistema y necesita visibilidad operativa completa.
+  if (role === "admin_ti") return NAV_GROUPS;
 
   return NAV_GROUPS.map((group) => ({
     ...group,
-    items: group.items.filter((item) => !role || item.roles.includes(role)),
-  })).filter((group) => group.items.length > 0)
+    items: group.items.filter((item) => item.roles.includes(role)),
+  })).filter((group) => group.items.length > 0);
 }
 
 export function findNavItem(pathname: string): NavItem | undefined {
   for (const group of NAV_GROUPS) {
-    const item = group.items.find((i) => !i.disabled && pathname.startsWith(i.href))
-    if (item) return item
+    const item = group.items.find(
+      (i) => !i.disabled && pathname.startsWith(i.href),
+    );
+    if (item) return item;
   }
-  return undefined
+  return undefined;
 }
 
 export function findNavGroup(pathname: string): NavGroup | undefined {
   for (const group of NAV_GROUPS) {
-    if (group.items.some((i) => !i.disabled && pathname.startsWith(i.href))) return group
+    if (group.items.some((i) => !i.disabled && pathname.startsWith(i.href)))
+      return group;
   }
-  return undefined
+  return undefined;
 }

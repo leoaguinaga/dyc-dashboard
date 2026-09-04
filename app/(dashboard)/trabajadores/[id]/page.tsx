@@ -210,10 +210,10 @@ export default async function TrabajadorDetailPage({ params }: Props) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
-                    <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Proyecto</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Ingreso</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Salida</th>
+                    <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Proyecto</th>
+                    <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Estado</th>
+                    <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Ingreso</th>
+                    <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Salida</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">

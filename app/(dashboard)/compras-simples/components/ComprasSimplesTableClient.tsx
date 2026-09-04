@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/lib/auth/session'
 import type { CompraSimple, TipoRequerimiento } from '@/types/api'
+import { HardDeleteCompraSimpleDialog } from './HardDeleteCompraSimpleDialog'
 
 // Debe coincidir con ROLES_CREACION en compras-simples.service.ts
 const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador', 'admin_ti']
@@ -50,19 +51,22 @@ interface Props {
 export function ComprasSimplesTableClient({ compras }: Props) {
   const { data: session } = useSession()
   const puedeCrear = !!session?.user?.role && CON_ACCESO_CREACION.includes(session.user.role)
+  const puedeEliminarPermanentemente = session?.user?.role === 'admin_ti'
   const [search, setSearch] = useState('')
+  const [rows, setRows] = useState(compras)
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return compras
+    if (!search.trim()) return rows
     const q = search.trim().toLowerCase()
-    return compras.filter(
+    return rows.filter(
       (c) =>
         c.codigo.toLowerCase().includes(q) ||
         c.nombre.toLowerCase().includes(q) ||
         c.proyecto.nombre.toLowerCase().includes(q) ||
         c.creadoPor.name.toLowerCase().includes(q),
     )
-  }, [compras, search])
+  }, [rows, search])
 
   return (
     <div className="space-y-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-[250ms] ease-out">
@@ -87,9 +91,15 @@ export function ComprasSimplesTableClient({ compras }: Props) {
         )}
       </div>
 
+      {deleteMessage && (
+        <p role="status" className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+          {deleteMessage}
+        </p>
+      )}
+
       {filtered.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border py-12 text-center">
-          <p className="text-sm text-muted-foreground">Sin resultados para &quot;{search}&quot;</p>
+          <p className="text-sm text-muted-foreground">{search ? <>Sin resultados para &quot;{search}&quot;</> : 'No quedan compras simples registradas.'}</p>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border">
@@ -104,6 +114,11 @@ export function ComprasSimplesTableClient({ compras }: Props) {
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Total</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha</th>
+                {puedeEliminarPermanentemente && (
+                  <th className="w-12 px-2 py-2.5 text-right text-xs font-medium text-muted-foreground">
+                    <span className="sr-only">Acciones de admin_ti</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -143,6 +158,22 @@ export function ComprasSimplesTableClient({ compras }: Props) {
                     <td className="px-4 py-3 text-xs text-muted-foreground font-mono tabular-nums">
                       {fmt(c.creadoEn)}
                     </td>
+                    {puedeEliminarPermanentemente && (
+                      <td className="px-2 py-2 text-right">
+                        <HardDeleteCompraSimpleDialog
+                          compra={c}
+                          onDeleted={(result) => {
+                            setRows((current) => current.filter((row) => row.id !== c.id))
+                            const archivosPendientes = result.verificacion.archivosFisicosNoEliminados
+                            setDeleteMessage(
+                              archivosPendientes > 0
+                                ? `${c.codigo} y sus registros relacionados fueron eliminados. ${archivosPendientes} archivo(s) físico(s) requieren limpieza manual.`
+                                : `${c.codigo} y sus ${result.totalRegistros - 1} registros relacionados fueron eliminados y verificados.`,
+                            )
+                          }}
+                        />
+                      </td>
+                    )}
                   </tr>
                 )
               })}

@@ -6,21 +6,16 @@ import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { cn, formatDateOnly } from '@/lib/utils'
-import { useSession } from '@/lib/auth/session'
 import type { Proyecto } from '@/types/api'
 
 type EstadoFilter = 'todos' | Proyecto['estado']
 type AmbitoFilter = 'todos' | 'nacional' | 'internacional'
-
-const CON_ACCESO_CREACION = ['administrador', 'admin_ti', 'gerencia']
 
 interface Props {
   proyectos: Proyecto[]
 }
 
 export function ProyectosTableClient({ proyectos }: Props) {
-  const { data: session } = useSession()
-  const puedeCrear = !!session?.user?.role && CON_ACCESO_CREACION.includes(session.user.role)
   const [search, setSearch] = useState('')
   const [estado, setEstado] = useState<EstadoFilter>('todos')
   const [ambito, setAmbito] = useState<AmbitoFilter>('todos')
@@ -99,11 +94,11 @@ export function ProyectosTableClient({ proyectos }: Props) {
             placeholder="Buscar por nombre, código o cliente…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
+            className="h-8 w-full rounded-lg border border-border pl-8 pr-3 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
           />
         </div>
         <Select value={estado} onValueChange={(v) => setEstado(v as EstadoFilter)}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-white">
             <p>Estado</p>
           </SelectTrigger>
           <SelectContent>
@@ -115,7 +110,7 @@ export function ProyectosTableClient({ proyectos }: Props) {
           </SelectContent>
         </Select>
         <Select value={ambito} onValueChange={(v) => handleAmbitoChange(v ?? 'todos')}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-white">
             <p>Ubicación</p>
           </SelectTrigger>
           <SelectContent>
@@ -128,7 +123,7 @@ export function ProyectosTableClient({ proyectos }: Props) {
         </Select>
         {showCiudadFilter && (
           <Select value={ciudad} onValueChange={(v) => setCiudad(v ?? 'todas')}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white">
               <p>Ciudad</p>
             </SelectTrigger>
             <SelectContent>
@@ -146,7 +141,7 @@ export function ProyectosTableClient({ proyectos }: Props) {
             value={year?.toString() ?? 'todos'}
             onValueChange={(v) => setYear(!v || v === 'todos' ? null : Number(v))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="bg-white">
               <p>Año</p>
             </SelectTrigger>
             <SelectContent>
@@ -158,14 +153,6 @@ export function ProyectosTableClient({ proyectos }: Props) {
               ))}
             </SelectContent>
           </Select>
-        )}
-        {puedeCrear && (
-          <Link href="/proyectos/nuevo">
-            <Button>
-              <Plus className='size-4' />
-              Registrar Proyecto
-            </Button>
-          </Link>
         )}
       </div>
       {/* Table */}
@@ -182,13 +169,13 @@ export function ProyectosTableClient({ proyectos }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Código</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Nombre</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Cliente</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Ubicación</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Inicio programado</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Fin programado</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Código</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Nombre</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Cliente</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Ubicación</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Inicio programado</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Fin programado</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Estado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

@@ -4,7 +4,7 @@ import { CreateProveedorForm } from './components/CreateProveedorForm'
 
 export default function NuevoProveedorPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="space-y-1">
         <Link
           href="/proveedores"
@@ -19,7 +19,7 @@ export default function NuevoProveedorPage() {
         </p>
       </div>
 
-      <div className="rounded-xl max-w-4xl border border-border bg-white p-6">
+      <div className="rounded-xl border border-border bg-white p-6">
         <CreateProveedorForm />
       </div>
     </div>
