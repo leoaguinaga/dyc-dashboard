@@ -7,7 +7,8 @@ import { RequerimientoActions } from './components/RequerimientoActions'
 import { RequerimientoFlowStepper } from './components/RequerimientoFlowStepper'
 import { RequerimientoRecepcion } from './components/RequerimientoRecepcion'
 import { RequerimientoItemsCard } from './components/RequerimientoItemsCard'
-import type { Requerimiento, TipoRequerimiento, User as ApiUser, Role } from '@/types/api'
+import { AdminTiProjectEditor } from './components/AdminTiProjectEditor'
+import type { Proyecto, Requerimiento, TipoRequerimiento, User as ApiUser, Role } from '@/types/api'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -60,9 +61,10 @@ function fmt(iso: string) {
 
 export default async function RequerimientoDetailPage({ params }: Props) {
   const { id } = await params
-  const [result, user] = await Promise.all([
+  const [result, user, proyectos] = await Promise.all([
     serverFetch<Requerimiento>(`/requerimientos/${id}`).catch((e: Error) => e),
     serverFetch<ApiUser>('/users/me').catch(() => null),
+    serverFetch<Proyecto[]>('/proyectos?todos=1').catch(() => [] as Proyecto[]),
   ])
 
   if (result instanceof Error) {
@@ -139,6 +141,10 @@ export default async function RequerimientoDetailPage({ params }: Props) {
 
           {/* Recepción */}
           <RequerimientoRecepcion requerimiento={r} />
+
+          {user?.role === 'admin_ti' && (
+            <AdminTiProjectEditor requerimiento={r} proyectos={proyectos} />
+          )}
 
           <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
             <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Información</h2>

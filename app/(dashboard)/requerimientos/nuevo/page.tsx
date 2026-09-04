@@ -11,7 +11,7 @@ export default async function NuevoRequerimientoPage() {
     <div className="space-y-4">
       <div className="space-y-1">
         <Link
-          href="/requerimientos"
+          href="/solicitudes"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-[120ms] hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" />

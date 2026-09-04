@@ -1,13 +1,14 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Building2, Package, Users } from 'lucide-react'
+import { ArrowLeft, Building2, CalendarDays, CheckCircle2, FileText, Users } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { cn } from '@/lib/utils'
 import { InviteProveedorForm } from './components/InviteProveedorForm'
 import { CotizacionesTabs } from './components/CotizacionesTabs'
 import { AdjudicacionMatrix } from './components/AdjudicacionMatrix'
 import { SolicitudActions } from './components/SolicitudActions'
-import { SolicitudItemsEditor } from './components/SolicitudItemsEditor'
+import { MaterialesSolicitadosCard } from './components/MaterialesSolicitadosCard'
+import { OrdenesGeneradasCard } from './components/OrdenesGeneradasCard'
 import type { SolicitudCotizacion, Proveedor, EstadoSolicitud, OrdenCompra, User } from '@/types/api'
 
 interface Props {
@@ -64,7 +65,7 @@ export default async function SolicitudDetailPage({ params }: Props) {
     !!user?.role && CON_ACCESO_APROBAR_COTIZACION.includes(user.role)
   const receivedCotizaciones = s.cotizaciones.filter((c) => c.items.length > 0)
   const mostrarMatrix = receivedCotizaciones.length > 0 &&
-    ['cotizada', 'seleccionada', 'aprobada_solicitante', 'aprobada_gerencia'].includes(s.estado)
+    ['cotizada', 'seleccionada', 'aprobada_solicitante', 'aprobada_gerencia', 'orden_generada'].includes(s.estado)
   const ordenesExistentes = (s.ordenes ?? []) as Pick<OrdenCompra, 'id' | 'numero'>[]
 
   return (
@@ -78,108 +79,140 @@ export default async function SolicitudDetailPage({ params }: Props) {
           <ArrowLeft className="size-3.5" />
           Volver a cotizaciones
         </Link>
-        <div className="flex items-start justify-between gap-4">
-          <div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-semibold tracking-tight font-mono">{s.codigo}</h1>
-            <div className="flex items-center gap-1.5 mt-0.5 text-sm text-muted-foreground">
-              <Building2 className="size-3.5" />
-              {s.proyecto ? (
-                <Link href={`/proyectos/${s.proyecto.id}`} className="hover:text-foreground hover:underline underline-offset-2 transition-colors duration-[120ms]">
-                  {s.proyecto.nombre}
-                </Link>
-              ) : <span>—</span>}
-              {s.proyecto?.codigo && <span className="font-mono text-xs">({s.proyecto.codigo})</span>}
-            </div>
-            {s.requerimiento && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Requerimiento:{' '}
-                <Link
-                  href={`/requerimientos/${s.requerimiento.id}`}
-                  className="font-mono hover:text-foreground hover:underline underline-offset-2 transition-colors duration-[120ms]"
-                >
-                  {s.requerimiento.codigo}
-                </Link>
-                {' · '}{s.requerimiento.nombre}
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground mt-0.5">{fmt(s.creadoEn)}</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0 mt-1">
             <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', ESTADO_CLASS[s.estado])}>
               {ESTADO_LABEL[s.estado]}
             </span>
+          </div>
+          <div className="flex items-center gap-2">
             <SolicitudActions solicitud={{ id: s.id, estado: s.estado }} />
           </div>
         </div>
-        {s.aprobadaSolicitantePor && (
-          <p className="text-xs text-muted-foreground">
-            Aprobado como solicitante por {s.aprobadaSolicitantePor.name}
-            {s.aprobadaSolicitantePorRole && ` (${s.aprobadaSolicitantePorRole})`}
-            {s.aprobadaSolicitanteEn && ` · ${fmt(s.aprobadaSolicitanteEn)}`}
-          </p>
-        )}
-        {s.aprobadaGerenciaPor && (
-          <p className="text-xs text-muted-foreground">
-            Aprobado por gerencia: {s.aprobadaGerenciaPor.name}
-            {s.aprobadaGerenciaPorRole && ` (${s.aprobadaGerenciaPorRole})`}
-            {s.aprobadaGerenciaEn && ` · ${fmt(s.aprobadaGerenciaEn)}`}
-          </p>
-        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Ítems solicitados */}
-        <div className="rounded-xl border border-border bg-white p-5 space-y-4 h-fit ">
-          <div className="flex items-center gap-2">
-            <Package className="size-4 text-muted-foreground" />
-            <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Materiales ({s.items.length})
+        {/* Columna izquierda: Información general + Materiales solicitados */}
+        <div className="space-y-4 h-fit">
+          {/* Card de información */}
+          <div className="rounded-xl border border-border bg-white p-5 space-y-3">
+            <h2 className="text-sm font-medium text-muted-foreground">
+              Información general
             </h2>
+            <dl className="space-y-3 text-sm">
+              <div className="flex items-start gap-2.5">
+                <Building2 className="size-4 mt-0.5 text-muted-foreground shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <dt className="text-xs text-muted-foreground mb-0.5">Proyecto</dt>
+                  <dd>
+                    {s.proyecto ? (
+                      <Link
+                        href={`/proyectos/${s.proyecto.id}`}
+                        className="font-medium text-foreground hover:text-primary hover:underline underline-offset-2 transition-colors duration-[120ms] inline-flex items-center gap-1.5 flex-wrap"
+                      >
+                        <span>{s.proyecto.nombre}</span>
+                        {s.proyecto.codigo && (
+                          <span className="font-mono text-xs text-muted-foreground font-normal">
+                            ({s.proyecto.codigo})
+                          </span>
+                        )}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </dd>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <FileText className="size-4 mt-0.5 text-muted-foreground shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <dt className="text-xs text-muted-foreground mb-0.5">Requerimiento</dt>
+                  <dd>
+                    {s.requerimiento ? (
+                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                        <Link
+                          href={`/requerimientos/${s.requerimiento.id}`}
+                          className="font-mono font-medium text-foreground hover:text-primary hover:underline underline-offset-2 transition-colors duration-[120ms]"
+                        >
+                          {s.requerimiento.codigo}
+                        </Link>
+                        {s.requerimiento.nombre && (
+                          <span className="text-muted-foreground">
+                            · {s.requerimiento.nombre}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </dd>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <CalendarDays className="size-4 mt-0.5 text-muted-foreground shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <dt className="text-xs text-muted-foreground mb-0.5">Fecha de solicitud</dt>
+                  <dd className="font-medium text-foreground">{fmt(s.creadoEn)}</dd>
+                </div>
+              </div>
+            </dl>
+
+            {(s.aprobadaSolicitantePor || s.aprobadaGerenciaPor) && (
+              <div className="border-t border-border pt-3 space-y-2">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Aprobaciones
+                </p>
+                {s.aprobadaSolicitantePor && (
+                  <div className="flex items-start gap-2 text-xs">
+                    <CheckCircle2 className="size-3.5 mt-0.5 text-chart-2 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-muted-foreground">
+                        Aprobado como solicitante:{' '}
+                        <strong className="text-foreground font-medium">
+                          {s.aprobadaSolicitantePor.name}
+                        </strong>
+                        {s.aprobadaSolicitantePorRole && (
+                          <span> ({s.aprobadaSolicitantePorRole})</span>
+                        )}
+                      </p>
+                      {s.aprobadaSolicitanteEn && (
+                        <p className="text-muted-foreground mt-0.5">
+                          {fmt(s.aprobadaSolicitanteEn)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {s.aprobadaGerenciaPor && (
+                  <div className="flex items-start gap-2 text-xs">
+                    <CheckCircle2 className="size-3.5 mt-0.5 text-chart-2 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-muted-foreground">
+                        Aprobado por gerencia:{' '}
+                        <strong className="text-foreground font-medium">
+                          {s.aprobadaGerenciaPor.name}
+                        </strong>
+                        {s.aprobadaGerenciaPorRole && (
+                          <span> ({s.aprobadaGerenciaPorRole})</span>
+                        )}
+                      </p>
+                      {s.aprobadaGerenciaEn && (
+                        <p className="text-muted-foreground mt-0.5">
+                          {fmt(s.aprobadaGerenciaEn)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {s.items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sin ítems registrados</p>
-          ) : (
-            <div className="space-y-3">
-              {s.items.map((item) => {
-                const total = parseFloat(item.cantidadTotal)
-                const almacen = parseFloat(item.cantidadAlmacen)
-                const compra = parseFloat(item.cantidadCompra)
-                return (
-                  <div key={item.id} className="space-y-1">
-                    <p className="text-sm font-medium">{item.descripcion}</p>
-                    {item.item?.codigo && (
-                      <p className="text-xs text-muted-foreground font-mono">{item.item.codigo}</p>
-                    )}
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="tabular-nums">Total: <strong className="text-foreground">{total} {item.unidad}</strong></span>
-                      {almacen > 0 && (
-                        <span className="tabular-nums text-chart-2">Almacén: {almacen}</span>
-                      )}
-                      <span className="tabular-nums">Comprar: <strong>{compra} {item.unidad}</strong></span>
-                    </div>
-                    {/* Barra visual */}
-                    {total > 0 && (
-                      <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-chart-2"
-                          style={{ width: `${Math.min((almacen / total) * 100, 100)}%` }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {s.nota && (
-            <div className="border-t border-border pt-3">
-              <p className="text-xs text-muted-foreground italic">&ldquo;{s.nota}&rdquo;</p>
-            </div>
-          )}
-
-          <SolicitudItemsEditor
+          {/* Ítems solicitados */}
+          <MaterialesSolicitadosCard
             solicitudId={s.id}
             estado={s.estado}
             items={s.items}
@@ -189,11 +222,11 @@ export default async function SolicitudDetailPage({ params }: Props) {
         </div>
 
         {/* Cotizaciones */}
-        <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-2">
+        <div className="rounded-xl border border-border bg-white p-5 space-y-4 h-fit lg:col-span-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Users className="size-4 text-muted-foreground" />
-              <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <h2 className="text-sm font-medium text-muted-foreground">
                 Cotizaciones ({s.cotizaciones.length})
               </h2>
             </div>
@@ -228,7 +261,12 @@ export default async function SolicitudDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Matriz de adjudicación */}
+      {/* Órdenes generadas */}
+      {s.ordenes && s.ordenes.length > 0 && (
+        <OrdenesGeneradasCard ordenes={s.ordenes} />
+      )}
+
+      {/* Matriz de adjudicación (Cuadro comparativo) */}
       {mostrarMatrix && (
         <AdjudicacionMatrix
           solicitudId={s.id}

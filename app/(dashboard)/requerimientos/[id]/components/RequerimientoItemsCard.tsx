@@ -1,11 +1,13 @@
 'use client'
 
-import { FileText } from 'lucide-react'
+import { useState } from 'react'
+import { FileText, ShieldAlert } from 'lucide-react'
 import { API_ORIGIN } from '@/lib/api/client'
 import { useSession } from '@/lib/auth/session'
 import { UNIDAD_ABBR } from '@/lib/inventario'
 import { TIPO_APPROVERS } from '@/lib/requerimientos'
 import { RequerimientoEditForm } from './RequerimientoEditForm'
+import { Button } from '@/components/ui/button'
 import type { Requerimiento } from '@/types/api'
 
 interface Props {
@@ -15,8 +17,20 @@ interface Props {
 export function RequerimientoItemsCard({ requerimiento: r }: Props) {
   const { data: session } = useSession()
   const role = session?.user?.role
+  const [editandoAdminTi, setEditandoAdminTi] = useState(false)
   const esCreador = r.creadoPorId === session?.user?.id || role === 'administrador' || role === 'admin_ti'
   const esRevisor = role ? TIPO_APPROVERS[r.tipo].includes(role) : false
+
+  if (r.estado === 'aprobado' && role === 'admin_ti' && editandoAdminTi) {
+    return (
+      <RequerimientoEditForm
+        requerimiento={r}
+        mode="admin_ti"
+        onCancel={() => setEditandoAdminTi(false)}
+        onSaved={() => setEditandoAdminTi(false)}
+      />
+    )
+  }
 
   // El solicitante corrige en "observado"; el revisor puede corregir directamente
   // mientras el requerimiento está "enviado", sin esperar a que el solicitante
@@ -30,9 +44,23 @@ export function RequerimientoItemsCard({ requerimiento: r }: Props) {
 
   return (
     <div className="rounded-xl border border-border bg-white p-5 space-y-4">
-      <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Ítems solicitados ({r.items.length})
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Ítems solicitados ({r.items.length})
+        </h2>
+        {r.estado === 'aprobado' && role === 'admin_ti' && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setEditandoAdminTi(true)}
+            className="border-amber-500/40 text-amber-800 hover:bg-amber-500/10"
+          >
+            <ShieldAlert className="size-4" />
+            Editar requerimiento aprobado
+          </Button>
+        )}
+      </div>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-sm">
           <thead>

@@ -1,33 +1,22 @@
 import { Suspense } from 'react'
-import { PagosKpis } from './components/PagosKpis'
 import { PagosViewLoader } from './components/PagosViewLoader'
-
-function KpisSkeleton() {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="h-24 rounded-xl border border-border bg-muted/40 animate-pulse" />
-      ))}
-    </div>
-  )
-}
 
 function TableSkeleton() {
   return (
-    <div className="rounded-xl border border-border overflow-hidden">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-12 border-b border-border bg-muted/20 animate-pulse" />
-      ))}
+    <div className="space-y-3" aria-hidden="true">
+      <div className="h-10 w-full animate-pulse rounded-lg bg-muted/40" />
+      <div className="rounded-xl border border-border overflow-hidden">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-14 border-b border-border bg-muted/20 animate-pulse" />
+        ))}
+      </div>
     </div>
   )
 }
 
 export default function PagosPage() {
   return (
-    <div className="space-y-3">
-      <Suspense fallback={<KpisSkeleton />}>
-        <PagosKpis />
-      </Suspense>
+    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-[250ms] ease-out">
       <Suspense fallback={<TableSkeleton />}>
         <PagosViewLoader />
       </Suspense>

@@ -1,18 +1,17 @@
-import { serverFetch } from '@/lib/api/server'
-import type { Pago } from '@/types/api'
-import { PagosView } from './PagosView'
+import { serverFetch } from "@/lib/api/server";
+import type { Pago, PagoRecurrente, Proyecto } from "@/types/api";
+import { PagosView } from "./PagosView";
 
 export async function PagosViewLoader() {
-  const pagos = await serverFetch<Pago[]>('/pagos').catch(() => [] as Pago[])
+  const [pagos, proyectos, pagosFijos] = await Promise.all([
+    serverFetch<Pago[]>("/pagos").catch(() => [] as Pago[]),
+    serverFetch<Proyecto[]>("/proyectos").catch(() => [] as Proyecto[]),
+    serverFetch<PagoRecurrente[]>("/pagos/recurrentes/lista").catch(
+      () => [] as PagoRecurrente[],
+    ),
+  ]);
 
-  if (pagos.length === 0) {
-    return (
-      <div className="rounded-xl border border-border bg-white py-16 text-center space-y-2">
-        <p className="text-sm font-medium text-muted-foreground">No hay pagos registrados</p>
-        <p className="text-xs text-muted-foreground">Los pagos se programan desde el detalle de cada orden de compra.</p>
-      </div>
-    )
-  }
-
-  return <PagosView pagos={pagos} />
+  return (
+    <PagosView pagos={pagos} proyectos={proyectos} pagosFijos={pagosFijos} />
+  );
 }

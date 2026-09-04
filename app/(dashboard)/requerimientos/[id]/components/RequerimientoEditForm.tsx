@@ -9,21 +9,30 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { UNIDAD_OPTIONS } from '@/lib/inventario'
-import type { Requerimiento } from '@/types/api'
+import type { Requerimiento, TipoRequerimiento } from '@/types/api'
 
 interface LineaItem {
   descripcion: string
   cantidad: string
   unidad: string
   nota: string
+  archivos: Array<{ nombre: string; url: string }>
 }
 
 interface Props {
   requerimiento: Requerimiento
-  mode?: 'creador' | 'revisor'
+  mode?: 'creador' | 'revisor' | 'admin_ti'
+  onCancel?: () => void
+  onSaved?: () => void
 }
 
 const labelCn = 'mb-1.5 block text-sm font-medium'
+const TIPO_OPTIONS: Array<[TipoRequerimiento, string]> = [
+  ['civil', 'Civil'],
+  ['electrico', 'Eléctrico'],
+  ['seguridad', 'Seguridad'],
+  ['administrativo', 'Administrativo'],
+]
 
 function toLineas(r: Requerimiento): LineaItem[] {
   return r.items.map((i) => ({
@@ -31,12 +40,19 @@ function toLineas(r: Requerimiento): LineaItem[] {
     cantidad: String(i.cantidad),
     unidad: i.unidad,
     nota: i.nota ?? '',
+    archivos: i.archivos?.map(({ nombre, url }) => ({ nombre, url })) ?? [],
   }))
 }
 
-export function RequerimientoEditForm({ requerimiento: r, mode = 'creador' }: Props) {
+export function RequerimientoEditForm({
+  requerimiento: r,
+  mode = 'creador',
+  onCancel,
+  onSaved,
+}: Props) {
   const router = useRouter()
   const [nombre, setNombre] = useState(r.nombre)
+  const [tipo, setTipo] = useState<TipoRequerimiento>(r.tipo)
   const [urgente, setUrgente] = useState(r.urgente)
   const [nota, setNota] = useState(r.nota ?? '')
   const [fechaEntregaRequerida, setFechaEntregaRequerida] = useState(
@@ -72,6 +88,7 @@ export function RequerimientoEditForm({ requerimiento: r, mode = 'creador' }: Pr
     try {
       await api.patch(`/requerimientos/${r.id}`, {
         nombre: nombre.trim(),
+        tipo: mode === 'admin_ti' ? tipo : undefined,
         urgente,
         nota: nota.trim() || undefined,
         fechaEntregaRequerida: fechaEntregaRequerida || undefined,
@@ -80,6 +97,7 @@ export function RequerimientoEditForm({ requerimiento: r, mode = 'creador' }: Pr
           cantidad: parseFloat(l.cantidad),
           unidad: l.unidad,
           nota: l.nota.trim() || undefined,
+          archivos: l.archivos,
         })),
       })
 
@@ -87,6 +105,7 @@ export function RequerimientoEditForm({ requerimiento: r, mode = 'creador' }: Pr
         await api.post(`/requerimientos/${r.id}/enviar`, {})
       }
 
+      onSaved?.()
       router.refresh()
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Error al guardar los cambios')
@@ -99,9 +118,19 @@ export function RequerimientoEditForm({ requerimiento: r, mode = 'creador' }: Pr
     <div className="rounded-xl border border-border bg-white p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {mode === 'revisor' ? 'Editar antes de decidir' : 'Corregir requerimiento observado'}
+          {mode === 'admin_ti'
+            ? 'Corrección excepcional de Administración TI'
+            : mode === 'revisor'
+              ? 'Editar antes de decidir'
+              : 'Corregir requerimiento observado'}
         </h2>
       </div>
+      {mode === 'admin_ti' && (
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-800">
+          El requerimiento ya fue aprobado. Los cambios quedarán registrados en el historial y
+          pueden afectar el proceso de compra posterior.
+        </p>
+      )}
       {mode === 'revisor' && (
         <p className="text-sm text-muted-foreground">
           Estás corrigiendo este requerimiento como revisor. El cambio queda registrado en el
@@ -122,7 +151,23 @@ export function RequerimientoEditForm({ requerimiento: r, mode = 'creador' }: Pr
           {errors.nombre && <p className="mt-1 text-xs text-destructive">{errors.nombre}</p>}
         </div>
 
-        <div>
+        {mode === 'admin_ti' && (
+          <div>
+            <label className={labelCn}>Tipo de requerimiento</label>
+            <Select value={tipo} onValueChange={(value) => setTipo(value as TipoRequerimiento)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIPO_OPTIONS.map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <div className={mode === 'admin_ti' ? '' : undefined}>
           <label className={labelCn}>Fecha máx. de entrega</label>
           <Input
             type="date"
@@ -158,7 +203,7 @@ export function RequerimientoEditForm({ requerimiento: r, mode = 'creador' }: Pr
           </p>
           <button
             type="button"
-            onClick={() => setLineas((p) => [...p, { descripcion: '', cantidad: '', unidad: 'und', nota: '' }])}
+            onClick={() => setLineas((p) => [...p, { descripcion: '', cantidad: '', unidad: 'und', nota: '', archivos: [] }])}
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors duration-[120ms]"
           >
             <Plus className="size-3.5" />
@@ -175,7 +220,7 @@ export function RequerimientoEditForm({ requerimiento: r, mode = 'creador' }: Pr
         </div>
 
         {lineas.map((linea, i) => (
-          <div key={i} className="grid grid-cols-[1fr_100px_110px_140px_32px] gap-2 items-start">
+          <div key={i} className="grid grid-cols-1 gap-2 items-start sm:grid-cols-[1fr_100px_110px_140px_32px]">
             <div>
               <Input
                 value={linea.descripcion}
@@ -237,13 +282,27 @@ export function RequerimientoEditForm({ requerimiento: r, mode = 'creador' }: Pr
       )}
 
       <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
+        {onCancel && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={loading !== null}
+            onClick={onCancel}
+          >
+            Cancelar
+          </Button>
+        )}
         <Button
           type="button"
-          variant={mode === 'revisor' ? 'default' : 'outline'}
+          variant={mode === 'creador' ? 'outline' : 'default'}
           disabled={loading !== null}
           onClick={() => handleSubmit(false)}
         >
-          {loading === 'guardar' ? 'Guardando…' : 'Guardar cambios'}
+          {loading === 'guardar'
+            ? 'Guardando…'
+            : mode === 'admin_ti'
+              ? 'Guardar corrección TI'
+              : 'Guardar cambios'}
         </Button>
         {mode === 'creador' && (
           <Button

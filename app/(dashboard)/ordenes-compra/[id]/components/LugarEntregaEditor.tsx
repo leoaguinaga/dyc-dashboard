@@ -10,9 +10,10 @@ import { Pencil, Check, X } from 'lucide-react'
 interface Props {
   ocId: string
   lugarEntrega: string | null | undefined
+  editable?: boolean
 }
 
-export function LugarEntregaEditor({ ocId, lugarEntrega }: Props) {
+export function LugarEntregaEditor({ ocId, lugarEntrega, editable = true }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const [editing, setEditing] = useState(false)
@@ -21,7 +22,7 @@ export function LugarEntregaEditor({ ocId, lugarEntrega }: Props) {
   const [err, setErr] = useState<string | null>(null)
 
   const role = session?.user?.role
-  const canEdit = role === 'administrador' || role === 'admin_ti' || role === 'logistica'
+  const canEdit = editable && (role === 'administrador' || role === 'admin_ti' || role === 'logistica')
 
   async function save() {
     setSaving(true)
@@ -45,16 +46,17 @@ export function LugarEntregaEditor({ ocId, lugarEntrega }: Props) {
 
   if (!editing) {
     return (
-      <div className="flex items-start gap-2 group">
-        <span className={lugarEntrega ? 'text-sm font-medium' : 'text-sm text-muted-foreground italic'}>
+      <div className="flex items-center justify-between gap-3">
+        <span className={lugarEntrega ? 'text-sm font-medium text-foreground' : 'text-sm text-muted-foreground italic'}>
           {lugarEntrega ?? 'Sin definir'}
         </span>
         {canEdit && (
           <button
             onClick={() => setEditing(true)}
-            className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer shrink-0"
           >
             <Pencil className="size-3" />
+            Editar
           </button>
         )}
       </div>

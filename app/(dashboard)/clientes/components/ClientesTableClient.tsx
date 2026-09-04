@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ChevronRight, Plus, Search } from 'lucide-react'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Cliente } from '@/types/api'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
@@ -70,13 +69,6 @@ export function ClientesTableClient({ clientes }: Props) {
             ))}
           </SelectContent>
         </Select>
-
-        <Link href="/clientes/nuevo">
-          <Button>
-            <Plus className='size-4' />
-            Registrar Cliente
-          </Button>
-        </Link>
       </div>
 
       {/* Table */}
@@ -96,7 +88,7 @@ export function ClientesTableClient({ clientes }: Props) {
                 {['Razón Social', 'Nombre Comercial', 'RUC', 'Contactos', 'Proyectos', 'Estado'].map((h) => (
                   <th
                     key={h}
-                    className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                    className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground"
                   >
                     {h}
                   </th>

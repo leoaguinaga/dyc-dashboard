@@ -20,7 +20,7 @@ export function Navbar() {
           <MobileSidebar />
         </div>
         <nav className="flex items-center gap-1.5 text-sm">
-          {group && (
+          {group && !group.hideLabel && (
             <>
               <span className="text-muted-foreground">{group.label}</span>
               <span className="text-muted-foreground/40">/</span>

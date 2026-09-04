@@ -80,32 +80,13 @@ export function JornadasGlobalView({ proyectos }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-xl border border-border bg-white p-4">
-          <p className="text-xs text-muted-foreground">Jornadas</p>
-          <p className="text-xl font-semibold tabular-nums">{kpis.jornadas}</p>
-        </div>
-        <div className="rounded-xl border border-border bg-white p-4">
-          <p className="text-xs text-muted-foreground">Obreros-jornada</p>
-          <p className="text-xl font-semibold tabular-nums">{kpis.obreros}</p>
-        </div>
-        <div className="rounded-xl border border-border bg-white p-4">
-          <p className="text-xs text-muted-foreground">Horas normales</p>
-          <p className="text-xl font-semibold tabular-nums">{kpis.horasNormales.toFixed(1)}h</p>
-        </div>
-        <div className="rounded-xl border border-border bg-white p-4">
-          <p className="text-xs text-muted-foreground">Horas extra</p>
-          <p className="text-xl font-semibold tabular-nums">{kpis.horasExtra.toFixed(1)}h</p>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-white p-4">
-        <DateRangePicker value={rango} onValueChange={setRango} placeholder="Filtrar por fecha" className="max-w-64" />
+      <div className="flex flex-wrap items-center gap-2">
+        <DateRangePicker value={rango} onValueChange={setRango} placeholder="Filtrar por fecha" className="max-w-54 bg-white" />
         <Select value={proyectoId} onValueChange={(v) => setProyectoId(v ?? 'todos')}>
-          <SelectTrigger className="max-w-56">
+          <SelectTrigger className="w-fit bg-white">
             <p>Obra</p>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-full">
             <SelectItem value="todos">Todas las obras</SelectItem>
             {proyectos.map((p) => (
               <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
@@ -117,50 +98,54 @@ export function JornadasGlobalView({ proyectos }: Props) {
       {loading && <p className="text-sm text-muted-foreground">Cargando...</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      {!loading && jornadas.length === 0 && !error && (
-        <p className="rounded-xl border border-dashed border-border bg-white p-6 text-center text-sm text-muted-foreground">
-          Sin jornadas en este filtro.
-        </p>
-      )}
+      {
+        !loading && jornadas.length === 0 && !error && (
+          <p className="rounded-xl border border-dashed border-border bg-white p-6 text-center text-sm text-muted-foreground">
+            Sin jornadas en este filtro.
+          </p>
+        )
+      }
 
-      {jornadas.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-border bg-white">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Obra</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Obreros</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Horas</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {jornadas.map((j) => (
-                <tr key={j.id} className="hover:bg-muted/30 transition-colors duration-[120ms]">
-                  <td className="px-4 py-3">
-                    <Link href={`/asistencia/${j.id}`} className="font-medium tabular-nums hover:text-primary transition-colors duration-[120ms]">
-                      {formatFecha(j.fecha)}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {j.proyectoNombre} <span className="text-xs">· {j.turnoNombre}</span>
-                  </td>
-                  <td className="px-4 py-3 tabular-nums">{j.obreros}</td>
-                  <td className="px-4 py-3 tabular-nums">
-                    {j.horasNormales.toFixed(1)}h{j.horasExtra > 0 && ` + ${j.horasExtra.toFixed(1)}h extra`}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${ESTADO_BADGE[j.estado]}`}>
-                      {ESTADO_LABEL[j.estado]}
-                    </span>
-                  </td>
+      {
+        jornadas.length > 0 && (
+          <div className="overflow-x-auto rounded-xl border border-border bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Fecha</th>
+                  <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Obra</th>
+                  <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Obreros</th>
+                  <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Horas</th>
+                  <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Estado</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {jornadas.map((j) => (
+                  <tr key={j.id} className="hover:bg-muted/30 transition-colors duration-[120ms]">
+                    <td className="px-4 py-3">
+                      <Link href={`/asistencia/${j.id}`} className="font-medium tabular-nums hover:text-primary transition-colors duration-[120ms]">
+                        {formatFecha(j.fecha)}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {j.proyectoNombre} <span className="text-xs">· {j.turnoNombre}</span>
+                    </td>
+                    <td className="px-4 py-3 tabular-nums">{j.obreros}</td>
+                    <td className="px-4 py-3 tabular-nums">
+                      {j.horasNormales.toFixed(1)}h{j.horasExtra > 0 && ` + ${j.horasExtra.toFixed(1)}h extra`}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${ESTADO_BADGE[j.estado]}`}>
+                        {ESTADO_LABEL[j.estado]}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
+    </div >
   )
 }

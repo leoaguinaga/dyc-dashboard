@@ -1,45 +1,104 @@
 export type Role =
-  | 'supervisor'
-  | 'supervisor_civil'
-  | 'supervisor_electrico'
-  | 'pdr'
-  | 'ing_civil'
-  | 'ing_electrico'
-  | 'jefe_sig'
-  | 'logistica'
-  | 'gerencia'
-  | 'administrador'
-  | 'admin_ti';
+  | "supervisor"
+  | "supervisor_civil"
+  | "supervisor_electrico"
+  | "pdr"
+  | "ing_civil"
+  | "ing_electrico"
+  | "jefe_sig"
+  | "logistica"
+  | "gerencia"
+  | "administrador"
+  | "admin_ti";
 
-export type TipoRequerimiento = 'electrico' | 'civil' | 'seguridad' | 'administrativo';
-export type EstadoProyecto = 'planificacion' | 'ejecucion' | 'cierre' | 'liquidada';
-export type AmbitoGeografico = 'local' | 'nacional' | 'internacional';
-export type CumplimientoHito = 'si' | 'no' | 'programado';
-export type TipoAlmacen = 'fijo' | 'temporal';
-export type TipoItem = 'consumible' | 'activo';
+export type TipoRequerimiento =
+  | "electrico"
+  | "civil"
+  | "seguridad"
+  | "administrativo";
+export type EstadoProyecto =
+  | "planificacion"
+  | "ejecucion"
+  | "cierre"
+  | "liquidada";
+export type AmbitoGeografico = "local" | "nacional" | "internacional";
+export type CumplimientoHito = "si" | "no" | "programado";
+export type TipoAlmacen = "fijo" | "temporal";
+export type TipoItem = "consumible" | "activo";
 export type UnidadMedida =
-  | 'und' | 'kg' | 'g' | 'm' | 'm2' | 'm3' | 'l' | 'ml'
-  | 'gal' | 'bolsa' | 'caja' | 'rollo' | 'par' | 'juego'
-  | 'docena' | 'ciento' | 'medio_ciento' | 'millar' | 'medio_millar'
-  | 'balde' | 'galonera' | 'cilindro' | 'varilla' | 'plancha' | 'tubo'
-  | 'pieza' | 'global';
+  | "und"
+  | "kg"
+  | "g"
+  | "m"
+  | "m2"
+  | "m3"
+  | "l"
+  | "ml"
+  | "gal"
+  | "bolsa"
+  | "caja"
+  | "rollo"
+  | "par"
+  | "juego"
+  | "docena"
+  | "ciento"
+  | "medio_ciento"
+  | "millar"
+  | "medio_millar"
+  | "balde"
+  | "galonera"
+  | "cilindro"
+  | "varilla"
+  | "plancha"
+  | "tubo"
+  | "pieza"
+  | "global";
 export type EstadoRequerimiento =
-  | 'borrador' | 'enviado' | 'aprobado' | 'observado'
-  | 'en_cotizacion' | 'pendiente_conformidad' | 'recibido' | 'cancelado';
+  | "borrador"
+  | "enviado"
+  | "aprobado"
+  | "observado"
+  | "en_cotizacion"
+  | "pendiente_conformidad"
+  | "recibido"
+  | "cancelado";
 export type EstadoSolicitud =
-  | 'borrador' | 'enviada' | 'cotizada'
-  | 'seleccionada' | 'aprobada_solicitante' | 'aprobada_gerencia'
-  | 'orden_generada' | 'cancelada';
-export type EstadoCotizacion = 'pendiente' | 'recibida' | 'aprobada' | 'rechazada' | 'sin_respuesta';
-export type EstadoOrdenCompra = 'borrador' | 'emitida' | 'recibida_parcial' | 'recibida' | 'cancelada';
-export type EstadoPago = 'pendiente' | 'pagado' | 'cancelado';
-export type EstadoPagoEfectivo = EstadoPago | 'vencido';
-export type TipoBeneficiario = 'proveedor' | 'trabajador';
-export type OrigenOrdenCompra = 'macro' | 'simple';
-export type TipoOrdenCompra = 'compra' | 'servicio';
-export type EstadoAprobacionCompra = 'pendiente' | 'aprobada_tecnico' | 'aprobada' | 'observada';
-export type DestinoPago = 'empresa' | 'trabajador';
-export type MetodoPagoTrabajador = 'registrado' | 'transferencia' | 'yape' | 'plin';
+  | "borrador"
+  | "enviada"
+  | "cotizada"
+  | "seleccionada"
+  | "aprobada_solicitante"
+  | "aprobada_gerencia"
+  | "orden_generada"
+  | "cancelada";
+export type EstadoCotizacion =
+  | "pendiente"
+  | "recibida"
+  | "aprobada"
+  | "rechazada"
+  | "sin_respuesta";
+export type EstadoOrdenCompra =
+  | "borrador"
+  | "emitida"
+  | "recibida_parcial"
+  | "recibida"
+  | "cancelada";
+export type EstadoPago = "borrador" | "pendiente" | "pagado" | "cancelado";
+export type EstadoPagoEfectivo = EstadoPago | "vencido";
+export type TipoBeneficiario = "proveedor" | "trabajador" | "otro";
+export type OrigenOrdenCompra = "macro" | "simple";
+export type TipoOrdenCompra = "compra" | "servicio";
+export type EstadoAprobacionCompra =
+  | "pendiente"
+  | "aprobada_tecnico"
+  | "aprobada"
+  | "observada";
+export type DestinoPago = "empresa" | "trabajador";
+export type MetodoPagoTrabajador =
+  | "registrado"
+  | "transferencia"
+  | "yape"
+  | "plin";
 
 export interface User {
   id: string;
@@ -71,7 +130,16 @@ export interface Cliente {
   activo: boolean;
   creadoEn: string;
   contactos?: ContactoCliente[];
-  proyectos?: Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'estado' | 'fechaInicio' | 'fechaFin' | 'coordinadorEmpresa'>[];
+  proyectos?: Pick<
+    Proyecto,
+    | "id"
+    | "codigo"
+    | "nombre"
+    | "estado"
+    | "fechaInicio"
+    | "fechaFin"
+    | "coordinadorEmpresa"
+  >[];
   _count?: { proyectos: number; contactos: number };
 }
 
@@ -96,7 +164,7 @@ export interface Hito {
   evidencia?: string;
   cumplimiento: CumplimientoHito;
   responsableId: string;
-  responsable?: Pick<Trabajador, 'id' | 'nombre' | 'cargo'>;
+  responsable?: Pick<Trabajador, "id" | "nombre" | "cargo">;
   notas?: string;
   creadoEn: string;
   actualizadoEn: string;
@@ -113,20 +181,29 @@ export interface Proyecto {
   ambitoGeografico?: AmbitoGeografico;
 
   parentId?: string;
-  parent?: Pick<Proyecto, 'id' | 'nombre' | 'codigo'>;
-  subproyectos?: Pick<Proyecto, 'id' | 'nombre' | 'codigo' | 'estado'>[];
+  parent?: Pick<Proyecto, "id" | "nombre" | "codigo">;
+  subproyectos?: Pick<Proyecto, "id" | "nombre" | "codigo" | "estado">[];
 
   clienteId?: string;
-  cliente?: Pick<Cliente, 'id' | 'razonSocial' | 'nombreComercial'>;
+  cliente?: Pick<Cliente, "id" | "razonSocial" | "nombreComercial">;
 
   coordinadorClienteId?: string;
-  coordinadorCliente?: Pick<ContactoCliente, 'id' | 'nombre' | 'cargo' | 'email' | 'telefono'>;
+  coordinadorCliente?: Pick<
+    ContactoCliente,
+    "id" | "nombre" | "cargo" | "email" | "telefono"
+  >;
   coordinadorEmpresaId?: string;
-  coordinadorEmpresa?: Pick<Trabajador, 'id' | 'nombre' | 'cargo' | 'email' | 'telefono'>;
+  coordinadorEmpresa?: Pick<
+    Trabajador,
+    "id" | "nombre" | "cargo" | "email" | "telefono"
+  >;
   ejecutorId?: string;
-  ejecutor?: Pick<Trabajador, 'id' | 'nombre' | 'cargo' | 'email' | 'telefono'>;
+  ejecutor?: Pick<Trabajador, "id" | "nombre" | "cargo" | "email" | "telefono">;
   prevencionistaId?: string;
-  prevencionista?: Pick<Trabajador, 'id' | 'nombre' | 'cargo' | 'email' | 'telefono'>;
+  prevencionista?: Pick<
+    Trabajador,
+    "id" | "nombre" | "cargo" | "email" | "telefono"
+  >;
 
   // Deprecados en favor de TurnoConfig (soporte multi-turno) — el backend ya no los lee.
   jornadaInicio?: string;
@@ -144,13 +221,16 @@ export interface Proyecto {
   estado: EstadoProyecto;
   creadaEn: string;
   actualizadaEn?: string;
-  supervisores?: { userId: string; user: Pick<User, 'id' | 'name' | 'email'> }[];
+  supervisores?: {
+    userId: string;
+    user: Pick<User, "id" | "name" | "email">;
+  }[];
   trabajadores?: {
     id: string;
     trabajadorId: string;
     fechaIngreso: string;
     fechaSalida?: string;
-    trabajador: Pick<Trabajador, 'id' | 'nombre' | 'cargo' | 'dni'>;
+    trabajador: Pick<Trabajador, "id" | "nombre" | "cargo" | "dni">;
   }[];
   hitos?: Hito[];
 }
@@ -161,10 +241,10 @@ export interface ProyectoTrabajador {
   trabajadorId: string;
   fechaIngreso: string;
   fechaSalida?: string;
-  proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'estado'>;
+  proyecto: Pick<Proyecto, "id" | "codigo" | "nombre" | "estado">;
 }
 
-export type CategoriaObrero = 'operario' | 'oficial' | 'peon';
+export type CategoriaObrero = "operario" | "oficial" | "peon";
 
 export interface PerfilObrero {
   id: string;
@@ -192,13 +272,13 @@ export interface Trabajador {
   activo: boolean;
   creadoEn?: string;
   userId?: string;
-  user?: Pick<User, 'id' | 'name' | 'email' | 'role'>;
+  user?: Pick<User, "id" | "name" | "email" | "role">;
   proyectos?: ProyectoTrabajador[];
   perfilObrero?: PerfilObrero;
 }
 
-export type EstadoTurno = 'abierto' | 'cerrado';
-export type EstadoAsistencia = 'presente' | 'tardio' | 'falta';
+export type EstadoTurno = "abierto" | "cerrado";
+export type EstadoAsistencia = "presente" | "tardio" | "falta";
 
 export interface Asistencia {
   id: string;
@@ -231,7 +311,7 @@ export interface Turno {
   id: string;
   proyectoId: string;
   turnoConfigId: string;
-  turnoConfig?: Pick<TurnoConfig, 'nombre'>;
+  turnoConfig?: Pick<TurnoConfig, "nombre">;
   fecha: string;
   estado: EstadoTurno;
   horaAperturaReal: string;
@@ -240,11 +320,11 @@ export interface Turno {
   fotoOmitida: boolean;
   motivoFotoOmitida?: string;
   abiertoPorId: string;
-  abiertoPor?: Pick<User, 'id' | 'name'>;
+  abiertoPor?: Pick<User, "id" | "name">;
   cerradoPorId?: string;
-  cerradoPor?: Pick<User, 'id' | 'name'>;
+  cerradoPor?: Pick<User, "id" | "name">;
   corregidoPorId?: string;
-  corregidoPor?: Pick<User, 'id' | 'name'>;
+  corregidoPor?: Pick<User, "id" | "name">;
   corregidoEn?: string;
   motivoCorreccion?: string;
 }
@@ -265,11 +345,15 @@ export interface TurnoDetalle extends Turno {
 
 export interface CierrePreview {
   hayExcedente: boolean;
-  trabajadoresAfectados: { trabajadorId: string; nombre: string; horasExtra: number }[];
+  trabajadoresAfectados: {
+    trabajadorId: string;
+    nombre: string;
+    horasExtra: number;
+  }[];
   totalHorasExtra: number;
 }
 
-export type TipoVisita = 'staff' | 'staff_oficina';
+export type TipoVisita = "staff" | "staff_oficina";
 
 export interface RegistroVisita {
   id: string;
@@ -277,15 +361,15 @@ export interface RegistroVisita {
   fecha: string;
   tipo: TipoVisita;
   trabajadorId?: string;
-  trabajador?: Pick<Trabajador, 'id' | 'nombre' | 'dni' | 'cargo'>;
+  trabajador?: Pick<Trabajador, "id" | "nombre" | "dni" | "cargo">;
   userId?: string;
-  user?: Pick<User, 'id' | 'name' | 'role'>;
+  user?: Pick<User, "id" | "name" | "role">;
   nombreLibre?: string;
   motivo?: string;
   horaEntrada: string;
   horaSalida?: string;
   registradoPorId: string;
-  registradoPor?: Pick<User, 'id' | 'name'>;
+  registradoPor?: Pick<User, "id" | "name">;
 }
 
 export interface VisitanteTercero {
@@ -304,11 +388,11 @@ export interface VisitaTercero {
   empresaNombre: string;
   motivo: string;
   registradoPorId: string;
-  registradoPor?: Pick<User, 'id' | 'name'>;
+  registradoPor?: Pick<User, "id" | "name">;
   visitantes: VisitanteTercero[];
 }
 
-export type TipoPersonaAcceso = 'operario' | TipoVisita | 'tercero';
+export type TipoPersonaAcceso = "operario" | TipoVisita | "tercero";
 
 export interface AccesoConsolidadoItem {
   tipo: TipoPersonaAcceso;
@@ -358,8 +442,8 @@ export interface JornadaDetalle {
   proyectoNombre: string;
   proyectoCodigo?: string;
   turnoNombre: string;
-  abiertoPor?: Pick<User, 'id' | 'name'>;
-  cerradoPor?: Pick<User, 'id' | 'name'>;
+  abiertoPor?: Pick<User, "id" | "name">;
+  cerradoPor?: Pick<User, "id" | "name">;
   trabajadores: JornadaTrabajador[];
   totales: { horasNormales: number; horasExtra: number };
 }
@@ -404,7 +488,12 @@ export interface ConsolidadoTrabajadorObra {
   proyectoNombre: string;
   horasNormales: number;
   horasExtra: number;
-  turnos: { fecha: string; estado: EstadoAsistencia; horasNormales: number; horasExtra: number }[];
+  turnos: {
+    fecha: string;
+    estado: EstadoAsistencia;
+    horasNormales: number;
+    horasExtra: number;
+  }[];
 }
 
 export interface ConsolidadoTrabajador {
@@ -423,7 +512,7 @@ export interface PlanillaItem {
   id: string;
   planillaId: string;
   trabajadorId: string;
-  trabajador?: Pick<Trabajador, 'id' | 'nombre'>;
+  trabajador?: Pick<Trabajador, "id" | "nombre">;
   horasNormales: string;
   horasExtraPagable: string;
   precioHora?: string;
@@ -435,13 +524,13 @@ export interface PlanillaItem {
 export interface Planilla {
   id: string;
   proyectoId: string;
-  proyecto?: Pick<Proyecto, 'id' | 'nombre' | 'codigo'>;
+  proyecto?: Pick<Proyecto, "id" | "nombre" | "codigo">;
   periodoInicio: string;
   periodoFin: string;
   valorHoraExtra: string;
   totalGeneral: string;
   generadaPorId: string;
-  generadaPor?: Pick<User, 'id' | 'name'>;
+  generadaPor?: Pick<User, "id" | "name">;
   generadaEn: string;
   items?: PlanillaItem[];
 }
@@ -532,9 +621,12 @@ export interface Requerimiento {
   codigo: string;
   nombre: string;
   proyectoId: string;
-  proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'ciudad' | 'direccion' | 'comuna'>;
+  proyecto: Pick<
+    Proyecto,
+    "id" | "codigo" | "nombre" | "ciudad" | "direccion" | "comuna"
+  >;
   creadoPorId: string;
-  creadoPor: Pick<User, 'id' | 'name' | 'email' | 'role'>;
+  creadoPor: Pick<User, "id" | "name" | "email" | "role">;
   estado: EstadoRequerimiento;
   tipo: TipoRequerimiento;
   urgente: boolean;
@@ -552,7 +644,108 @@ export interface Requerimiento {
   recepcionComentario?: string | null;
   recepcionEn?: string | null;
   recepcionPorId?: string | null;
-  recepcionPor?: Pick<User, 'id' | 'name'> | null;
+  recepcionPor?: Pick<User, "id" | "name"> | null;
+}
+
+export type OrigenSolicitud = "macro" | "precotizado";
+export type EtapaSolicitud =
+  | "borrador"
+  | "validacion_tecnica"
+  | "observada"
+  | "aprobada_requerimiento"
+  | "en_cotizacion"
+  | "aprobada_tecnico"
+  | "aprobada_gerencia"
+  | "emitida"
+  | "recibida_parcial"
+  | "pendiente_conformidad"
+  | "recibida"
+  | "cancelada"
+  | "mixta";
+
+export type ColumnaKanbanSolicitud =
+  | "requiere_correccion"
+  | "validacion_tecnica"
+  | "cotizacion_seleccion"
+  | "aprobacion_gerencia"
+  | "por_emitir"
+  | "compra_curso"
+  | "recepcion_conformidad";
+
+export interface ConteoEstados<T extends string> {
+  total: number;
+  porEstado: Partial<Record<T, number>>;
+}
+
+export interface FlujoMacroSolicitud {
+  origen: "macro";
+  requerimiento: {
+    estado: EstadoRequerimiento;
+    urgente: boolean;
+    notaRevision: string | null;
+    fechaEntregaRequerida: string | null;
+    items: number;
+  };
+  solicitudesCotizacion: Array<{
+    id: string;
+    codigo: string;
+    estado: EstadoSolicitud;
+    cotizaciones: ConteoEstados<EstadoCotizacion>;
+    ordenes: ConteoEstados<EstadoOrdenCompra>;
+  }>;
+}
+
+export interface GrupoPrecotizadoResumen {
+  id: string;
+  numero: string;
+  nombre: string | null;
+  tipoOrden: TipoOrdenCompra;
+  estado: EstadoOrdenCompra;
+  estadoAprobacion: EstadoAprobacionCompra | null;
+  proveedor: { id: string | null; nombre: string } | null;
+  montoTotal: number;
+  items: number;
+  pagos: number;
+  archivos: number;
+}
+
+export interface FlujoPrecotizadoSolicitud {
+  origen: "precotizado";
+  esRendicion: boolean;
+  grupos: GrupoPrecotizadoResumen[];
+  aprobaciones: ConteoEstados<EstadoAprobacionCompra>;
+  ordenes: ConteoEstados<EstadoOrdenCompra>;
+  montoTotal: number;
+}
+
+export type FlujoSolicitud = FlujoMacroSolicitud | FlujoPrecotizadoSolicitud;
+
+export interface SolicitudResumen {
+  id: string;
+  origen: OrigenSolicitud;
+  tipo: TipoRequerimiento;
+  codigo: string;
+  nombre: string;
+  proyecto: Pick<Proyecto, "id" | "codigo" | "nombre">;
+  creadoPor: Pick<User, "id" | "name">;
+  creadoEn: string;
+  etapa: EtapaSolicitud;
+  columnaKanban: ColumnaKanbanSolicitud | null;
+  estadoNativo: string;
+  requiereAtencion: boolean;
+  esTerminal: boolean;
+  hrefDetalle: string;
+  flujo: FlujoSolicitud;
+  resumenGrupos?: {
+    total: number;
+    pendientes: number;
+    observados: number;
+  };
+}
+
+export interface SolicitudesResponse {
+  data: SolicitudResumen[];
+  total: number;
 }
 
 export interface RequerimientoSeguimientoOrden {
@@ -586,7 +779,7 @@ export interface RequerimientoSeguimientoSolicitud {
   creadoEn: string;
   aprobadaSolicitanteEn?: string | null;
   aprobadaSolicitantePorRole?: Role | null;
-  aprobadaSolicitantePor?: Pick<User, 'id' | 'name'> | null;
+  aprobadaSolicitantePor?: Pick<User, "id" | "name"> | null;
   cotizaciones: RequerimientoSeguimientoCotizacion[];
   ordenes: RequerimientoSeguimientoOrden[];
 }
@@ -597,7 +790,7 @@ export interface RequerimientoHistorial {
   estado: EstadoRequerimiento;
   nota?: string;
   actorId?: string;
-  actor?: Pick<User, 'id' | 'name' | 'role'> | null;
+  actor?: Pick<User, "id" | "name" | "role"> | null;
   actorRole?: Role;
   creadoEn: string;
 }
@@ -608,7 +801,7 @@ export interface SolicitudItem {
   descripcion: string;
   unidad: UnidadMedida;
   itemInventarioId?: string;
-  item?: Pick<ItemInventario, 'id' | 'codigo' | 'nombre' | 'unidad'> | null;
+  item?: Pick<ItemInventario, "id" | "codigo" | "nombre" | "unidad"> | null;
   cantidadTotal: string;
   cantidadAlmacen: string;
   cantidadCompra: string;
@@ -619,7 +812,7 @@ export interface CotizacionItem {
   cotizacionId: string;
   descripcionProveedor: string;
   itemInventarioId?: string;
-  item?: Pick<ItemInventario, 'id' | 'codigo' | 'nombre'>;
+  item?: Pick<ItemInventario, "id" | "codigo" | "nombre">;
   solicitudItemId?: string;
   precioUnit: string;
   cantidad: string;
@@ -654,7 +847,7 @@ export interface Cotizacion {
   id: string;
   solicitudId: string;
   proveedorId: string;
-  proveedor: Pick<Proveedor, 'id' | 'razonSocial' | 'ruc'>;
+  proveedor: Pick<Proveedor, "id" | "razonSocial" | "ruc">;
   estado: EstadoCotizacion;
   fechaRecibida?: string;
   fechaEntrega?: string;
@@ -665,7 +858,7 @@ export interface Cotizacion {
   incluyeIgv: boolean;
   nota?: string;
   creadoPorId?: string | null;
-  creadoPor?: Pick<User, 'id' | 'name' | 'role'> | null;
+  creadoPor?: Pick<User, "id" | "name" | "role"> | null;
   creadoEn: string;
   items: CotizacionItem[];
   archivos?: CotizacionArchivo[];
@@ -689,25 +882,28 @@ export interface SolicitudCotizacion {
   id: string;
   codigo: string;
   proyectoId: string;
-  proyecto?: Pick<Proyecto, 'id' | 'nombre' | 'codigo'>;
+  proyecto?: Pick<Proyecto, "id" | "nombre" | "codigo">;
   requerimientoId?: string;
-  requerimiento?: Pick<Requerimiento, 'id' | 'codigo' | 'nombre' | 'tipo'> | null;
+  requerimiento?: Pick<
+    Requerimiento,
+    "id" | "codigo" | "nombre" | "tipo"
+  > | null;
   estado: EstadoSolicitud;
   nota?: string;
   creadoEn: string;
   actualizadoEn: string;
   items: SolicitudItem[];
   cotizaciones: Cotizacion[];
-  ordenes?: Pick<OrdenCompra, 'id' | 'numero' | 'estado'>[];
+  ordenes?: SolicitudOrdenCompra[];
   _count?: { items: number; cotizaciones: number };
 
   aprobadaSolicitantePorId?: string | null;
-  aprobadaSolicitantePor?: Pick<User, 'id' | 'name' | 'role'> | null;
+  aprobadaSolicitantePor?: Pick<User, "id" | "name" | "role"> | null;
   aprobadaSolicitantePorRole?: Role | null;
   aprobadaSolicitanteEn?: string | null;
 
   aprobadaGerenciaPorId?: string | null;
-  aprobadaGerenciaPor?: Pick<User, 'id' | 'name' | 'role'> | null;
+  aprobadaGerenciaPor?: Pick<User, "id" | "name" | "role"> | null;
   aprobadaGerenciaPorRole?: Role | null;
   aprobadaGerenciaEn?: string | null;
 
@@ -725,25 +921,58 @@ export interface OrdenCompraItem {
   precioTotal: string;
 }
 
+export interface SolicitudOrdenCompra {
+  id: string;
+  numero: string;
+  nombre?: string | null;
+  tipo: TipoOrdenCompra;
+  estado: EstadoOrdenCompra;
+  montoTotal: string | number;
+  incluyeIgv?: boolean;
+  condicionPago?: string | null;
+  fechaEmision?: string | null;
+  fechaEntrega?: string | null;
+  creadoEn: string;
+  proveedorId?: string | null;
+  proveedor?: Pick<Proveedor, "id" | "razonSocial" | "ruc"> | null;
+  proveedorNombreLibre?: string | null;
+  creadoPor?: Pick<User, "id" | "name" | "role"> | null;
+  items: OrdenCompraItem[];
+}
+
 export interface OrdenCompra {
   id: string;
   numero: string;
   nombre?: string | null;
   solicitudId?: string | null;
-  solicitud?: (Pick<SolicitudCotizacion, 'id' | 'codigo' | 'estado'> & {
-    requerimiento?: Pick<Requerimiento, 'id' | 'codigo' | 'tipo'> | null;
-  }) | null;
+  solicitud?:
+    | (Pick<SolicitudCotizacion, "id" | "codigo" | "estado"> & {
+        requerimiento?: Pick<Requerimiento, "id" | "codigo" | "tipo"> | null;
+      })
+    | null;
   proveedorId?: string | null;
-  proveedor?: (Pick<Proveedor, 'id' | 'razonSocial' | 'ruc' | 'direccion' | 'banco' | 'numeroCuenta' | 'moneda' | 'condicionPago'> & {
-    contactos?: Pick<ContactoProveedor, 'nombre' | 'telefono'>[];
-  }) | null;
+  proveedor?:
+    | (Pick<
+        Proveedor,
+        | "id"
+        | "razonSocial"
+        | "ruc"
+        | "direccion"
+        | "banco"
+        | "numeroCuenta"
+        | "moneda"
+        | "condicionPago"
+      > & {
+        contactos?: Pick<ContactoProveedor, "nombre" | "telefono">[];
+      })
+    | null;
   proveedorNombreLibre?: string | null;
   origen: OrigenOrdenCompra;
   tipo: TipoOrdenCompra;
   compraSimpleId?: string | null;
   estadoAprobacion?: EstadoAprobacionCompra | null;
   aprobadoPorId?: string | null;
-  aprobadoPor?: Pick<User, 'id' | 'name'> | null;
+  aprobadoPor?: Pick<User, "id" | "name"> | null;
   aprobadoEn?: string | null;
   notaAprobacion?: string | null;
   historial?: CompraSimpleGrupoHistorial[];
@@ -756,10 +985,12 @@ export interface OrdenCompra {
   pagoTrabajadorNumeroCuenta?: string | null;
   pagoTrabajadorNumero?: string | null;
   pagoTrabajadorId?: string | null;
-  pagoTrabajador?: Pick<Trabajador, 'id' | 'nombre'> | null;
+  pagoTrabajador?: Pick<Trabajador, "id" | "nombre"> | null;
   archivos?: CompraSimpleGrupoArchivo[];
   proyectoId: string;
-  proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'> & { direccion?: string | null };
+  proyecto: Pick<Proyecto, "id" | "codigo" | "nombre"> & {
+    direccion?: string | null;
+  };
   estado: EstadoOrdenCompra;
   fechaEmision?: string;
   fechaEntrega?: string;
@@ -783,7 +1014,7 @@ export interface OrdenCompra {
   contactoDycCelular?: string | null;
   contactoDycTelefono?: string | null;
   creadoPorId: string;
-  creadoPor: Pick<User, 'id' | 'name' | 'email'>;
+  creadoPor: Pick<User, "id" | "name" | "email">;
   creadoEn: string;
   actualizadoEn: string;
   items: OrdenCompraItem[];
@@ -797,18 +1028,18 @@ export interface CompraSimple {
   tipo: TipoRequerimiento;
   esRendicion: boolean;
   proyectoId: string;
-  proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'>;
+  proyecto: Pick<Proyecto, "id" | "codigo" | "nombre">;
   creadoPorId: string;
-  creadoPor: Pick<User, 'id' | 'name' | 'email' | 'role'>;
+  creadoPor: Pick<User, "id" | "name" | "email" | "role">;
   aprobadoInformalPorId?: string | null;
-  aprobadoInformalPor?: Pick<User, 'id' | 'name' | 'role'> | null;
+  aprobadoInformalPor?: Pick<User, "id" | "name" | "role"> | null;
   nota?: string | null;
   creadoEn: string;
   actualizadoEn: string;
   grupos: OrdenCompra[];
 }
 
-export type TipoArchivoCompraSimple = 'comprobante' | 'foto_producto';
+export type TipoArchivoCompraSimple = "comprobante" | "foto_producto";
 
 export interface CompraSimpleGrupoArchivo {
   id: string;
@@ -818,7 +1049,7 @@ export interface CompraSimpleGrupoArchivo {
   nombreOriginal: string;
   mimeType: string;
   subidoPorId: string;
-  subidoPor: Pick<User, 'id' | 'name'>;
+  subidoPor: Pick<User, "id" | "name">;
   creadoEn: string;
 }
 
@@ -828,22 +1059,45 @@ export interface CompraSimpleGrupoHistorial {
   estado: EstadoAprobacionCompra;
   nota?: string | null;
   actorId?: string | null;
-  actor?: Pick<User, 'id' | 'name' | 'role'> | null;
+  actor?: Pick<User, "id" | "name" | "role"> | null;
   actorRole?: Role;
   creadoEn: string;
 }
 
 export interface Pago {
   id: string;
-  ordenCompraId: string;
-  ordenCompra: Pick<OrdenCompra, 'id' | 'numero' | 'concepto' | 'montoTotal' | 'proveedorNombreLibre'> & {
-    proveedor: Pick<Proveedor, 'id' | 'razonSocial'> | null;
-    proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'>;
-    creadoPor: Pick<User, 'id' | 'name'>;
-  };
+  ordenCompraId?: string | null;
+  ordenCompra?:
+    | (Pick<
+        OrdenCompra,
+        | "id"
+        | "numero"
+        | "concepto"
+        | "montoTotal"
+        | "proveedorNombreLibre"
+        | "destinoPago"
+        | "pagoMetodo"
+        | "pagoBanco"
+        | "pagoNumeroCuenta"
+        | "pagoTrabajadorBanco"
+        | "pagoTrabajadorNumeroCuenta"
+        | "pagoTrabajadorNumero"
+      > & {
+        pagoTrabajador?: Pick<Trabajador, "id" | "nombre" | "banco" | "numeroCuenta" | "telefono"> | null;
+        proveedor: Pick<Proveedor, "id" | "razonSocial" | "banco" | "numeroCuenta"> | null;
+        proyecto: Pick<Proyecto, "id" | "codigo" | "nombre">;
+        creadoPor: Pick<User, "id" | "name">;
+      })
+    | null;
+  origen: string;
+  centroCosto: "obra" | "administracion";
+  proyectoId?: string | null;
+  proyecto?: Pick<Proyecto, "id" | "codigo" | "nombre"> | null;
+  concepto?: string | null;
+  categoria?: string | null;
   tipoBeneficiario: TipoBeneficiario;
   beneficiarioTrabajadorId?: string | null;
-  beneficiarioTrabajador?: Pick<Trabajador, 'id' | 'nombre'> | null;
+  beneficiarioTrabajador?: Pick<Trabajador, "id" | "nombre" | "banco" | "numeroCuenta" | "telefono"> | null;
   monto: string;
   porcentaje: string;
   fechaProgramada: string;
@@ -852,13 +1106,35 @@ export interface Pago {
   estadoEfectivo: EstadoPagoEfectivo;
   metodoPago?: string | null;
   numeroOperacion?: string | null;
+  beneficiarioNombre?: string | null;
+  banco?: string | null;
+  numeroCuenta?: string | null;
+  cci?: string | null;
   nota?: string | null;
   comprobanteNombre?: string | null;
   comprobanteUrl?: string | null;
   registradoPorId: string;
-  registradoPor: Pick<User, 'id' | 'name'>;
+  registradoPor: Pick<User, "id" | "name">;
   pagadoPorId?: string | null;
-  pagadoPor?: Pick<User, 'id' | 'name'> | null;
+  pagadoPor?: Pick<User, "id" | "name"> | null;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+export interface PagoRecurrente {
+  id: string;
+  concepto: string;
+  categoria?: string | null;
+  centroCosto: "obra" | "administracion";
+  proyectoId?: string | null;
+  proyecto?: Pick<Proyecto, "id" | "codigo" | "nombre"> | null;
+  beneficiarioNombre?: string | null;
+  banco?: string | null;
+  numeroCuenta?: string | null;
+  cci?: string | null;
+  montoReferencial?: string | null;
+  diaVencimiento: number;
+  activo: boolean;
   creadoEn: string;
   actualizadoEn: string;
 }
@@ -870,13 +1146,13 @@ export interface ResumenPagos {
   pagadoMes: number;
 }
 
-export type EstadoCobro = 'pendiente' | 'cobrado' | 'cancelado';
-export type EstadoCobroEfectivo = EstadoCobro | 'vencido';
+export type EstadoCobro = "pendiente" | "cobrado" | "cancelado";
+export type EstadoCobroEfectivo = EstadoCobro | "vencido";
 
 export interface Cobro {
   id: string;
   proyectoId: string;
-  proyecto: Pick<Proyecto, 'id' | 'codigo' | 'nombre'>;
+  proyecto: Pick<Proyecto, "id" | "codigo" | "nombre">;
   monto: string;
   fechaProgramada: string;
   fechaCobrada?: string | null;
@@ -885,9 +1161,9 @@ export interface Cobro {
   actaConformidadNombre: string;
   actaConformidadUrl: string;
   registradoPorId: string;
-  registradoPor: Pick<User, 'id' | 'name'>;
+  registradoPor: Pick<User, "id" | "name">;
   cobradoPorId?: string | null;
-  cobradoPor?: Pick<User, 'id' | 'name'> | null;
+  cobradoPor?: Pick<User, "id" | "name"> | null;
   creadoEn: string;
   actualizadoEn: string;
 }
@@ -955,18 +1231,53 @@ export interface DashboardFinanzas {
   totalVencido: number;
   proximos7dias: number;
   pagadoMes: number;
-  montoPorMes: { mes: string; pagado: number; pendiente: number; vencido: number }[];
+  montoPorMes: {
+    mes: string;
+    pagado: number;
+    pendiente: number;
+    vencido: number;
+  }[];
+}
+
+export type PrioridadDashboard = "critica" | "alta" | "normal" | "informativa";
+
+export interface TareaDashboard {
+  id: string;
+  tipo: string;
+  prioridad: PrioridadDashboard;
+  titulo: string;
+  contexto: string;
+  href: string;
+  fecha?: string;
+  requiereAccion: boolean;
+  bloqueada: boolean;
+  proxima: boolean;
+}
+
+export interface AccionRapidaDashboard {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  href: string;
+}
+
+export interface InicioDashboard {
+  usuario: Pick<User, "name" | "role"> & { etiquetaRol: string };
+  resumen: { pendientes: number; bloqueos: number; proximos: number };
+  tareas: TareaDashboard[];
+  seguimiento: TareaDashboard[];
+  accionesRapidas: AccionRapidaDashboard[];
 }
 
 export type TipoNotificacion =
-  | 'pago_por_vencer'
-  | 'pago_vencido'
-  | 'requerimiento_creado'
-  | 'requerimiento_aprobado'
-  | 'requerimiento_observado'
-  | 'cotizacion_recibida'
-  | 'solicitud_lista_adjudicar'
-  | 'orden_compra_generada';
+  | "pago_por_vencer"
+  | "pago_vencido"
+  | "requerimiento_creado"
+  | "requerimiento_aprobado"
+  | "requerimiento_observado"
+  | "cotizacion_recibida"
+  | "solicitud_lista_adjudicar"
+  | "orden_compra_generada";
 
 export interface Notificacion {
   id: string;

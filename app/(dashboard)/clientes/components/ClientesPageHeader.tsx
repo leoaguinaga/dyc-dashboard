@@ -1,15 +1,25 @@
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import { buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 
 export function ClientesPageHeader() {
   return (
-    <div className="flex items-center justify-between">
-      <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
-      <Link href="/clientes/nuevo" className={buttonVariants()}>
-        <Plus className="size-4" />
-        Nuevo cliente
-      </Link>
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
+        <p className="text-sm text-muted-foreground">
+          Gestión de clientes y empresas asociadas a los proyectos.
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-3 items-center">
+        <Link href="/clientes/nuevo">
+          <Button>
+            <Plus className="size-4" />
+            Registrar cliente
+          </Button>
+        </Link>
+      </div>
     </div>
   )
 }
+

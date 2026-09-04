@@ -1,15 +1,16 @@
 import { Suspense } from 'react'
-import { ProyectosKpis } from './components/ProyectosKpis'
-import { ProyectosKpisSkeleton } from './components/ProyectosKpisSkeleton'
 import { ProyectosTable } from './components/ProyectosTable'
 import { ProyectosTableSkeleton } from './components/ProyectosTableSkeleton'
+import { ProyectosPageHeader } from './components/ProyectosPageHeader'
+import { ProyectosPageHeaderSkeleton } from './components/ProyectosPageHeaderSkeleton'
 
 export default function ProyectosPage() {
   return (
-    <div className="space-y-3">
-      <Suspense fallback={<ProyectosKpisSkeleton />}>
-        <ProyectosKpis />
+    <div className="space-y-4">
+      <Suspense fallback={<ProyectosPageHeaderSkeleton />}>
+        <ProyectosPageHeader />
       </Suspense>
+
       <Suspense fallback={<ProyectosTableSkeleton />}>
         <ProyectosTable />
       </Suspense>

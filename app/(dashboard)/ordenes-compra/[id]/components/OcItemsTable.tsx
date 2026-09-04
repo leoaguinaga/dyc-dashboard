@@ -185,11 +185,11 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
             return (
               <tr key={item.id} className="group">
                 <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{item.codigo ?? '—'}</td>
-                <td className="px-4 py-3">{item.descripcion}</td>
+                <td className="px-4 py-3 font-medium text-foreground">{item.descripcion}</td>
                 <td className="px-4 py-3 text-right tabular-nums">{Number(item.cantidad).toLocaleString('es-PE')}</td>
                 <td className="px-4 py-3 text-muted-foreground">{item.unidad}</td>
                 <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.precioUnitario)}</td>
-                <td className="px-4 py-3 text-right tabular-nums font-medium">{formatCurrency(item.precioTotal)}</td>
+                <td className="px-4 py-3 text-right tabular-nums font-medium text-foreground">{formatCurrency(item.precioTotal)}</td>
                 {canEdit && (
                   <td className="px-2 py-3">
                     <div className="flex items-center gap-1">

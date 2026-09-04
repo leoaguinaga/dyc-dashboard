@@ -66,7 +66,7 @@ export function CotizacionesView({ solicitudes }: Props) {
     <Tabs
       value={view}
       onValueChange={(v) => setView(v as View)}
-      className="space-y-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-[250ms] ease-out"
+      className="animate-in fade-in-0 slide-in-from-bottom-2 duration-[250ms] ease-out"
     >
       <div className="flex flex-wrap items-center gap-2">
         <TabsList>
@@ -129,18 +129,6 @@ export function CotizacionesView({ solicitudes }: Props) {
             </SelectContent>
           </Select>
         )}
-        <Link href="/cotizaciones/historial">
-          <Button variant="outline">
-            <History className="size-4" />
-            Historial
-          </Button>
-        </Link>
-        <Link href="/cotizaciones/nueva">
-          <Button>
-            <Plus className="size-4" />
-            Nueva solicitud
-          </Button>
-        </Link>
       </div>
 
       <TabsPanel value="kanban">

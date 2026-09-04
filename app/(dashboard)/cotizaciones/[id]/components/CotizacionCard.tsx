@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, ClipboardEdit, UserX } from 'lucide-react'
-import { api } from '@/lib/api/client'
+import { CheckCircle2, ClipboardEdit, UserX, FileText, ExternalLink } from 'lucide-react'
+import { api, API_ORIGIN } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { cn, formatDateOnly } from '@/lib/utils'
 import { ReceiveCotizacionForm } from './ReceiveCotizacionForm'
@@ -105,11 +105,12 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-medium text-sm">{cotizacion.proveedor.razonSocial}</p>
-          <p className="text-xs text-muted-foreground font-mono">{cotizacion.proveedor.ruc}</p>
+          <p className="font-medium text-sm">{cotizacion.proveedor.razonSocial} <span className='text-black/60'>
+            ({cotizacion.proveedor.ruc})</span></p>
+
           {cotizacion.creadoPor && (
-            <p className="text-xs text-muted-foreground">
-              Cotizado por {cotizacion.creadoPor.name}
+            <p className="text-[13px] text-muted-foreground">
+              Cotización registrada por {cotizacion.creadoPor.name}
             </p>
           )}
         </div>
@@ -120,7 +121,7 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
 
       {/* Items */}
       {cotizacion.estado === 'pendiente' && !showReceive && (
-        <p className="text-sm text-muted-foreground py-2">Esperando respuesta del proveedor.</p>
+        <p className="text-sm text-muted-foreground font-semibold text-center border rounded-lg border-dashed py-4">Esperando respuesta del proveedor.</p>
       )}
 
       {cotizacion.estado === 'sin_respuesta' && !showReceive && (
@@ -178,7 +179,7 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
         </div>
       )}
 
-      {(cotizacion.fechaEntrega || cotizacion.validezDias || cotizacion.condicionesServicio || cotizacion.condicionesPago.length > 0 || cotizacion.condicionPago || cotizacion.nota) && (
+      {(cotizacion.fechaEntrega || cotizacion.validezDias || cotizacion.condicionesServicio || cotizacion.condicionesPago.length > 0 || cotizacion.condicionPago || cotizacion.nota || (cotizacion.archivos && cotizacion.archivos.length > 0)) && (
         <div className="space-y-1 text-xs text-muted-foreground border-t border-border pt-2">
           {cotizacion.fechaEntrega && (
             <p>Entrega: <span className="font-medium text-foreground">{formatDateOnly(cotizacion.fechaEntrega)}</span></p>
@@ -213,6 +214,24 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
           {cotizacion.nota && (
             <p className="italic">&ldquo;{cotizacion.nota}&rdquo;</p>
           )}
+          {cotizacion.archivos && cotizacion.archivos.length > 0 && (
+            <div className="pt-1.5 flex flex-wrap items-center gap-2">
+              <span className="text-muted-foreground">Proforma adjunta:</span>
+              {cotizacion.archivos.map((a) => (
+                <a
+                  key={a.id}
+                  href={a.url.startsWith('http') ? a.url : `${API_ORIGIN}${a.url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-muted/60 border border-border px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted hover:text-primary transition-colors duration-[120ms]"
+                >
+                  <FileText className="size-3.5 text-red-500" />
+                  <span className="truncate max-w-[220px]">{a.nombre}</span>
+                  <ExternalLink className="size-3 text-muted-foreground" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -221,13 +240,7 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-2 pt-1">
-        {puedeRegistrarRespuesta && !showReceive && (
-          <Button variant="outline" size="sm" onClick={() => setShowReceive(true)}>
-            <ClipboardEdit className="size-3.5" />
-            Registrar respuesta
-          </Button>
-        )}
+      <div className="flex items-center place-content-end gap-2 pt-1">
         {cotizacion.estado === 'pendiente' && !showReceive && (
           <Button
             variant="outline"
@@ -250,6 +263,12 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
           <Button variant="outline" size="sm" onClick={() => setShowReceive(true)}>
             <ClipboardEdit className="size-3.5" />
             Editar cotización
+          </Button>
+        )}
+        {puedeRegistrarRespuesta && !showReceive && (
+          <Button variant="outline" size="sm" onClick={() => setShowReceive(true)}>
+            <ClipboardEdit className="size-3.5" />
+            Registrar respuesta
           </Button>
         )}
       </div>

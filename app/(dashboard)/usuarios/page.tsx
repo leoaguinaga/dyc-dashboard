@@ -1,18 +1,16 @@
 import { Suspense } from 'react'
-import { UsuariosKpis } from './components/UsuariosKpis'
-import { UsuariosKpisSkeleton } from './components/UsuariosKpisSkeleton'
+import { UsuariosPageHeader } from './components/UsuariosPageHeader'
 import { UsuariosTable } from './components/UsuariosTable'
 import { UsuariosTableSkeleton } from './components/UsuariosTableSkeleton'
 
 export default function UsuariosPage() {
   return (
     <div className="space-y-3">
-      <Suspense fallback={<UsuariosKpisSkeleton />}>
-        <UsuariosKpis />
-      </Suspense>
+      <UsuariosPageHeader />
       <Suspense fallback={<UsuariosTableSkeleton />}>
         <UsuariosTable />
       </Suspense>
     </div>
   )
 }
+

@@ -33,7 +33,7 @@ export default async function NuevaSolicitudPage({ searchParams }: Props) {
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight">Nueva solicitud de cotización</h1>
         <p className="text-sm text-muted-foreground">
-          Selecciona el requerimiento aprobado y elige los proveedores a cotizar.
+          Selecciona el requerimiento aprobado. Puedes elegir proveedores ahora o agregarlos después desde el borrador.
         </p>
       </div>
 

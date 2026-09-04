@@ -7,11 +7,13 @@ import { Plus, Trash2 } from 'lucide-react'
 import { api } from '@/lib/api/client'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DatePicker } from '@/components/ui/date-picker'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
-import { UNIDAD_OPTIONS } from '@/lib/inventario'
-import type { Proyecto, Role, TipoRequerimiento } from '@/types/api'
+import { hoyLimaISO } from '@/lib/date/fecha-lima'
+import { UNIDAD_LABELS } from '@/lib/inventario'
+import type { Proyecto, Role, TipoRequerimiento, UnidadMedida } from '@/types/api'
 import { EspecificacionModal, type EspecificacionData } from './EspecificacionModal'
 
 interface LineaItem {
@@ -25,9 +27,19 @@ interface Props {
   proyectos: Proyecto[]
 }
 
-const labelCn = 'mb-1.5 block text-sm font-medium'
-const sectionTitleCn = 'text-xs font-medium uppercase tracking-wide text-muted-foreground'
+const labelCn = 'mb-1.5 block text-[13px] font-medium'
+const sectionTitleCn = 'text-sm font-medium uppercase tracking-wide text-muted-foreground'
 const emptyLinea = (): LineaItem => ({ descripcion: '', cantidad: '', unidad: 'und', especificacion: null })
+
+const UNIDAD_GROUPS: Array<{ label: string; values: UnidadMedida[] }> = [
+  { label: 'Uso general', values: ['und', 'pieza', 'par', 'juego', 'global'] },
+  { label: 'Dimensiones', values: ['m', 'm2', 'm3'] },
+  { label: 'Peso', values: ['kg', 'g'] },
+  { label: 'Líquidos', values: ['l', 'ml', 'gal'] },
+  { label: 'Conteo por lote', values: ['docena', 'medio_ciento', 'ciento', 'medio_millar', 'millar'] },
+  { label: 'Presentación y envase', values: ['bolsa', 'caja', 'rollo', 'balde', 'galonera', 'cilindro'] },
+  { label: 'Formato de material', values: ['varilla', 'plancha', 'tubo'] },
+]
 
 const TIPO_LABELS: Record<TipoRequerimiento, string> = {
   civil: 'Req. Civil',
@@ -41,7 +53,7 @@ const ROLE_TIPOS: Partial<Record<Role, TipoRequerimiento[]>> = {
   supervisor: ['civil', 'electrico', 'seguridad', 'administrativo'],
   supervisor_civil: ['civil', 'electrico', 'seguridad', 'administrativo'],
   supervisor_electrico: ['civil', 'electrico', 'seguridad', 'administrativo'],
-  pdr: ['seguridad'],
+  pdr: ['civil', 'electrico', 'seguridad', 'administrativo'],
   ing_civil: ['civil'],
   ing_electrico: ['electrico'],
   jefe_sig: ['seguridad'],
@@ -133,149 +145,145 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
   return (
     <form className="space-y-6">
       {/* General */}
-      <section className="space-y-4">
-        <h2 className={sectionTitleCn}>Información general</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="sm:col-span-2 lg:col-span-4">
-            <label className={labelCn}>
-              Nombre <span className="text-destructive">*</span>
-            </label>
-            <Input
-              value={nombre}
-              onChange={(e) => { setNombre(e.target.value); setErrors((p) => { const n = { ...p }; delete n.nombre; return n }) }}
-              placeholder="Ej: Pintura para fachada principal"
-              className={cn(errors.nombre && 'border-destructive')}
-            />
-            {errors.nombre && <p className="mt-1 text-xs text-destructive">{errors.nombre}</p>}
-          </div>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+        <section className="space-y-4 border-r pr-4">
+          <h2 className={sectionTitleCn}>Información general</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className={labelCn}>
+                Nombre <span className="text-destructive">*</span>
+              </label>
+              <Input
+                value={nombre}
+                onChange={(e) => { setNombre(e.target.value); setErrors((p) => { const n = { ...p }; delete n.nombre; return n }) }}
+                placeholder="Ej: Pintura para fachada principal"
+                className={cn(errors.nombre && 'border-destructive')}
+              />
+              {errors.nombre && <p className="mt-1 text-xs text-destructive">{errors.nombre}</p>}
+            </div>
 
-          <div>
-            <label className={labelCn}>
-              Proyecto <span className="text-destructive">*</span>
-            </label>
-            <Select value={proyectoId} onValueChange={(v) => { setProyectoId(v ?? ''); setErrors((p) => { const n = { ...p }; delete n.proyectoId; return n }) }}>
-              <SelectTrigger className={cn('w-full', errors.proyectoId && 'border-destructive')}>
-                <SelectValue>
-                  {(value: string | null) =>
-                    proyectos.find((p) => p.id === value)?.nombre ?? 'Selecciona un proyecto…'
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {proyectos.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.nombre}
-                    {p.codigo && <span className="ml-1 text-muted-foreground font-mono text-xs">({p.codigo})</span>}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.proyectoId && <p className="mt-1 text-xs text-destructive">{errors.proyectoId}</p>}
-          </div>
-
-          <div>
-            <label className={labelCn}>
-              Tipo <span className="text-destructive">*</span>
-            </label>
-            {allowedTipos.length <= 1 ? (
-              // Role is fixed to one tipo — show as read-only badge
-              <div className="flex h-9 items-center rounded-lg border border-border bg-muted/50 px-3 text-sm text-muted-foreground">
-                {TIPO_LABELS[tipo]}
-              </div>
-            ) : (
-              <Select value={tipo} onValueChange={(v) => setTipo(v as TipoRequerimiento)}>
-                <SelectTrigger className={cn('w-full', errors.tipo && 'border-destructive')}>
+            <div>
+              <label className={labelCn}>
+                Proyecto <span className="text-destructive">*</span>
+              </label>
+              <Select value={proyectoId} onValueChange={(v) => { setProyectoId(v ?? ''); setErrors((p) => { const n = { ...p }; delete n.proyectoId; return n }) }}>
+                <SelectTrigger className={cn('w-full', errors.proyectoId && 'border-destructive')}>
                   <SelectValue>
-                    {(value: TipoRequerimiento | null) => (value ? TIPO_LABELS[value] : '')}
+                    {(value: string | null) =>
+                      proyectos.find((p) => p.id === value)?.nombre ?? 'Selecciona un proyecto…'
+                    }
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {allowedTipos.map((t) => (
-                    <SelectItem key={t} value={t}>{TIPO_LABELS[t]}</SelectItem>
+                  {proyectos.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.nombre}
+                      {p.codigo && <span className="ml-1 text-muted-foreground font-mono text-xs">({p.codigo})</span>}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            )}
-            {errors.tipo && <p className="mt-1 text-xs text-destructive">{errors.tipo}</p>}
+              {errors.proyectoId && <p className="mt-1 text-xs text-destructive">{errors.proyectoId}</p>}
+            </div>
+
+            <div>
+              <label className={labelCn}>
+                Tipo <span className="text-destructive">*</span>
+              </label>
+              {allowedTipos.length <= 1 ? (
+                // Role is fixed to one tipo — show as read-only badge
+                <div className="flex h-9 items-center rounded-lg border border-border bg-muted/50 px-3 text-sm text-muted-foreground">
+                  {TIPO_LABELS[tipo]}
+                </div>
+              ) : (
+                <Select value={tipo} onValueChange={(v) => setTipo(v as TipoRequerimiento)}>
+                  <SelectTrigger className={cn('w-full', errors.tipo && 'border-destructive')}>
+                    <SelectValue>
+                      {(value: TipoRequerimiento | null) => (value ? TIPO_LABELS[value] : '')}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allowedTipos.map((t) => (
+                      <SelectItem key={t} value={t}>{TIPO_LABELS[t]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {errors.tipo && <p className="mt-1 text-xs text-destructive">{errors.tipo}</p>}
+            </div>
+
+            <div>
+              <label className={labelCn}>Fecha máx. de entrega</label>
+              <DatePicker
+                value={fechaEntregaRequerida}
+                onValueChange={setFechaEntregaRequerida}
+                min={hoyLimaISO()}
+                placeholder="Seleccionar fecha"
+              />
+            </div>
+
+            <div>
+              <label className={labelCn}>Nota (opcional)</label>
+              <Input
+                value={nota}
+                onChange={(e) => setNota(e.target.value)}
+                placeholder="Contexto o justificación…"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className={labelCn}>Fecha máx. de entrega</label>
-            <Input
-              type="date"
-              value={fechaEntregaRequerida}
-              onChange={(e) => setFechaEntregaRequerida(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
+          <label className="flex items-center gap-2 cursor-pointer w-fit ml-auto">
+            <input
+              type="checkbox"
+              checked={urgente}
+              onChange={(e) => setUrgente(e.target.checked)}
+              className="size-4 rounded border-border accent-primary"
             />
+            <span className="text-sm font-medium">Marcar como urgente</span>
+          </label>
+        </section>
+        {/* Líneas */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className={sectionTitleCn}>Materiales / equipos solicitados</h2>
           </div>
 
-          <div>
-            <label className={labelCn}>Nota (opcional)</label>
-            <Input
-              value={nota}
-              onChange={(e) => setNota(e.target.value)}
-              placeholder="Contexto o justificación…"
-            />
+          <div className="space-y-2">
+            <div className="hidden sm:grid grid-cols-[1fr_84px_126px_140px_32px] gap-2 px-1">
+              <p className="text-[13px] text-muted-foreground font-medium">Descripción</p>
+              <p className="text-[13px] text-muted-foreground font-medium">Cantidad</p>
+              <p className="text-[13px] text-muted-foreground font-medium">Unidad</p>
+              <p className="text-[13px] text-muted-foreground font-medium">Especificaciones</p>
+              <div />
+            </div>
+
+            {lineas.map((linea, i) => (
+              <ItemRow
+                key={i}
+                index={i}
+                linea={linea}
+                errors={errors}
+                canRemove={lineas.length > 1}
+                onChange={(field, value) => updateLinea(i, field, value)}
+                onOpenSpec={() => setSpecModalIndex(i)}
+                onRemove={() => setLineas((p) => p.filter((_, idx) => idx !== i))}
+              />
+            ))}
           </div>
-        </div>
 
-        <label className="flex items-center gap-2 cursor-pointer w-fit">
-          <input
-            type="checkbox"
-            checked={urgente}
-            onChange={(e) => setUrgente(e.target.checked)}
-            className="size-4 rounded border-border accent-primary"
-          />
-          <span className="text-sm font-medium">Marcar como urgente</span>
-        </label>
-      </section>
-
-      {/* Líneas */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className={sectionTitleCn}>Materiales / equipos solicitados</h2>
           <button
             type="button"
             onClick={() => setLineas((p) => [...p, emptyLinea()])}
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors duration-[120ms]"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2.5 text-sm text-muted-foreground hover:border-ring hover:text-foreground transition-colors duration-[120ms]"
           >
-            <Plus className="size-3.5" />
-            Agregar ítem
+            <Plus className="size-4" />
+            Agregar otro ítem
           </button>
-        </div>
+        </section>
+      </div>
 
-        <div className="space-y-2">
-          <div className="hidden sm:grid grid-cols-[1fr_100px_110px_140px_32px] gap-2 px-1">
-            <p className="text-xs text-muted-foreground font-medium">Descripción</p>
-            <p className="text-xs text-muted-foreground font-medium">Cantidad</p>
-            <p className="text-xs text-muted-foreground font-medium">Unidad</p>
-            <p className="text-xs text-muted-foreground font-medium">Especificaciones</p>
-            <div />
-          </div>
 
-          {lineas.map((linea, i) => (
-            <ItemRow
-              key={i}
-              index={i}
-              linea={linea}
-              errors={errors}
-              canRemove={lineas.length > 1}
-              onChange={(field, value) => updateLinea(i, field, value)}
-              onOpenSpec={() => setSpecModalIndex(i)}
-              onRemove={() => setLineas((p) => p.filter((_, idx) => idx !== i))}
-            />
-          ))}
-        </div>
 
-        <button
-          type="button"
-          onClick={() => setLineas((p) => [...p, emptyLinea()])}
-          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2.5 text-sm text-muted-foreground hover:border-ring hover:text-foreground transition-colors duration-[120ms]"
-        >
-          <Plus className="size-4" />
-          Agregar otro ítem
-        </button>
-      </section>
 
       {serverError && (
         <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
@@ -283,18 +291,18 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
         </p>
       )}
 
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
-        <Link href="/requerimientos" className={buttonVariants({ variant: 'outline' })}>
+      <div className="flex flex-wrap items-center justify-end gap-2 border-border pt-4">
+        <Link href="/solicitudes" className={cn(buttonVariants({ variant: 'outline' }), "mr-auto")}>
           Cancelar
         </Link>
-        <Button
+        {/* <Button
           type="button"
           variant="outline"
           disabled={loading}
           onClick={(e) => handleSubmit(e, false)}
         >
           Guardar borrador
-        </Button>
+        </Button> */}
         <Button
           type="button"
           disabled={loading}
@@ -362,10 +370,9 @@ function ItemRow({ index, linea, errors, canRemove, onChange, onOpenSpec, onRemo
             placeholder="Ej: Plancha melamina 18mm blanco…"
             className={cn(descripcionError && 'border-destructive')}
           />
-          {descripcionError && <p className="mt-0.5 text-xs text-destructive">{descripcionError}</p>}
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-[88px_minmax(0,1fr)] gap-2">
           <div>
             <Input
               type="number"
@@ -376,16 +383,22 @@ function ItemRow({ index, linea, errors, canRemove, onChange, onOpenSpec, onRemo
               placeholder="Cantidad"
               className={cn(cantidadError && 'border-destructive')}
             />
-            {cantidadError && <p className="mt-0.5 text-xs text-destructive">{cantidadError}</p>}
           </div>
 
           <Select value={linea.unidad} onValueChange={(v) => onChange('unidad', v ?? 'und')}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              {UNIDAD_OPTIONS.map(([val, label]) => (
-                <SelectItem key={val} value={val}>{label}</SelectItem>
+            <SelectContent className="w-fit">
+              {UNIDAD_GROUPS.map((group) => (
+                <SelectGroup key={group.label}>
+                  <SelectLabel>{group.label}</SelectLabel>
+                  {group.values.map((value) => (
+                    <SelectItem key={value} value={value} showIndicator={false}>
+                      {UNIDAD_LABELS[value]}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>
@@ -401,7 +414,7 @@ function ItemRow({ index, linea, errors, canRemove, onChange, onOpenSpec, onRemo
       </div>
 
       {/* sm and up: single-row grid, matches the column-header row */}
-      <div className="hidden sm:grid grid-cols-[1fr_100px_110px_140px_32px] gap-2 items-start">
+      <div className="hidden sm:grid grid-cols-[1fr_84px_126px_140px_32px] gap-2 items-start">
         <div>
           <Input
             value={linea.descripcion}
@@ -409,7 +422,6 @@ function ItemRow({ index, linea, errors, canRemove, onChange, onOpenSpec, onRemo
             placeholder="Ej: Plancha melamina 18mm blanco…"
             className={cn(descripcionError && 'border-destructive')}
           />
-          {descripcionError && <p className="mt-0.5 text-xs text-destructive">{descripcionError}</p>}
         </div>
 
         <div>
@@ -422,16 +434,22 @@ function ItemRow({ index, linea, errors, canRemove, onChange, onOpenSpec, onRemo
             placeholder="0"
             className={cn(cantidadError && 'border-destructive')}
           />
-          {cantidadError && <p className="mt-0.5 text-xs text-destructive">{cantidadError}</p>}
         </div>
 
         <Select value={linea.unidad} onValueChange={(v) => onChange('unidad', v ?? 'und')}>
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            {UNIDAD_OPTIONS.map(([val, label]) => (
-              <SelectItem key={val} value={val}>{label}</SelectItem>
+          <SelectContent className="min-w-44">
+            {UNIDAD_GROUPS.map((group) => (
+              <SelectGroup key={group.label}>
+                <SelectLabel>{group.label}</SelectLabel>
+                {group.values.map((value) => (
+                  <SelectItem key={value} value={value} showIndicator={false}>
+                    {UNIDAD_LABELS[value]}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             ))}
           </SelectContent>
         </Select>

@@ -80,12 +80,6 @@ export function ProveedoresTableClient({ proveedores }: Props) {
             ))}
           </SelectContent>
         </Select>
-        <Link href="/proveedores/nuevo">
-          <Button>
-            <Plus className="size-4" />
-            Registrar proveedor
-          </Button>
-        </Link>
       </div>
       {filtered.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border py-12 text-center">
@@ -100,13 +94,13 @@ export function ProveedoresTableClient({ proveedores }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Razón Social</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">RUC</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Categoría</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Ubicación</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Contacto principal</th>
-                <th className="px-4 py-2.5 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">Cotizaciones</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Estado</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Razón Social</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">RUC</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Categoría</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Ubicación</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Contacto principal</th>
+                <th className="px-4 py-2.5 text-center text-sm font-medium text-muted-foreground">Cotizaciones</th>
+                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Estado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

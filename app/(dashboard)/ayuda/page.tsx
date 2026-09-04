@@ -1,19 +1,9 @@
 import { serverFetch } from '@/lib/api/server'
 import type { HelpVideo } from '@/types/api'
-import { AyudaBoard } from './components/AyudaBoard'
+import { AyudaTabsContainer } from './components/AyudaTabsContainer'
 
 export default async function AyudaPage() {
-  const videos = await serverFetch<HelpVideo[]>('/ayuda/videos')
+  const videos = await serverFetch<HelpVideo[]>('/ayuda/videos').catch(() => [] as HelpVideo[])
 
-  return (
-    <div className="space-y-4">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Ayuda</h1>
-        <p className="text-sm text-muted-foreground">
-          Videos tutoriales de cada módulo, según tu rol en el sistema.
-        </p>
-      </div>
-      <AyudaBoard initialVideos={videos} />
-    </div>
-  )
+  return <AyudaTabsContainer initialVideos={videos} />
 }

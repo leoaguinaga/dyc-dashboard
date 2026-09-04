@@ -64,13 +64,12 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
   }
 
   const approvers = role ? TIPO_APPROVERS[r.tipo] ?? [] : []
-  const autoAprueba = role ? approvers.includes(role) : false
   // Cuando está "observado", la edición y el reenvío se hacen desde el formulario
   // de corrección embebido en la sección de ítems — no se duplica el botón aquí.
   const canEnviar = r.estado === 'borrador' && (
     role === 'administrador' || role === 'admin_ti' || r.creadoPorId === session?.user?.id
   )
-  const canAprobarObservar = r.estado === 'enviado' && approvers.includes(role!)
+  const canAprobarObservar = r.estado === 'enviado' && r.creadoPorId !== session?.user?.id && approvers.includes(role!)
   const canCrearCotizacion = r.estado === 'aprobado' && (role === 'logistica' || role === 'administrador' || role === 'admin_ti' || role === 'gerencia')
   const canExportarPDF = r.estado === 'aprobado'
   const esCreador = r.creadoPorId === session?.user?.id
@@ -184,9 +183,7 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
           <Send className="size-4" />
           {loading === 'enviar'
             ? 'Enviando…'
-            : autoAprueba
-              ? 'Enviar (aprobación automática)'
-              : `Enviar a ${TIPO_APPROVER_LABEL[r.tipo] ?? 'revisión'}`}
+            : `Enviar a ${TIPO_APPROVER_LABEL[r.tipo] ?? 'revisión'}`}
         </Button>
       )}
 
