@@ -6,10 +6,11 @@ import { Plus, Trash2 } from 'lucide-react'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { UNIDAD_OPTIONS } from '@/lib/inventario'
-import type { Requerimiento, TipoRequerimiento } from '@/types/api'
+import type { Proyecto, Requerimiento, TipoRequerimiento } from '@/types/api'
 
 interface LineaItem {
   descripcion: string
@@ -21,7 +22,9 @@ interface LineaItem {
 
 interface Props {
   requerimiento: Requerimiento
-  mode?: 'creador' | 'revisor' | 'admin_ti'
+  proyectos?: Proyecto[]
+  canChangeObra?: boolean
+  mode?: 'creador' | 'revisor' | 'admin_ti' | 'general'
   onCancel?: () => void
   onSaved?: () => void
 }
@@ -46,12 +49,15 @@ function toLineas(r: Requerimiento): LineaItem[] {
 
 export function RequerimientoEditForm({
   requerimiento: r,
+  proyectos = [],
+  canChangeObra = false,
   mode = 'creador',
   onCancel,
   onSaved,
 }: Props) {
   const router = useRouter()
   const [nombre, setNombre] = useState(r.nombre)
+  const [proyectoId, setProyectoId] = useState(r.proyectoId)
   const [tipo, setTipo] = useState<TipoRequerimiento>(r.tipo)
   const [urgente, setUrgente] = useState(r.urgente)
   const [nota, setNota] = useState(r.nota ?? '')
@@ -89,6 +95,7 @@ export function RequerimientoEditForm({
       await api.patch(`/requerimientos/${r.id}`, {
         nombre: nombre.trim(),
         tipo: mode === 'admin_ti' ? tipo : undefined,
+        proyectoId: canChangeObra && proyectoId !== r.proyectoId ? proyectoId : undefined,
         urgente,
         nota: nota.trim() || undefined,
         fechaEntregaRequerida: fechaEntregaRequerida || undefined,
@@ -122,7 +129,9 @@ export function RequerimientoEditForm({
             ? 'Corrección excepcional de Administración TI'
             : mode === 'revisor'
               ? 'Editar antes de decidir'
-              : 'Corregir requerimiento observado'}
+              : r.estado === 'observado'
+                ? 'Corregir requerimiento observado'
+                : 'Editar requerimiento'}
         </h2>
       </div>
       {mode === 'admin_ti' && (
@@ -151,6 +160,37 @@ export function RequerimientoEditForm({
           {errors.nombre && <p className="mt-1 text-xs text-destructive">{errors.nombre}</p>}
         </div>
 
+        <div>
+          <label className={labelCn}>
+            Obra / Proyecto <span className="text-destructive">*</span>
+          </label>
+          {canChangeObra && proyectos.length > 0 ? (
+            <Select value={proyectoId} onValueChange={(value) => setProyectoId(value ?? r.proyectoId)}>
+              <SelectTrigger className="w-full">
+                <SelectValue className="normal-case">
+                  {(value: string | null) => {
+                    const p = proyectos.find((proj) => proj.id === value)
+                    if (!p) return 'Selecciona un proyecto…'
+                    return `${p.codigo ? `${p.codigo} · ` : ''}${p.nombre}`
+                  }}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {proyectos.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.codigo ? `${p.codigo} · ` : ''}{p.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="flex h-9 items-center justify-between rounded-lg border border-border bg-muted/40 px-3 text-sm text-muted-foreground">
+              <span className="truncate">{r.proyecto.codigo ? `${r.proyecto.codigo} · ` : ''}{r.proyecto.nombre}</span>
+              <span className="shrink-0 text-xs text-muted-foreground/80 font-mono">(Fijo)</span>
+            </div>
+          )}
+        </div>
+
         {mode === 'admin_ti' && (
           <div>
             <label className={labelCn}>Tipo de requerimiento</label>
@@ -167,12 +207,12 @@ export function RequerimientoEditForm({
           </div>
         )}
 
-        <div className={mode === 'admin_ti' ? '' : undefined}>
+        <div>
           <label className={labelCn}>Fecha máx. de entrega</label>
-          <Input
-            type="date"
+          <DatePicker
             value={fechaEntregaRequerida}
-            onChange={(e) => setFechaEntregaRequerida(e.target.value)}
+            onValueChange={setFechaEntregaRequerida}
+            placeholder="Seleccionar fecha"
           />
         </div>
 
@@ -304,14 +344,18 @@ export function RequerimientoEditForm({
               ? 'Guardar corrección TI'
               : 'Guardar cambios'}
         </Button>
-        {mode === 'creador' && (
+        {mode === 'creador' && (r.estado === 'borrador' || r.estado === 'observado') && (
           <Button
             type="button"
             disabled={loading !== null}
             className="min-w-32"
             onClick={() => handleSubmit(true)}
           >
-            {loading === 'reenviar' ? 'Reenviando…' : 'Guardar y reenviar'}
+            {loading === 'reenviar'
+              ? 'Enviando…'
+              : r.estado === 'borrador'
+                ? 'Guardar y enviar'
+                : 'Guardar y reenviar'}
           </Button>
         )}
       </div>

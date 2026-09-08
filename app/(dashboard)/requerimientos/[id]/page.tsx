@@ -16,6 +16,9 @@ interface Props {
 
 // Los solicitantes no deben ver el enlace a la solicitud de cotización.
 const ROLES_SOLICITANTE: Role[] = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr']
+const ROLES_GRUPO_B: Role[] = ['ing_civil', 'ing_electrico', 'jefe_sig', 'logistica', 'gerencia', 'administrador', 'admin_ti']
+const ESTADOS_NO_APROBADO: Requerimiento['estado'][] = ['borrador', 'enviado', 'observado']
+const ESTADOS_PRE_COTIZACION: Requerimiento['estado'][] = ['borrador', 'enviado', 'observado', 'aprobado']
 
 const ESTADO_LABEL = {
   borrador: 'Borrador',
@@ -29,16 +32,16 @@ const ESTADO_LABEL = {
 } as const
 
 const TIPO_LABEL: Record<TipoRequerimiento, string> = {
-  civil:          'Civil',
-  electrico:      'Eléctrico',
-  seguridad:      'Seguridad',
+  civil: 'Civil',
+  electrico: 'Eléctrico',
+  seguridad: 'Seguridad',
   administrativo: 'Administrativo',
 }
 
 const TIPO_CLASS: Record<TipoRequerimiento, string> = {
-  civil:          'bg-blue-500/10 text-blue-600',
-  electrico:      'bg-amber-500/10 text-amber-600',
-  seguridad:      'bg-orange-500/10 text-orange-600',
+  civil: 'bg-blue-500/10 text-blue-600',
+  electrico: 'bg-amber-500/10 text-amber-600',
+  seguridad: 'bg-orange-500/10 text-orange-600',
   administrativo: 'bg-purple-500/10 text-purple-600',
 }
 
@@ -81,6 +84,13 @@ export default async function RequerimientoDetailPage({ params }: Props) {
     ?? [...(r.solicitudes ?? [])]
       .filter((s) => s.estado === 'cancelada')
       .sort((a, b) => new Date(b.creadoEn).getTime() - new Date(a.creadoEn).getTime())[0]
+
+  const esCreador = user?.id === r.creadoPorId
+  const esSolicitante = esCreador || (user?.role ? ROLES_SOLICITANTE.includes(user.role) : false)
+  const puedeCambiarObra = !!user?.role && (
+    (esSolicitante && ESTADOS_NO_APROBADO.includes(r.estado)) ||
+    (ROLES_GRUPO_B.includes(user.role) && ESTADOS_PRE_COTIZACION.includes(r.estado))
+  )
 
   return (
     <div className="space-y-4">
@@ -142,9 +152,9 @@ export default async function RequerimientoDetailPage({ params }: Props) {
           {/* Recepción */}
           <RequerimientoRecepcion requerimiento={r} />
 
-          {user?.role === 'admin_ti' && (
+          {/* {puedeCambiarObra && (
             <AdminTiProjectEditor requerimiento={r} proyectos={proyectos} />
-          )}
+          )} */}
 
           <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
             <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Información</h2>
@@ -240,7 +250,7 @@ export default async function RequerimientoDetailPage({ params }: Props) {
 
         {/* Ítems: el contenido principal, con más espacio */}
         <div className="lg:col-span-2">
-          <RequerimientoItemsCard requerimiento={r} />
+          <RequerimientoItemsCard requerimiento={r} proyectos={proyectos} />
         </div>
       </div>
     </div>

@@ -21,11 +21,17 @@ const ESTADO_CLASS: Record<EstadoOrdenCompra, string> = {
   cancelada: 'bg-destructive/10 text-destructive',
 }
 
-export async function ProyectoOrdenesCompraSection({ proyectoId }: { proyectoId: string }) {
-  const ordenes = await serverFetch<OrdenCompra[]>(`/ordenes-compra?proyectoId=${proyectoId}`).catch(() => [] as OrdenCompra[])
+interface Props {
+  proyectoId: string
+  initialOrdenes?: OrdenCompra[]
+  className?: string
+}
+
+export async function ProyectoOrdenesCompraSection({ proyectoId, initialOrdenes, className }: Props) {
+  const ordenes = initialOrdenes ?? await serverFetch<OrdenCompra[]>(`/ordenes-compra?proyectoId=${proyectoId}`).catch(() => [] as OrdenCompra[])
 
   return (
-    <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-2">
+    <div className={cn("rounded-xl border border-border bg-card p-5 space-y-4", className)}>
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Órdenes de compra y servicio ({ordenes.length})

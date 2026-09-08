@@ -33,9 +33,10 @@ interface Props {
   proyectoId: string
   initialItems: SupervisorItem[]
   usuarios: User[]
+  className?: string
 }
 
-export function ProyectoSupervisoresSection({ proyectoId, initialItems, usuarios }: Props) {
+export function ProyectoSupervisoresSection({ proyectoId, initialItems, usuarios, className }: Props) {
   const [items, setItems] = useState<SupervisorItem[]>(initialItems)
   const [showForm, setShowForm] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState('')
@@ -88,7 +89,7 @@ export function ProyectoSupervisoresSection({ proyectoId, initialItems, usuarios
   }
 
   return (
-    <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-2">
+    <div className={cn("rounded-xl border border-border bg-card p-5 space-y-4", className)}>
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Supervisores del proyecto ({items.length})

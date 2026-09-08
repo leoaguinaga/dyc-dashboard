@@ -22,6 +22,7 @@ export type EstadoProyecto =
   | "cierre"
   | "liquidada";
 export type AmbitoGeografico = "local" | "nacional" | "internacional";
+export type CategoriaServicioProyecto = "ING" | "MAN";
 export type CumplimientoHito = "si" | "no" | "programado";
 export type TipoAlmacen = "fijo" | "temporal";
 export type TipoItem = "consumible" | "activo";
@@ -92,7 +93,8 @@ export type EstadoAprobacionCompra =
   | "pendiente"
   | "aprobada_tecnico"
   | "aprobada"
-  | "observada";
+  | "observada"
+  | "cancelada";
 export type DestinoPago = "empresa" | "trabajador";
 export type MetodoPagoTrabajador =
   | "registrado"
@@ -173,6 +175,8 @@ export interface Hito {
 export interface Proyecto {
   id: string;
   codigo?: string;
+  anio?: number;
+  categoriaServicio?: CategoriaServicioProyecto;
   nombre: string;
   ciudad?: string;
   direccion?: string;
@@ -1083,8 +1087,14 @@ export interface Pago {
         | "pagoTrabajadorNumeroCuenta"
         | "pagoTrabajadorNumero"
       > & {
-        pagoTrabajador?: Pick<Trabajador, "id" | "nombre" | "banco" | "numeroCuenta" | "telefono"> | null;
-        proveedor: Pick<Proveedor, "id" | "razonSocial" | "banco" | "numeroCuenta"> | null;
+        pagoTrabajador?: Pick<
+          Trabajador,
+          "id" | "nombre" | "banco" | "numeroCuenta" | "telefono"
+        > | null;
+        proveedor: Pick<
+          Proveedor,
+          "id" | "razonSocial" | "banco" | "numeroCuenta"
+        > | null;
         proyecto: Pick<Proyecto, "id" | "codigo" | "nombre">;
         creadoPor: Pick<User, "id" | "name">;
       })
@@ -1097,7 +1107,10 @@ export interface Pago {
   categoria?: string | null;
   tipoBeneficiario: TipoBeneficiario;
   beneficiarioTrabajadorId?: string | null;
-  beneficiarioTrabajador?: Pick<Trabajador, "id" | "nombre" | "banco" | "numeroCuenta" | "telefono"> | null;
+  beneficiarioTrabajador?: Pick<
+    Trabajador,
+    "id" | "nombre" | "banco" | "numeroCuenta" | "telefono"
+  > | null;
   monto: string;
   porcentaje: string;
   fechaProgramada: string;

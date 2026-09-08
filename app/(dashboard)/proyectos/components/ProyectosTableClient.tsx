@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import Link from 'next/link'
-import { Plus, Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useMemo, useState } from 'react'
+import { Search } from 'lucide-react'
+import { DataTable } from '@/components/shared/data-table/data-table'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
-import { cn, formatDateOnly } from '@/lib/utils'
 import type { Proyecto } from '@/types/api'
+import { columns, type ProyectoTableRow } from './columns'
 
 type EstadoFilter = 'todos' | Proyecto['estado']
 type AmbitoFilter = 'todos' | 'nacional' | 'internacional'
@@ -44,27 +43,69 @@ export function ProyectosTableClient({ proyectos }: Props) {
   }
 
   const filtered = useMemo(() => {
-    let result = proyectos
+    const byId = new Map(proyectos.map((proyecto) => [proyecto.id, proyecto]))
+    const childrenByParent = new Map<string, Proyecto[]>()
 
-    if (estado !== 'todos') result = result.filter((p) => p.estado === estado)
-    if (year) result = result.filter((p) => new Date(p.fechaInicio ?? p.creadaEn).getFullYear() === year)
-    if (ambito === 'internacional') result = result.filter((p) => p.ambitoGeografico === 'internacional')
-    if (ambito === 'nacional') result = result.filter((p) => p.ambitoGeografico !== 'internacional')
-    if (ciudad !== 'todas') result = result.filter((p) => p.ciudad === ciudad)
+    for (const proyecto of proyectos) {
+      if (!proyecto.parentId || !byId.has(proyecto.parentId)) continue
+      const siblings = childrenByParent.get(proyecto.parentId) ?? []
+      siblings.push(proyecto)
+      childrenByParent.set(proyecto.parentId, siblings)
+    }
 
-    if (search.trim()) {
-      const q = search.trim().toLowerCase()
-      result = result.filter(
-        (p) =>
-          p.nombre.toLowerCase().includes(q) ||
-          p.codigo?.toLowerCase().includes(q) ||
-          p.cliente?.razonSocial?.toLowerCase().includes(q) ||
-          p.cliente?.nombreComercial?.toLowerCase().includes(q) ||
-          p.ciudad?.toLowerCase().includes(q),
+    const visited = new Set<string>()
+
+    const buildTree = (proyecto: Proyecto, ancestors = new Set<string>()): ProyectoTableRow => {
+      visited.add(proyecto.id)
+      const nextAncestors = new Set(ancestors).add(proyecto.id)
+      const children = (childrenByParent.get(proyecto.id) ?? [])
+        .filter((child) => !nextAncestors.has(child.id))
+        .map((child) => buildTree(child, nextAncestors))
+
+      return { ...proyecto, children: children.length > 0 ? children : undefined }
+    }
+
+    const roots = proyectos
+      .filter((proyecto) => !proyecto.parentId || !byId.has(proyecto.parentId))
+      .map((proyecto) => buildTree(proyecto))
+
+    // Conserva visibles los registros mal enlazados o cíclicos en vez de perderlos.
+    for (const proyecto of proyectos) {
+      if (!visited.has(proyecto.id)) roots.push(buildTree(proyecto))
+    }
+
+    const q = search.trim().toLowerCase()
+    const matches = (proyecto: Proyecto) => {
+      if (estado !== 'todos' && proyecto.estado !== estado) return false
+      if (year && new Date(proyecto.fechaInicio ?? proyecto.creadaEn).getFullYear() !== year) return false
+      if (ambito === 'internacional' && proyecto.ambitoGeografico !== 'internacional') return false
+      if (ambito === 'nacional' && proyecto.ambitoGeografico === 'internacional') return false
+      if (ciudad !== 'todas' && proyecto.ciudad !== ciudad) return false
+      if (!q) return true
+
+      return !!(
+        proyecto.nombre.toLowerCase().includes(q) ||
+        proyecto.codigo?.toLowerCase().includes(q) ||
+        proyecto.cliente?.razonSocial?.toLowerCase().includes(q) ||
+        proyecto.cliente?.nombreComercial?.toLowerCase().includes(q) ||
+        proyecto.ciudad?.toLowerCase().includes(q)
       )
     }
 
-    return result
+    const filterTree = (row: ProyectoTableRow): ProyectoTableRow | null => {
+      if (matches(row)) return row
+
+      const matchingChildren = row.children
+        ?.map(filterTree)
+        .filter((child): child is ProyectoTableRow => child !== null)
+
+      if (!matchingChildren?.length) return null
+      return { ...row, children: matchingChildren, isContextOnly: true }
+    }
+
+    return roots
+      .map(filterTree)
+      .filter((row): row is ProyectoTableRow => row !== null)
   }, [proyectos, estado, year, ambito, ciudad, search])
 
   const estadoOptions: { value: EstadoFilter; label: string }[] = [
@@ -84,163 +125,88 @@ export function ProyectosTableClient({ proyectos }: Props) {
   const showCiudadFilter = ambito !== 'internacional' && ciudadesDisponibles.length > 1
 
   return (
-    <div className="space-y-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-250 ease-out">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Buscar por nombre, código o cliente…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-8 w-full rounded-lg border border-border pl-8 pr-3 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
-          />
-        </div>
-        <Select value={estado} onValueChange={(v) => setEstado(v as EstadoFilter)}>
-          <SelectTrigger className="bg-white">
-            <p>Estado</p>
-          </SelectTrigger>
-          <SelectContent>
-            {estadoOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={ambito} onValueChange={(v) => handleAmbitoChange(v ?? 'todos')}>
-          <SelectTrigger className="bg-white">
-            <p>Ubicación</p>
-          </SelectTrigger>
-          <SelectContent>
-            {ambitoOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {showCiudadFilter && (
-          <Select value={ciudad} onValueChange={(v) => setCiudad(v ?? 'todas')}>
-            <SelectTrigger className="bg-white">
-              <p>Ciudad</p>
+    <DataTable
+      columns={columns}
+      data={filtered}
+      getSubRows={(row) => row.children}
+      getRowId={(row) => row.id}
+      defaultExpanded
+      emptyMessage={
+        search.trim()
+          ? `Sin resultados para "${search}"`
+          : 'No hay proyectos con los filtros seleccionados'
+      }
+      toolbar={
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre, código o cliente…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-8 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
+            />
+          </div>
+          <Select value={estado} onValueChange={(v) => setEstado(v as EstadoFilter)}>
+            <SelectTrigger>
+              <p>Estado</p>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todas">Todas</SelectItem>
-              {ciudadesDisponibles.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
+              {estadoOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        )}
-        {years.length > 1 && (
-          <Select
-            value={year?.toString() ?? 'todos'}
-            onValueChange={(v) => setYear(!v || v === 'todos' ? null : Number(v))}
-          >
-            <SelectTrigger className="bg-white">
-              <p>Año</p>
+          <Select value={ambito} onValueChange={(v) => handleAmbitoChange(v ?? 'todos')}>
+            <SelectTrigger>
+              <p>Ubicación</p>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {years.map((y) => (
-                <SelectItem key={y} value={y.toString()}>
-                  {y}
+              {ambitoOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        )}
-      </div>
-      {/* Table */}
-      {filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-12 text-center">
-          <p className="text-sm text-muted-foreground">
-            {search.trim()
-              ? `Sin resultados para "${search}"`
-              : 'No hay proyectos con los filtros seleccionados'}
-          </p>
+          {showCiudadFilter && (
+            <Select value={ciudad} onValueChange={(v) => setCiudad(v ?? 'todas')}>
+              <SelectTrigger>
+                <p>Ciudad</p>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas</SelectItem>
+                {ciudadesDisponibles.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {years.length > 1 && (
+            <Select
+              value={year?.toString() ?? 'todos'}
+              onValueChange={(v) => setYear(!v || v === 'todos' ? null : Number(v))}
+            >
+              <SelectTrigger>
+                <p>Año</p>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {years.map((y) => (
+                  <SelectItem key={y} value={y.toString()}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Código</th>
-                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Nombre</th>
-                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Cliente</th>
-                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Ubicación</th>
-                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Inicio programado</th>
-                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Fin programado</th>
-                <th className="px-4 py-2.5 text-left text-sm font-medium text-muted-foreground">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map((p) => (
-                <tr key={p.id} className="transition-colors duration-[120ms] hover:bg-muted/40">
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground tabular-nums">
-                    {p.codigo ?? '---'}
-                  </td>
-                  <td className="px-4 py-3 font-medium">
-                    <Link
-                      href={`/proyectos/${p.id}`}
-                      className='hover:underline underline-offset-4'
-                    >
-                      {p.nombre}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.cliente?.nombreComercial ?? p.cliente?.razonSocial ?? '---'}</td>
-                  <td className="px-4 py-3">
-                    <UbicacionCell proyecto={p} />
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {p.fechaInicio ? formatDateOnly(p.fechaInicio) : '---'}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {p.fechaFin ? formatDateOnly(p.fechaFin) : '---'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <EstadoBadge estado={p.estado} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function UbicacionCell({ proyecto }: { proyecto: Proyecto }) {
-  if (proyecto.ambitoGeografico === 'internacional') {
-    return <span className="inline-flex items-center rounded-md bg-violet-500/10 px-2 py-0.5 text-xs font-medium text-violet-600">Internacional</span>
-  }
-  if (proyecto.ciudad) {
-    return <span className="text-muted-foreground">{proyecto.ciudad}</span>
-  }
-  return <span className="text-muted-foreground">Perú</span>
-}
-
-function EstadoBadge({ estado }: { estado: Proyecto['estado'] }) {
-  const styles: Record<Proyecto['estado'], string> = {
-    planificacion: 'bg-blue-500/15 text-blue-600',
-    ejecucion: 'bg-chart-2/15 text-chart-2',
-    cierre: 'bg-amber-500/15 text-amber-600',
-    liquidada: 'bg-muted text-muted-foreground',
-  }
-  const labels: Record<Proyecto['estado'], string> = {
-    planificacion: 'Planificación',
-    ejecucion: 'Ejecución',
-    cierre: 'Cierre',
-    liquidada: 'Liquidada',
-  }
-  return (
-    <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', styles[estado])}>
-      {labels[estado]}
-    </span>
+      }
+    />
   )
 }

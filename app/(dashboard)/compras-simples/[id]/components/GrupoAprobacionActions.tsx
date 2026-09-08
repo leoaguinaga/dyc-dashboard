@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, XCircle, Send } from 'lucide-react'
+import { Ban, CheckCircle2, XCircle, Send } from 'lucide-react'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { useSession } from '@/lib/auth/session'
@@ -33,6 +33,8 @@ export function GrupoAprobacionActions({ grupo: g, creadoPorId, tipo }: Props) {
   const [loading, setLoading] = useState<string | null>(null)
   const [showObservar, setShowObservar] = useState(false)
   const [notaObservacion, setNotaObservacion] = useState('')
+  const [showCancelar, setShowCancelar] = useState(false)
+  const [motivoCancelar, setMotivoCancelar] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   async function action(endpoint: string, body?: object) {
@@ -62,7 +64,7 @@ export function GrupoAprobacionActions({ grupo: g, creadoPorId, tipo }: Props) {
     <div className="border-t border-border pt-3 space-y-2">
       {canAprobarObservar && (
         <div className="space-y-2">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Button
               className="flex-1"
               disabled={loading !== null}
@@ -80,6 +82,17 @@ export function GrupoAprobacionActions({ grupo: g, creadoPorId, tipo }: Props) {
               >
                 <XCircle className="size-4" />
                 Observar
+              </Button>
+            )}
+            {!showCancelar && (
+              <Button
+                variant="outline"
+                className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5"
+                disabled={loading !== null}
+                onClick={() => setShowCancelar(true)}
+              >
+                <Ban className="size-4" />
+                Rechazar
               </Button>
             )}
           </div>
@@ -105,6 +118,35 @@ export function GrupoAprobacionActions({ grupo: g, creadoPorId, tipo }: Props) {
                   onClick={() => action('observar', { nota: notaObservacion.trim() })}
                 >
                   {loading === 'observar' ? 'Observando…' : 'Confirmar observación'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {showCancelar && (
+            <div className="space-y-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+              <p className="text-xs text-destructive">
+                El grupo se cancelará y no podrá aprobarse ni reenviarse. Esta acción no genera pagos.
+              </p>
+              <textarea
+                value={motivoCancelar}
+                onChange={(e) => setMotivoCancelar(e.target.value)}
+                placeholder="Motivo del rechazo (obligatorio)…"
+                rows={3}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms] resize-none"
+              />
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => setShowCancelar(false)}>
+                  Volver
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5"
+                  disabled={loading !== null || !motivoCancelar.trim()}
+                  onClick={() => action('cancelar', { motivo: motivoCancelar.trim() })}
+                >
+                  {loading === 'cancelar' ? 'Rechazando…' : 'Confirmar rechazo'}
                 </Button>
               </div>
             </div>

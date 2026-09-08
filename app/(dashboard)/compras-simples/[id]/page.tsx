@@ -18,6 +18,7 @@ const ESTADO_LABEL: Record<EstadoAprobacionCompra, string> = {
   aprobada_tecnico: 'Aprobado por área técnica · falta gerencia',
   aprobada: 'Aprobada',
   observada: 'Observada',
+  cancelada: 'Rechazada',
 }
 
 const ESTADO_CLASS: Record<EstadoAprobacionCompra, string> = {
@@ -25,6 +26,7 @@ const ESTADO_CLASS: Record<EstadoAprobacionCompra, string> = {
   aprobada_tecnico: 'bg-indigo-500/15 text-indigo-600',
   aprobada: 'bg-chart-2/15 text-chart-2',
   observada: 'bg-amber-500/15 text-amber-600',
+  cancelada: 'bg-destructive/10 text-destructive',
 }
 
 const METODO_TRABAJADOR_LABEL: Record<string, string> = {
