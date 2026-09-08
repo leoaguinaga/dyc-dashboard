@@ -1,32 +1,34 @@
-import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
-import { serverFetch } from '@/lib/api/server'
-import { EditProyectoForm } from './components/EditProyectoForm'
-import type { Cliente, Proyecto, Role, Trabajador, User } from '@/types/api'
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { serverFetch } from "@/lib/api/server";
+import { EditProyectoForm } from "./components/EditProyectoForm";
+import type { Cliente, Proyecto, Role, Trabajador, User } from "@/types/api";
 
-const CON_ACCESO_EDICION: Role[] = ['administrador', 'admin_ti', 'gerencia']
+const CON_ACCESO_EDICION: Role[] = ["administrador", "admin_ti", "gerencia"];
 
 interface Props {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditarProyectoPage({ params }: Props) {
-  const { id } = await params
+  const { id } = await params;
 
-  const [result, clientes, trabajadores, proyectos, user] = await Promise.all([
+  const [result, clientes, trabajadores, user] = await Promise.all([
     serverFetch<Proyecto>(`/proyectos/${id}`).catch((e: Error) => e),
-    serverFetch<Cliente[]>('/clientes').catch(() => [] as Cliente[]),
-    serverFetch<Trabajador[]>('/trabajadores').catch(() => [] as Trabajador[]),
-    serverFetch<Proyecto[]>('/proyectos').catch(() => [] as Proyecto[]),
-    serverFetch<User>('/users/me').catch(() => null),
-  ])
+    serverFetch<Cliente[]>("/clientes").catch(() => [] as Cliente[]),
+    serverFetch<Trabajador[]>("/trabajadores").catch(() => [] as Trabajador[]),
+    serverFetch<User>("/users/me").catch(() => null),
+  ]);
 
-  if (!user || !CON_ACCESO_EDICION.includes(user.role)) redirect(`/proyectos/${id}`)
+  if (!user || !CON_ACCESO_EDICION.includes(user.role))
+    redirect(`/proyectos/${id}`);
 
   if (result instanceof Error) {
-    if (result.message.includes('404')) notFound()
-    return <p className="text-sm text-destructive">Error al cargar el proyecto.</p>
+    if (result.message.includes("404")) notFound();
+    return (
+      <p className="text-sm text-destructive">Error al cargar el proyecto.</p>
+    );
   }
 
   return (
@@ -39,16 +41,22 @@ export default async function EditarProyectoPage({ params }: Props) {
           <ArrowLeft className="size-3.5" />
           Volver al proyecto
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Editar proyecto</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Editar proyecto
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Modifica los datos de{' '}
+          Modifica los datos de{" "}
           <span className="font-medium text-foreground">{result.nombre}</span>.
         </p>
       </div>
 
       <div className="rounded-xl border border-border max-w-4xl bg-white p-6">
-        <EditProyectoForm proyecto={result} clientes={clientes} trabajadores={trabajadores} proyectos={proyectos} />
+        <EditProyectoForm
+          proyecto={result}
+          clientes={clientes}
+          trabajadores={trabajadores}
+        />
       </div>
     </div>
-  )
+  );
 }

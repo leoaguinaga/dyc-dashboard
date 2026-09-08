@@ -17,6 +17,7 @@ interface Props {
   initialItems: AsigItem[]
   todos: Trabajador[]
   canEdit: boolean
+  className?: string
 }
 
 type FormState = {
@@ -30,7 +31,7 @@ function fmt(iso?: string) {
   return new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos, canEdit }: Props) {
+export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos, canEdit, className }: Props) {
   const [items, setItems] = useState<AsigItem[]>(initialItems)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<FormState>({ trabajadorIds: [], fechaIngreso: '', fechaSalida: '' })
@@ -86,7 +87,7 @@ export function ProyectoTrabajadoresSection({ proyectoId, initialItems, todos, c
   }
 
   return (
-    <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-2">
+    <div className={cn("rounded-xl border border-border bg-card p-5 space-y-4", className)}>
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Operadores en proyecto ({items.length})

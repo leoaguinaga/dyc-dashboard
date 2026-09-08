@@ -1,54 +1,64 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { ArrowLeft, ExternalLink } from 'lucide-react'
-import { serverFetch } from '@/lib/api/server'
-import type { Pago } from '@/types/api'
-import { cn, formatCurrency, formatDateOnly, formatPercent } from '@/lib/utils'
-import { getDestinoPago, getBeneficiario, getUrgencia } from '@/lib/pagos-utils'
-import { CopyButton } from './components/CopyButton'
-import { ComprobantePagoSection } from './components/ComprobantePagoSection'
-import { MarcarPagadoCard } from './components/MarcarPagadoCard'
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft, Download, ExternalLink, FileText } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { serverFetch } from "@/lib/api/server";
+import type { Pago } from "@/types/api";
+import { cn, formatCurrency, formatDateOnly, formatPercent } from "@/lib/utils";
+import {
+  getDestinoPago,
+  getBeneficiario,
+  getUrgencia,
+} from "@/lib/pagos-utils";
+import { CopyButton } from "./components/CopyButton";
+import { ComprobantePagoSection } from "./components/ComprobantePagoSection";
+import { MarcarPagadoCard } from "./components/MarcarPagadoCard";
 
-const ESTADO_LABEL: Record<Pago['estadoEfectivo'], string> = {
-  borrador: 'Por completar',
-  pendiente: 'Pendiente',
-  vencido: 'Vencido',
-  pagado: 'Pagado',
-  cancelado: 'Cancelado',
-}
+const ESTADO_LABEL: Record<Pago["estadoEfectivo"], string> = {
+  borrador: "Por completar",
+  pendiente: "Pendiente",
+  vencido: "Vencido",
+  pagado: "Pagado",
+  cancelado: "Cancelado",
+};
 
-const ESTADO_CLASS: Record<Pago['estadoEfectivo'], string> = {
-  borrador: 'border-border bg-muted/60 text-muted-foreground',
-  pendiente: 'border-blue-200 bg-blue-50/70 text-blue-700',
-  vencido: 'border-destructive/20 bg-destructive/10 text-destructive font-medium',
-  pagado: 'border-emerald-200 bg-emerald-50/70 text-emerald-700',
-  cancelado: 'border-border bg-muted/40 text-muted-foreground',
-}
+const ESTADO_CLASS: Record<Pago["estadoEfectivo"], string> = {
+  borrador: "border-border bg-muted/60 text-muted-foreground",
+  pendiente: "border-blue-200 bg-blue-50/70 text-blue-700",
+  vencido:
+    "border-destructive/20 bg-destructive/10 text-destructive font-medium",
+  pagado: "border-emerald-200 bg-emerald-50/70 text-emerald-700",
+  cancelado: "border-border bg-muted/40 text-muted-foreground",
+};
 
 interface Props {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 export default async function PagoDetailPage({ params }: Props) {
-  const { id } = await params
-  const pago = await serverFetch<Pago>(`/pagos/${id}`).catch(() => null)
-  if (!pago) notFound()
+  const { id } = await params;
+  const pago = await serverFetch<Pago>(`/pagos/${id}`).catch(() => null);
+  if (!pago) notFound();
 
-  const beneficiario = getBeneficiario(pago)
-  const proyecto = pago.proyecto ?? pago.ordenCompra?.proyecto
-  const destino = getDestinoPago(pago)
-  const urg = getUrgencia(pago.fechaProgramada)
+  const beneficiario = getBeneficiario(pago);
+  const proyecto = pago.proyecto ?? pago.ordenCompra?.proyecto;
+  const destino = getDestinoPago(pago);
+  const urg = getUrgencia(pago.fechaProgramada);
 
   // Identificador de documento origen
-  const oc = pago.ordenCompra
-  const ocNumRaw = oc?.numero ?? ''
-  const ocNumClean = ocNumRaw.toUpperCase().startsWith('OC') || ocNumRaw.toUpperCase().startsWith('OS')
-    ? ocNumRaw
-    : ocNumRaw ? `OC ${ocNumRaw}` : null
+  const oc = pago.ordenCompra;
+  const ocNumRaw = oc?.numero ?? "";
+  const ocNumClean =
+    ocNumRaw.toUpperCase().startsWith("OC") ||
+      ocNumRaw.toUpperCase().startsWith("OS")
+      ? ocNumRaw
+      : ocNumRaw
+        ? `OC ${ocNumRaw}`
+        : null;
 
   const esCompraSimple =
-    oc?.destinoPago === 'trabajador' ||
-    (pago.concepto && pago.concepto.toLowerCase().includes('compra simple'))
+    oc?.destinoPago === "trabajador" ||
+    (pago.concepto && pago.concepto.toLowerCase().includes("compra simple"));
 
   return (
     <div className="space-y-6 w-full">
@@ -62,7 +72,7 @@ export default async function PagoDetailPage({ params }: Props) {
             <ArrowLeft className="size-3.5" />
             Pagos
           </Link>
-          {(pago.estado === 'pagado' || pago.estado === 'cancelado') && (
+          {(pago.estado === "pagado" || pago.estado === "cancelado") && (
             <>
               <span>/</span>
               <Link
@@ -78,12 +88,12 @@ export default async function PagoDetailPage({ params }: Props) {
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="space-y-1.5">
             <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
-              {pago.concepto ?? oc?.concepto ?? 'Detalle del Pago'}
+              {pago.concepto ?? oc?.concepto ?? "Detalle del Pago"}
             </h1>
             <div className="flex items-center gap-2 flex-wrap">
               <span
                 className={cn(
-                  'inline-flex items-center rounded px-2 py-0.5 text-xs border',
+                  "inline-flex items-center rounded px-2 py-0.5 text-xs border",
                   ESTADO_CLASS[pago.estadoEfectivo],
                 )}
               >
@@ -92,17 +102,17 @@ export default async function PagoDetailPage({ params }: Props) {
 
               {ocNumClean && (
                 <span className="inline-flex items-center rounded border border-border bg-muted/40 px-2 py-0.5 text-xs text-muted-foreground">
-                  {ocNumClean} {esCompraSimple ? '· Compra simple' : ''}
+                  {ocNumClean} {esCompraSimple ? "· Compra simple" : ""}
                 </span>
               )}
 
-              {pago.origen === 'recurrente' && (
+              {pago.origen === "recurrente" && (
                 <span className="inline-flex items-center rounded border border-purple-200 bg-purple-50/50 px-2 py-0.5 text-xs text-purple-700">
                   Pago fijo
                 </span>
               )}
 
-              {pago.origen === 'planilla_staff' && (
+              {pago.origen === "planilla_staff" && (
                 <span className="inline-flex items-center rounded border border-emerald-200 bg-emerald-50/50 px-2 py-0.5 text-xs text-emerald-700">
                   Planilla
                 </span>
@@ -110,7 +120,7 @@ export default async function PagoDetailPage({ params }: Props) {
             </div>
           </div>
 
-          <div className="sm:text-right shrink-0">
+          <div className="sm:text-right shrink-0 space-y-2">
             <span className="block text-xs uppercase tracking-wider text-muted-foreground">
               Monto a pagar
             </span>
@@ -121,6 +131,32 @@ export default async function PagoDetailPage({ params }: Props) {
               <span className="block text-xs text-muted-foreground mt-0.5">
                 {formatPercent(pago.porcentaje)} del total
               </span>
+            )}
+            {pago.estado === "pagado" && (
+              <div className="flex flex-wrap gap-1.5">
+                <a
+                  href={`/api/pagos/${pago.id}/constancia`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "w-full sm:w-auto",
+                  )}
+                >
+                  <Download className="size-3.5" />
+                  Exportar constancia PDF
+                </a>
+                <a
+                  href={`/api/pagos/${pago.id}/constancia/word`}
+                  className={cn(
+                    buttonVariants({ size: "sm" }),
+                    "w-full sm:w-auto",
+                  )}
+                >
+                  <FileText className="size-3.5 " />
+                  Exportar constancia DOCX
+                </a>
+              </div>
             )}
           </div>
         </div>
@@ -138,8 +174,13 @@ export default async function PagoDetailPage({ params }: Props) {
 
             <div className="grid gap-3.5 sm:grid-cols-2 text-xs">
               <div>
-                <span className="block text-muted-foreground">Beneficiario</span>
-                <p className="font-medium text-foreground text-sm mt-0.5 truncate" title={beneficiario}>
+                <span className="block text-muted-foreground">
+                  Beneficiario
+                </span>
+                <p
+                  className="font-medium text-foreground text-sm mt-0.5 truncate"
+                  title={beneficiario}
+                >
                   {beneficiario}
                 </p>
                 <span className="block text-[11px] text-muted-foreground capitalize mt-0.5">
@@ -148,14 +189,18 @@ export default async function PagoDetailPage({ params }: Props) {
               </div>
 
               <div>
-                <span className="block text-muted-foreground">Centro de costo</span>
+                <span className="block text-muted-foreground">
+                  Centro de costo
+                </span>
                 {proyecto ? (
                   <div className="mt-0.5">
                     <Link
                       href={`/proyectos/${proyecto.id}`}
                       className="font-medium text-foreground hover:text-primary transition-colors inline-flex items-center gap-1 text-sm"
                     >
-                      <span className="truncate">{proyecto.nombre ?? proyecto.codigo}</span>
+                      <span className="truncate">
+                        {proyecto.nombre ?? proyecto.codigo}
+                      </span>
                       <ExternalLink className="size-3 text-muted-foreground shrink-0" />
                     </Link>
                     {proyecto.nombre && (
@@ -172,15 +217,20 @@ export default async function PagoDetailPage({ params }: Props) {
               </div>
 
               <div>
-                <span className="block text-muted-foreground">Fecha programada</span>
+                <span className="block text-muted-foreground">
+                  Fecha programada
+                </span>
                 <p className="font-medium text-foreground text-sm mt-0.5">
                   {formatDateOnly(pago.fechaProgramada)}
                 </p>
-                {pago.estadoEfectivo === 'pendiente' || pago.estadoEfectivo === 'vencido' ? (
+                {pago.estadoEfectivo === "pendiente" ||
+                  pago.estadoEfectivo === "vencido" ? (
                   <span
                     className={cn(
-                      'inline-block text-[11px] mt-0.5',
-                      urg.tipo === 'vencido' ? 'text-destructive font-medium' : 'text-muted-foreground',
+                      "inline-block text-[11px] mt-0.5",
+                      urg.tipo === "vencido"
+                        ? "text-destructive font-medium"
+                        : "text-muted-foreground",
                     )}
                   >
                     {urg.label}
@@ -189,13 +239,16 @@ export default async function PagoDetailPage({ params }: Props) {
               </div>
 
               <div>
-                <span className="block text-muted-foreground">Monto del tramo</span>
+                <span className="block text-muted-foreground">
+                  Monto del tramo
+                </span>
                 <p className="font-semibold text-foreground text-sm mt-0.5 tabular-nums">
                   {formatCurrency(pago.monto)}
                 </p>
                 {pago.porcentaje && oc?.montoTotal && (
                   <span className="block text-[11px] text-muted-foreground mt-0.5">
-                    {formatPercent(pago.porcentaje)} de {formatCurrency(oc.montoTotal)}
+                    {formatPercent(pago.porcentaje)} de{" "}
+                    {formatCurrency(oc.montoTotal)}
                   </span>
                 )}
               </div>
@@ -213,10 +266,10 @@ export default async function PagoDetailPage({ params }: Props) {
                 <div className="flex items-center gap-2">
                   <span
                     className={cn(
-                      'rounded px-2 py-0.5 text-xs font-semibold',
-                      destino.billetera === 'yape'
-                        ? 'border border-purple-200 bg-purple-50 text-purple-700'
-                        : 'border border-cyan-200 bg-cyan-50 text-cyan-700',
+                      "rounded px-2 py-0.5 text-xs font-semibold",
+                      destino.billetera === "yape"
+                        ? "border border-purple-200 bg-purple-50 text-purple-700"
+                        : "border border-cyan-200 bg-cyan-50 text-cyan-700",
                     )}
                   >
                     {destino.metodoLabel}
@@ -231,7 +284,10 @@ export default async function PagoDetailPage({ params }: Props) {
                     Número celular:
                   </span>
                   {destino.numero ? (
-                    <CopyButton text={destino.numero} label={`Cel: ${destino.numero}`} />
+                    <CopyButton
+                      text={destino.numero}
+                      label={`Cel: ${destino.numero}`}
+                    />
                   ) : (
                     <span className="text-xs text-muted-foreground/70 italic">
                       Sin número registrado en el perfil.
@@ -239,9 +295,9 @@ export default async function PagoDetailPage({ params }: Props) {
                   )}
                 </div>
               </div>
-            ) : (destino.banco || destino.numero || destino.cci) ? (
+            ) : destino.banco || destino.numero || destino.cci ? (
               <div className="space-y-2.5">
-                {destino.bancoNorm && destino.bancoNorm !== 'Sin banco' && (
+                {destino.bancoNorm && destino.bancoNorm !== "Sin banco" && (
                   <div className="flex items-center gap-2">
                     <span className="rounded border border-border bg-muted/60 px-2 py-0.5 text-xs font-medium text-foreground">
                       {destino.bancoNorm}
@@ -260,7 +316,10 @@ export default async function PagoDetailPage({ params }: Props) {
                     />
                   )}
                   {destino.cci && (
-                    <CopyButton text={destino.cci} label={`CCI: ${destino.cci}`} />
+                    <CopyButton
+                      text={destino.cci}
+                      label={`CCI: ${destino.cci}`}
+                    />
                   )}
                 </div>
               </div>
@@ -281,9 +340,15 @@ export default async function PagoDetailPage({ params }: Props) {
               {oc && (
                 <>
                   <div>
-                    <span className="block text-muted-foreground">Documento fuente</span>
+                    <span className="block text-muted-foreground">
+                      Documento fuente
+                    </span>
                     <Link
-                      href={esCompraSimple ? `/compras-simples` : `/ordenes-compra/${oc.id}`}
+                      href={
+                        esCompraSimple
+                          ? `/compras-simples`
+                          : `/ordenes-compra/${oc.id}`
+                      }
                       className="font-medium text-primary hover:underline inline-flex items-center gap-1 mt-0.5"
                     >
                       <span>{oc.numero}</span>
@@ -292,7 +357,9 @@ export default async function PagoDetailPage({ params }: Props) {
                   </div>
 
                   <div>
-                    <span className="block text-muted-foreground">Total contratado</span>
+                    <span className="block text-muted-foreground">
+                      Total contratado
+                    </span>
                     <p className="font-medium text-foreground mt-0.5 tabular-nums">
                       {formatCurrency(oc.montoTotal)}
                     </p>
@@ -301,7 +368,9 @@ export default async function PagoDetailPage({ params }: Props) {
               )}
 
               <div>
-                <span className="block text-muted-foreground">Registrado por</span>
+                <span className="block text-muted-foreground">
+                  Registrado por
+                </span>
                 <p className="font-medium text-foreground mt-0.5">
                   {pago.registradoPor.name}
                 </p>
@@ -309,7 +378,9 @@ export default async function PagoDetailPage({ params }: Props) {
 
               {oc?.creadoPor && (
                 <div>
-                  <span className="block text-muted-foreground">Emitido por</span>
+                  <span className="block text-muted-foreground">
+                    Emitido por
+                  </span>
                   <p className="font-medium text-foreground mt-0.5">
                     {oc.creadoPor.name}
                   </p>
@@ -340,9 +411,9 @@ export default async function PagoDetailPage({ params }: Props) {
           />
 
           {/* Ficha 2: Liquidación del Pago */}
-          {pago.estado === 'pendiente' ? (
+          {pago.estado === "pendiente" ? (
             <MarcarPagadoCard pago={pago} />
-          ) : pago.estado === 'pagado' ? (
+          ) : pago.estado === "pagado" ? (
             <div className="rounded-xl border border-border bg-white p-5 space-y-3.5 shadow-xs">
               <div className="flex items-center justify-between">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -355,30 +426,40 @@ export default async function PagoDetailPage({ params }: Props) {
 
               <div className="grid gap-3 sm:grid-cols-2 text-xs pt-1">
                 <div>
-                  <span className="block text-muted-foreground">Fecha de pago real</span>
+                  <span className="block text-muted-foreground">
+                    Fecha de pago real
+                  </span>
                   <p className="font-medium text-foreground mt-0.5">
-                    {pago.fechaPagoReal ? formatDateOnly(pago.fechaPagoReal) : '—'}
+                    {pago.fechaPagoReal
+                      ? formatDateOnly(pago.fechaPagoReal)
+                      : "—"}
                   </p>
                 </div>
 
                 <div>
-                  <span className="block text-muted-foreground">Método ejecutado</span>
+                  <span className="block text-muted-foreground">
+                    Método ejecutado
+                  </span>
                   <p className="font-medium text-foreground mt-0.5">
-                    {pago.metodoPago || 'No especificado'}
+                    {pago.metodoPago || "No especificado"}
                   </p>
                 </div>
 
                 <div>
-                  <span className="block text-muted-foreground">N° de operación</span>
+                  <span className="block text-muted-foreground">
+                    N° de operación
+                  </span>
                   <p className="font-mono font-medium text-foreground mt-0.5">
-                    {pago.numeroOperacion || '—'}
+                    {pago.numeroOperacion || "—"}
                   </p>
                 </div>
 
                 <div>
-                  <span className="block text-muted-foreground">Liquidado por</span>
+                  <span className="block text-muted-foreground">
+                    Liquidado por
+                  </span>
                   <p className="font-medium text-foreground mt-0.5">
-                    {pago.pagadoPor?.name || '—'}
+                    {pago.pagadoPor?.name || "—"}
                   </p>
                 </div>
               </div>
@@ -388,11 +469,13 @@ export default async function PagoDetailPage({ params }: Props) {
               <h2 className="font-semibold uppercase tracking-wider text-muted-foreground">
                 Estado de la Obligación
               </h2>
-              <p>Este pago fue cancelado y no requiere desembolso financiero.</p>
+              <p>
+                Este pago fue cancelado y no requiere desembolso financiero.
+              </p>
             </div>
           )}
         </div>
       </div>
-    </div>
-  )
+    </div >
+  );
 }

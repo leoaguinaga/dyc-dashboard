@@ -3,9 +3,12 @@
 import { useState } from 'react'
 import {
   type ColumnDef,
+  type ExpandedState,
+  type Row,
   type SortingState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
@@ -24,6 +27,9 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   emptyMessage?: string
   toolbar?: React.ReactNode
+  getSubRows?: (originalRow: TData, index: number) => TData[] | undefined
+  getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string
+  defaultExpanded?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -31,16 +37,24 @@ export function DataTable<TData, TValue>({
   data,
   emptyMessage = 'Sin resultados',
   toolbar,
+  getSubRows,
+  getRowId,
+  defaultExpanded = false,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
+  const [expanded, setExpanded] = useState<ExpandedState>(defaultExpanded ? true : {})
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting },
+    state: { sorting, expanded },
     onSortingChange: setSorting,
+    onExpandedChange: setExpanded,
+    getSubRows,
+    getRowId,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
   })
 
   const rows = table.getRowModel().rows

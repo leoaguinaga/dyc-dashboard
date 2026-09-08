@@ -16,6 +16,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 import type { Proyecto } from '@/types/api'
 
 interface Resumen {
@@ -26,6 +27,7 @@ interface Resumen {
 
 interface Props {
   proyecto: Proyecto
+  className?: string
 }
 
 const ARCHIVOS_PERMITIDOS = ['application/pdf', 'image/jpeg', 'image/png']
@@ -34,7 +36,7 @@ function fmtMoney(n: number) {
   return `S/ ${n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-export function CierreObraSection({ proyecto }: Props) {
+export function CierreObraSection({ proyecto, className }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -108,7 +110,7 @@ export function CierreObraSection({ proyecto }: Props) {
   if (!canClose && !estaCerrada) return null
 
   return (
-    <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-4">
+    <div className={cn("rounded-xl border border-border bg-card p-5 space-y-4", className)}>
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Cierre de obra</h2>
         {canClose && proyecto.estado === 'ejecucion' && (

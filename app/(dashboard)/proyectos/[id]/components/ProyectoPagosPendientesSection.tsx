@@ -20,15 +20,21 @@ const ESTADO_CLASS: Record<Pago['estadoEfectivo'], string> = {
   cancelado: 'bg-muted text-muted-foreground/60',
 }
 
-export async function ProyectoPagosPendientesSection({ proyectoId }: { proyectoId: string }) {
-  const pagos = await serverFetch<Pago[]>(`/pagos?proyectoId=${proyectoId}&estado=pendiente`).catch(() => [] as Pago[])
+interface Props {
+  proyectoId: string
+  initialPagos?: Pago[]
+  className?: string
+}
+
+export async function ProyectoPagosPendientesSection({ proyectoId, initialPagos, className }: Props) {
+  const pagos = initialPagos ?? await serverFetch<Pago[]>(`/pagos?proyectoId=${proyectoId}&estado=pendiente`).catch(() => [] as Pago[])
 
   const ordenados = [...pagos].sort(
     (a, b) => new Date(a.fechaProgramada).getTime() - new Date(b.fechaProgramada).getTime(),
   )
 
   return (
-    <div className="rounded-xl border border-border bg-white p-5 space-y-4 lg:col-span-2">
+    <div className={cn("rounded-xl border border-border bg-card p-5 space-y-4", className)}>
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Pagos pendientes ({ordenados.length})

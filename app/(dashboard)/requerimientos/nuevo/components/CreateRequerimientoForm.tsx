@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Trash2 } from 'lucide-react'
@@ -30,6 +30,33 @@ interface Props {
 const labelCn = 'mb-1.5 block text-[13px] font-medium'
 const sectionTitleCn = 'text-sm font-medium uppercase tracking-wide text-muted-foreground'
 const emptyLinea = (): LineaItem => ({ descripcion: '', cantidad: '', unidad: 'und', especificacion: null })
+
+const DRAFT_KEY = 'requerimientos-nuevo-draft'
+
+interface Draft {
+  nombre: string
+  proyectoId: string
+  tipo: TipoRequerimiento
+  urgente: boolean
+  nota: string
+  fechaEntregaRequerida: string
+  lineas: LineaItem[]
+}
+
+function loadDraft(): Draft | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY)
+    return raw ? (JSON.parse(raw) as Draft) : null
+  } catch {
+    return null
+  }
+}
+
+function clearDraft() {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(DRAFT_KEY)
+}
 
 const UNIDAD_GROUPS: Array<{ label: string; values: UnidadMedida[] }> = [
   { label: 'Uso general', values: ['und', 'pieza', 'par', 'juego', 'global'] },
@@ -82,6 +109,71 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [specModalIndex, setSpecModalIndex] = useState<number | null>(null)
+  const [draftRestored, setDraftRestored] = useState(false)
+  const draftReady = useRef(false)
+
+  useEffect(() => {
+    const draft = loadDraft()
+    if (draft) {
+      if (draft.nombre) setNombre(draft.nombre)
+      if (draft.proyectoId) setProyectoId(draft.proyectoId)
+      if (draft.tipo) setTipo(draft.tipo)
+      if (draft.urgente !== undefined) setUrgente(draft.urgente)
+      if (draft.nota) setNota(draft.nota)
+      if (draft.fechaEntregaRequerida) setFechaEntregaRequerida(draft.fechaEntregaRequerida)
+      if (draft.lineas && draft.lineas.length > 0) setLineas(draft.lineas)
+
+      const hasContent = !!(
+        draft.nombre ||
+        draft.proyectoId ||
+        draft.nota ||
+        draft.fechaEntregaRequerida ||
+        draft.lineas?.some((l) => l.descripcion || l.cantidad)
+      )
+      if (hasContent) {
+        setDraftRestored(true)
+      }
+    }
+    draftReady.current = true
+  }, [])
+
+  useEffect(() => {
+    if (!draftReady.current) return
+    const hasContent = !!(
+      nombre ||
+      proyectoId ||
+      nota ||
+      fechaEntregaRequerida ||
+      urgente ||
+      lineas.some((l) => l.descripcion || l.cantidad)
+    )
+    if (!hasContent) {
+      clearDraft()
+      return
+    }
+    const draft: Draft = {
+      nombre,
+      proyectoId,
+      tipo,
+      urgente,
+      nota,
+      fechaEntregaRequerida,
+      lineas,
+    }
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+  }, [nombre, proyectoId, tipo, urgente, nota, fechaEntregaRequerida, lineas])
+
+  function discardDraft() {
+    clearDraft()
+    setNombre('')
+    setProyectoId('')
+    setTipo(allowedTipos.length === 1 ? allowedTipos[0] : 'civil')
+    setUrgente(false)
+    setNota('')
+    setFechaEntregaRequerida('')
+    setLineas([emptyLinea()])
+    setDraftRestored(false)
+  }
 
   function updateLinea(i: number, field: 'descripcion' | 'cantidad' | 'unidad', value: string) {
     setLineas((prev) => prev.map((l, idx) => (idx === i ? { ...l, [field]: value } : l)))
@@ -133,6 +225,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
         await api.post(`/requerimientos/${result.id}/enviar`, {})
       }
 
+      clearDraft()
       router.push(`/requerimientos/${result.id}`)
       router.refresh()
     } catch (err) {
@@ -144,6 +237,18 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
 
   return (
     <form className="space-y-6">
+      {draftRestored && (
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+          <p>Se restauró un borrador que tenías sin enviar.</p>
+          <button
+            type="button"
+            onClick={discardDraft}
+            className="shrink-0 text-xs font-medium underline underline-offset-2 hover:text-amber-800"
+          >
+            Descartar
+          </button>
+        </div>
+      )}
       {/* General */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
         <section className="space-y-4 border-r pr-4">
@@ -168,10 +273,12 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
               </label>
               <Select value={proyectoId} onValueChange={(v) => { setProyectoId(v ?? ''); setErrors((p) => { const n = { ...p }; delete n.proyectoId; return n }) }}>
                 <SelectTrigger className={cn('w-full', errors.proyectoId && 'border-destructive')}>
-                  <SelectValue>
-                    {(value: string | null) =>
-                      proyectos.find((p) => p.id === value)?.nombre ?? 'Selecciona un proyecto…'
-                    }
+                  <SelectValue className="normal-case">
+                    {(value: string | null) => {
+                      const p = proyectos.find((proj) => proj.id === value)
+                      if (!p) return 'Selecciona un proyecto…'
+                      return `${p.codigo ? `${p.codigo} · ` : ''}${p.nombre}`
+                    }}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
