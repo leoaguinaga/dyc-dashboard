@@ -241,22 +241,24 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-// El PDF de la OC redondea a como mucho 1 decimal (a diferencia del resto del
-// dashboard, que usa 2) — es una decisión solo de formato de este documento,
-// los valores en base de datos siguen guardándose con su precisión original.
-function fmtMoney(n: string | number) {
-  return `S/ ${parseFloat(String(n)).toLocaleString('es-PE', { maximumFractionDigits: 1 })}`
+// Los valores en base de datos conservan su precisión original. El PDF muestra
+// importes monetarios a 2 decimales, excepto el precio unitario a 4.
+function fmtMoney(n: string | number, fractionDigits = 2) {
+  return `S/ ${parseFloat(String(n)).toLocaleString('es-PE', {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  })}`
 }
 
 function fmtPercent(n: string | number) {
   return `${Number(n).toLocaleString('es-PE', { maximumFractionDigits: 1 })}%`
 }
 
-/** Redondea a 1 decimal antes de usar el valor en el siguiente paso del
+/** Redondea a 2 decimales antes de usar el valor en el siguiente paso del
  * cálculo, para que las cifras impresas siempre sumen/cuadren exactamente
  * entre sí (evita arrastrar el error de coma flotante de un paso al otro). */
-function round1(n: number) {
-  return Math.round(n * 10) / 10
+function round2(n: number) {
+  return Math.round(n * 100) / 100
 }
 
 interface Props {
@@ -267,9 +269,9 @@ export function OcPdfDocument({ oc }: Props) {
   const itemsTotal = oc.items.reduce((sum, i) => sum + parseFloat(i.precioTotal), 0)
   // Si la respuesta del proveedor ya incluye IGV, los precios de línea son el total
   // (hay que descontar el IGV para mostrar el V. Compra sin IGV); si no, se agrega 18%.
-  const subtotal = round1(oc.incluyeIgv ? itemsTotal / 1.18 : itemsTotal)
-  const igv = round1(oc.incluyeIgv ? itemsTotal - subtotal : itemsTotal * 0.18)
-  const total = round1(oc.incluyeIgv ? itemsTotal : subtotal + igv)
+  const subtotal = round2(oc.incluyeIgv ? itemsTotal / 1.18 : itemsTotal)
+  const igv = round2(oc.incluyeIgv ? itemsTotal - subtotal : itemsTotal * 0.18)
+  const total = round2(oc.incluyeIgv ? itemsTotal : subtotal + igv)
 
   const adelantoPct = oc.adelantoPorcentaje ? parseFloat(oc.adelantoPorcentaje) : 50
   const saldoPct = oc.saldoPorcentaje ? parseFloat(oc.saldoPorcentaje) : 50
@@ -281,12 +283,12 @@ export function OcPdfDocument({ oc }: Props) {
   const descuentoLabel = retencionRaw != null && detraccionRaw == null ? 'Retención' : 'Detracción'
   const descuentoPct = detraccionRaw ?? retencionRaw ?? 10
 
-  const adelantoBruto = round1(total * (adelantoPct / 100))
-  const saldoBruto = round1(total * (saldoPct / 100))
-  const adelantoNeto = round1(adelantoBruto * (1 - descuentoPct / 100))
-  const saldoNeto = round1(saldoBruto * (1 - descuentoPct / 100))
-  const descuentoTotal = round1(total * (descuentoPct / 100))
-  const netoADepositarTotal = round1(total - descuentoTotal)
+  const adelantoBruto = round2(total * (adelantoPct / 100))
+  const saldoBruto = round2(total * (saldoPct / 100))
+  const adelantoNeto = round2(adelantoBruto * (1 - descuentoPct / 100))
+  const saldoNeto = round2(saldoBruto * (1 - descuentoPct / 100))
+  const descuentoTotal = round2(total * (descuentoPct / 100))
+  const netoADepositarTotal = round2(total - descuentoTotal)
 
   const requerimiento = oc.solicitud?.requerimiento
   // El PDF solo se exporta para OCs del flujo macro, donde el proveedor siempre está presente.
@@ -413,7 +415,7 @@ export function OcPdfDocument({ oc }: Props) {
             </Text>
             <Text style={[s.tdText, s.colUnid]}>{item.unidad}</Text>
             <Text style={[s.tdText, s.colDesc]}>{item.descripcion}</Text>
-            <Text style={[s.tdText, s.colPUnit]}>{fmtMoney(item.precioUnitario)}</Text>
+            <Text style={[s.tdText, s.colPUnit]}>{fmtMoney(item.precioUnitario, 4)}</Text>
             <Text style={[s.tdText, s.colTotal]}>{fmtMoney(item.precioTotal)}</Text>
           </View>
         ))}

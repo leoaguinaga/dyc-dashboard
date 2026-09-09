@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, FileDown, FileText, MapPin } from 'lucide-react'
+import { ArrowLeft, FileDown, FileSpreadsheet, MapPin } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { OrdenCompraActions } from './components/OrdenCompraActions'
 import { LugarEntregaEditor } from './components/LugarEntregaEditor'
@@ -72,12 +72,12 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
               Exportar PDF
             </a>
             <a
-              href={`/api/ordenes-compra/${oc.id}/word`}
+              href={`/api/ordenes-compra/${oc.id}/excel`}
               download
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/60 shadow-2xs"
             >
-              <FileText className="size-3.5 text-primary" />
-              Exportar Word
+              <FileSpreadsheet className="size-3.5 text-primary" />
+              Exportar Excel
             </a>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
