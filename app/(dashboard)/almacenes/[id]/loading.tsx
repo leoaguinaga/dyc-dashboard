@@ -4,11 +4,11 @@ export default function AlmacenDetailLoading() {
       {/* Header */}
       <div className="space-y-1">
         <div className="h-4 w-36 animate-pulse rounded-md bg-muted" />
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="size-10 animate-pulse rounded-lg bg-muted" />
             <div className="space-y-1.5">
-              <div className="h-7 w-64 animate-pulse rounded-md bg-muted" />
+              <div className="h-7 w-48 max-w-full animate-pulse rounded-md bg-muted sm:w-64" />
               <div className="h-4 w-40 animate-pulse rounded-md bg-muted" />
             </div>
           </div>

@@ -19,7 +19,7 @@ export default function NuevoItemPage() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-white p-6 max-w-2xl">
+      <div className="max-w-2xl rounded-xl border border-border bg-white p-4 sm:p-6">
         <CreateItemForm />
       </div>
     </div>

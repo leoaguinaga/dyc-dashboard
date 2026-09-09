@@ -187,7 +187,7 @@ export function ContactosSection({ clienteId, contactos }: Props) {
             <p className="mt-2 text-sm text-muted-foreground">Sin contactos registrados</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-col-3 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {contactos.map((contacto) => (
               <div key={contacto.id} className="flex items-start justify-between py-3 border rounded-lg p-2">
                 <div className="space-y-0.5">

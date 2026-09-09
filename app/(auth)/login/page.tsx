@@ -42,8 +42,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-sm space-y-8">
-      <div className="lg:hidden">
+    <div className="w-full max-w-sm space-y-6 sm:space-y-8 [@media(max-height:500px)]:space-y-4">
+      <div className="lg:hidden [@media(max-height:500px)]:hidden">
         <span className="text-sm font-semibold tracking-tight text-foreground/70">
           D&C Ingeniería y Proyectos
         </span>
@@ -56,7 +56,7 @@ export default function LoginPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 [@media(max-height:500px)]:space-y-3">
         <Field label="Correo electrónico" error={errors.email?.message}>
           <Input
             {...register('email')}
@@ -79,7 +79,8 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
             >
               {showPassword ? <EyeClosed className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>

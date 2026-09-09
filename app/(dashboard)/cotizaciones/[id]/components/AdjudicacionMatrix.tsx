@@ -31,6 +31,8 @@ function fmt(n: string | number) {
   return `S/ ${num.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+const IGV_RATE = 0.18
+
 export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, estado, ordenesExistentes }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
@@ -269,7 +271,7 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
           <tfoot>
             <tr className="border-t-2 border-border bg-muted/30">
               <td className="py-2.5 pr-4 text-xs font-semibold text-foreground align-top">
-                Subtotal
+                Total cotizado
               </td>
               {received.map((cot) => {
                 const subtotal = cot.items.reduce(
@@ -281,9 +283,35 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
                     <p className="font-semibold tabular-nums text-xs font-mono text-foreground">
                       {fmt(subtotal)}
                     </p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {cot.incluyeIgv ? 'Inc. IGV' : '+ IGV'}
-                    </p>
+                    {cot.incluyeIgv && <p className="mt-0.5 text-xs text-muted-foreground">IGV incluido</p>}
+                  </td>
+                )
+              })}
+            </tr>
+            <tr className="bg-muted/30">
+              <td className="py-1.5 pr-4 text-xs text-muted-foreground">IGV (18%)</td>
+              {received.map((cot) => {
+                const subtotal = cot.items.reduce(
+                  (sum, ci) => sum + parseFloat(ci.precioUnit) * parseFloat(ci.cantidad),
+                  0,
+                )
+                return (
+                  <td key={cot.id} className="px-3 py-1.5 text-xs font-mono tabular-nums text-muted-foreground">
+                    {cot.incluyeIgv ? '—' : fmt(subtotal * IGV_RATE)}
+                  </td>
+                )
+              })}
+            </tr>
+            <tr className="border-t border-border bg-muted/50">
+              <td className="py-2.5 pr-4 text-xs font-semibold text-foreground">Total con IGV</td>
+              {received.map((cot) => {
+                const subtotal = cot.items.reduce(
+                  (sum, ci) => sum + parseFloat(ci.precioUnit) * parseFloat(ci.cantidad),
+                  0,
+                )
+                return (
+                  <td key={cot.id} className="px-3 py-2.5 text-xs font-semibold font-mono tabular-nums text-foreground">
+                    {fmt(cot.incluyeIgv ? subtotal : subtotal * (1 + IGV_RATE))}
                   </td>
                 )
               })}

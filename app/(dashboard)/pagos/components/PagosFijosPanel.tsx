@@ -664,8 +664,8 @@ export function PagosFijosPanel({
                 <span className="text-xs font-medium text-foreground block">
                   Datos de destino (opcional)
                 </span>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-1">
+                <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3">
+                  <div className="min-[420px]:col-span-1">
                     <Input
                       value={form.banco}
                       onChange={(event) => set("banco", event.target.value)}
@@ -673,7 +673,7 @@ export function PagosFijosPanel({
                       className="h-8 text-xs"
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div className="min-[420px]:col-span-2">
                     <Input
                       value={form.numeroCuenta}
                       onChange={(event) => set("numeroCuenta", event.target.value)}

@@ -19,7 +19,7 @@ export default function NuevoClientePage() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border max-w-4xl bg-white p-6">
+      <div className="max-w-4xl rounded-xl border border-border bg-white p-4 sm:p-6">
         <CreateClienteForm />
       </div>
     </div>

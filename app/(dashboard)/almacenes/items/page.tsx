@@ -10,8 +10,8 @@ import { ItemsTableSkeleton } from './components/ItemsTableSkeleton'
 export default function ItemsPage() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 space-y-1">
           <Link
             href="/almacenes"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-[120ms] hover:text-foreground"
@@ -19,10 +19,10 @@ export default function ItemsPage() {
             <ArrowLeft className="size-3.5" />
             Volver a almacenes
           </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Catálogo de ítems</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-balance">Catálogo de ítems</h1>
           <p className="text-sm text-muted-foreground">Consumibles y equipos disponibles en el sistema</p>
         </div>
-        <Link href="/almacenes/items/nuevo" className={buttonVariants()}>
+        <Link href="/almacenes/items/nuevo" className={buttonVariants({ className: 'w-full sm:w-auto' })}>
           <Plus className="size-4" />
           Nuevo ítem
         </Link>

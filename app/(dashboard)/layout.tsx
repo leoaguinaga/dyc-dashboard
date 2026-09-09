@@ -31,16 +31,15 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-dvh overflow-hidden">
+    <div className="flex h-dvh min-w-0 overflow-hidden">
       <SidebarNav />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Navbar />
         {impersonationInfo && <ImpersonationBanner info={impersonationInfo} />}
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto w-full p-5">{children}</div>
+        <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="mx-auto w-full min-w-0 p-3 sm:p-5">{children}</div>
         </main>
       </div>
     </div>
   )
 }
-

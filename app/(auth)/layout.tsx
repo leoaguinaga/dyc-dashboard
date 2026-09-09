@@ -1,6 +1,6 @@
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-dvh absolute inset-0 bg-[oklch(0.18_0.02_250)]">
+    <div className="absolute inset-0 flex min-h-dvh overflow-y-auto bg-[oklch(0.18_0.02_250)]">
       <div
         className="absolute inset-0"
         style={{
@@ -36,7 +36,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
       </div>
-      <div className="flex w-full items-center justify-center bg-background px-6 lg:w-1/2 m-4 rounded-3xl z-20">
+      <div
+        data-auth-panel
+        className="z-20 m-2 flex w-full items-center justify-center overflow-y-auto rounded-2xl bg-background px-4 py-8 sm:m-4 sm:rounded-3xl sm:px-6 [@media(max-height:500px)]:items-start [@media(max-height:500px)]:py-4 lg:w-1/2"
+      >
         {children}
       </div>
     </div>

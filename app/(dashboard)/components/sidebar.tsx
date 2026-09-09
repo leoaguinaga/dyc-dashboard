@@ -23,7 +23,7 @@ function SidebarLinks({ onLinkClick }: { onLinkClick?: () => void }) {
 
   return (
     <>
-      <div className="pl-6 py-5 flex items-center gap-2">
+      <div className="flex items-center gap-2 px-5 py-5">
         <div className='flex items-center justify-center h-9 w-12 rounded-md bg-primary/70 text-white font-bold text-base'>
           <p>DC</p>
         </div>
@@ -46,7 +46,7 @@ function SidebarLinks({ onLinkClick }: { onLinkClick?: () => void }) {
                   return (
                     <div
                       key={item.href}
-                      className="flex items-center gap-2 pl-3 pr-3 text-sm opacity-40 cursor-not-allowed select-none"
+                      className="flex min-h-11 items-center gap-2 px-3 text-sm opacity-40 cursor-not-allowed select-none md:min-h-0"
                     >
                       <div className="h-7 w-0.75 rounded-full bg-transparent" />
                       <item.icon className="size-[18px] shrink-0 text-muted-foreground" />
@@ -66,7 +66,7 @@ function SidebarLinks({ onLinkClick }: { onLinkClick?: () => void }) {
                     href={item.href}
                     onClick={onLinkClick}
                     className={cn(
-                      'flex items-center gap-2 pl-3 pr-3 text-sm',
+                      'flex min-h-11 items-center gap-2 px-3 text-sm md:min-h-0',
                       'transition-colors duration-120',
                       active
                         ? 'font-medium text-primary'
@@ -103,7 +103,7 @@ function SidebarLinks({ onLinkClick }: { onLinkClick?: () => void }) {
 
 export function SidebarNav() {
   return (
-    <aside className="hidden md:flex w-51 shrink-0 flex-col border-r border-sidebar-border h-full">
+    <aside className="hidden h-full w-51 shrink-0 flex-col border-r border-sidebar-border md:flex">
       <SidebarLinks />
     </aside>
   )
@@ -115,12 +115,12 @@ export function MobileSidebar() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
-        className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className="flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         aria-label="Abrir menú"
       >
         <Menu className="size-5" />
       </SheetTrigger>
-      <SheetContent side="left" showCloseButton={false} className="w-51 p-0 gap-0">
+      <SheetContent side="left" showCloseButton={false} className="w-72 max-w-[calc(100vw-1rem)] gap-0 p-0 pb-[env(safe-area-inset-bottom)]">
         <SidebarLinks onLinkClick={() => setOpen(false)} />
       </SheetContent>
     </Sheet>

@@ -34,7 +34,7 @@ export default async function EditarProveedorPage({ params }: Props) {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-white p-6">
+      <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
         <EditProveedorForm proveedor={result} />
       </div>
     </div>

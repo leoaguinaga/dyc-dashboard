@@ -48,7 +48,7 @@ export function ForgotPasswordDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline">
+      <DialogTrigger className="min-h-11 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground hover:underline sm:px-0 sm:hover:bg-transparent">
         ¿Olvidaste tu contraseña?
       </DialogTrigger>
       <DialogContent>

@@ -22,14 +22,14 @@ export async function ClienteDetail({ id }: { id: string }) {
   return (
     <>
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <div className="flex size-11 items-center justify-center rounded-lg bg-muted">
             <User2 className="size-5.5 text-muted-foreground" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className='flex items-center flex-wrap gap-2'>
-              <h1 className="text-2xl font-semibold tracking-tight">
+              <h1 className="break-words text-2xl font-semibold tracking-tight">
                 {cliente.razonSocial}
                 {cliente.nombreComercial && (
                   <span className="text-muted-foreground"> ({cliente.nombreComercial})</span>
@@ -45,12 +45,10 @@ export async function ClienteDetail({ id }: { id: string }) {
             )}
           </div>
         </div>
-        <Link
-          href={`/clientes/${id}/editar`}
-        >
+        <Link href={`/clientes/${id}/editar`} className="self-stretch sm:self-auto">
           <Button
             variant="link"
-            className='text-muted-foreground'
+            className="w-full text-muted-foreground sm:w-auto"
           >
             Editar cliente
           </Button>
