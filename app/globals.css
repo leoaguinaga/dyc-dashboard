@@ -148,6 +148,7 @@
 
   body {
     @apply bg-background text-foreground;
+    overflow-wrap: anywhere;
     /* Lienzo claro: profundidad sutil sin competir con las superficies. */
     background: linear-gradient(135deg,
         oklch(0.995 0.001 250) 0%,
@@ -168,6 +169,21 @@
   .tabular {
     font-variant-numeric: tabular-nums;
     font-family: var(--font-mono);
+  }
+}
+
+@media (max-width: 1023px), (pointer: coarse) {
+  [data-slot="button"],
+  [data-slot="input"],
+  [data-slot="select-trigger"],
+  [data-slot="select-item"],
+  [data-slot="dialog-close"],
+  [data-slot="sheet-close"] {
+    min-height: 44px;
+  }
+
+  [data-slot="select-item"] {
+    padding-block: 0.625rem;
   }
 }
 

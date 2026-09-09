@@ -39,6 +39,7 @@ function fmtPEN(value: string | number) {
 
 const ROLES_GERENCIA: Role[] = ['gerencia', 'administrador', 'admin_ti']
 const ROLES_EDITORES: Role[] = ['logistica', ...ROLES_GERENCIA]
+const IGV_RATE = 0.18
 
 interface Props {
   cotizacion: Cotizacion
@@ -59,6 +60,8 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
     (sum, it) => sum + parseFloat(it.precioUnit) * parseFloat(it.cantidad),
     0,
   )
+  const igv = total * IGV_RATE
+  const totalConIgv = total + igv
 
   const puedeRegistrarRespuesta = cotizacion.estado === 'pendiente' || cotizacion.estado === 'sin_respuesta'
   // Corregir una respuesta ya recibida/aprobada — debe coincidir con las
@@ -174,6 +177,18 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
                 <td colSpan={3} className="px-3 py-2 text-right text-xs font-medium">Total</td>
                 <td className="px-3 py-2 text-right font-mono tabular-nums font-semibold">{fmtPEN(total)}</td>
               </tr>
+              {!cotizacion.incluyeIgv && (
+                <>
+                  <tr className="bg-muted/30">
+                    <td colSpan={3} className="px-3 py-1.5 text-right text-xs text-muted-foreground">IGV (18%)</td>
+                    <td className="px-3 py-1.5 text-right font-mono tabular-nums text-xs text-muted-foreground">{fmtPEN(igv)}</td>
+                  </tr>
+                  <tr className="border-t border-border bg-muted/50">
+                    <td colSpan={3} className="px-3 py-2 text-right text-xs font-semibold">Total con IGV</td>
+                    <td className="px-3 py-2 text-right font-mono tabular-nums font-semibold text-foreground">{fmtPEN(totalConIgv)}</td>
+                  </tr>
+                </>
+              )}
             </tfoot>
           </table>
         </div>

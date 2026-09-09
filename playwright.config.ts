@@ -16,8 +16,35 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'mobile-320',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 320, height: 568 },
+        hasTouch: true,
+      },
+    },
+    {
+      name: 'mobile-landscape',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 667, height: 375 },
+        hasTouch: true,
+      },
+    },
+    {
+      name: 'tablet-768',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 768, height: 1024 },
+        hasTouch: true,
+      },
+    },
+    {
+      name: 'desktop-1440',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 900 },
+      },
     },
   ],
   webServer: process.env.PLAYWRIGHT_BASE_URL

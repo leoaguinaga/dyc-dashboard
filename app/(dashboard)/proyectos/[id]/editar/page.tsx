@@ -50,7 +50,7 @@ export default async function EditarProyectoPage({ params }: Props) {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border max-w-4xl bg-white p-6">
+      <div className="max-w-4xl rounded-xl border border-border bg-white p-4 sm:p-6">
         <EditProyectoForm
           proyecto={result}
           clientes={clientes}

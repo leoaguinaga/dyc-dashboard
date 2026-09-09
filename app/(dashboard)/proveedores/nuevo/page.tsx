@@ -19,7 +19,7 @@ export default function NuevoProveedorPage() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-white p-6">
+      <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
         <CreateProveedorForm />
       </div>
     </div>

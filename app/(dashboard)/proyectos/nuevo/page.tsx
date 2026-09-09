@@ -33,7 +33,7 @@ export default async function NuevoProyectoPage() {
         </p>
       </div>
 
-      <div className="rounded-xl max-w-4xl border border-border bg-white p-6">
+      <div className="max-w-4xl rounded-xl border border-border bg-white p-4 sm:p-6">
         <CreateProyectoForm clientes={clientes} trabajadores={trabajadores} proyectos={proyectos} />
       </div>
     </div>

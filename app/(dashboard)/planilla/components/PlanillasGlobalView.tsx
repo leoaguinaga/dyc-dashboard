@@ -96,7 +96,7 @@ export function PlanillasGlobalView({ proyectos }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-3">
         <div className="rounded-xl border border-border bg-white p-4">
           <p className="text-xs text-muted-foreground">Planillas</p>
           <p className="text-xl font-semibold tabular-nums">{kpis.cantidad}</p>

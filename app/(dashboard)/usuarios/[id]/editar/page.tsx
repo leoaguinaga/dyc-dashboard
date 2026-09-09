@@ -40,7 +40,7 @@ export default async function EditarUsuarioPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-border max-w-lg bg-white p-6">
+      <div className="max-w-lg rounded-xl border border-border bg-white p-4 sm:p-6">
         <EditUsuarioForm usuario={result} />
       </div>
     </div>

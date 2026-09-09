@@ -142,7 +142,7 @@ export function JornadaDetailView({ turnoId }: Props) {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-3">
             <div className="rounded-xl border border-border bg-white p-4">
               <p className="text-xs text-muted-foreground">Obreros</p>
               <p className="text-xl font-semibold tabular-nums">{jornada.trabajadores.length}</p>

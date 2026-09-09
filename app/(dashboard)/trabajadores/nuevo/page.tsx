@@ -19,7 +19,7 @@ export default function NuevoTrabajadorPage() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-white p-6 max-w-4xl">
+      <div className="max-w-4xl rounded-xl border border-border bg-white p-4 sm:p-6">
         <CreateTrabajadorForm />
       </div>
     </div>

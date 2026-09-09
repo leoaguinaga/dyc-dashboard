@@ -59,13 +59,13 @@ export default async function TrabajadorDetailPage({ params }: Props) {
           <ArrowLeft className="size-3.5" />
           Volver a trabajadores
         </Link>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-sm font-semibold text-muted-foreground select-none">
               {initials}
             </div>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">{t.nombre}</h1>
+            <div className="min-w-0">
+              <h1 className="break-words text-2xl font-semibold tracking-tight">{t.nombre}</h1>
               <p className="text-sm text-muted-foreground font-mono">DNI {t.dni}</p>
             </div>
           </div>
