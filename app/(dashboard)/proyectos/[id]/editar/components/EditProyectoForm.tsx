@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LockKeyholeIcon } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -32,6 +31,7 @@ interface Props {
 }
 
 type FormData = {
+  codigo: string;
   nombre: string;
   clienteId: string;
   ambitoGeografico: string;
@@ -69,6 +69,7 @@ export function EditProyectoForm({
   const router = useRouter();
 
   const [form, setForm] = useState<FormData>({
+    codigo: o.codigo ?? "",
     nombre: o.nombre,
     clienteId: o.clienteId ?? "",
     ambitoGeografico: o.ambitoGeografico ?? "local",
@@ -147,6 +148,7 @@ export function EditProyectoForm({
 
   function validate(): boolean {
     const next: FormErrors = {};
+    if (!form.codigo.trim()) next.codigo = "El código es requerido";
     if (!form.nombre.trim()) next.nombre = "El nombre es requerido";
     if (form.fechaInicio && form.fechaFin && form.fechaFin < form.fechaInicio)
       next.fechaFin = "La fecha fin no puede ser anterior al inicio";
@@ -192,34 +194,32 @@ export function EditProyectoForm({
       {/* Identificacion */}
       <section className="space-y-4">
         <h2 className={sectionTitleCn}>Identificacion</h2>
-        <div className="rounded-xl bg-muted/45 px-4 py-3.5">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">
-                Código del proyecto
-              </p>
-              <p className="mt-1 font-mono text-lg font-semibold tracking-tight tabular-nums">
-                {o.codigo ?? "Código histórico no asignado"}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {o.parentId ? "Subproyecto" : "Proyecto principal"}
-                {o.categoriaServicio
-                  ? ` · ${o.categoriaServicio === "ING" ? "Ingeniería" : "Mantenimiento"}`
-                  : ""}
-              </p>
-            </div>
-            <LockKeyholeIcon
-              className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-          </div>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            El código y la jerarquía quedan bloqueados para conservar la
-            trazabilidad de los documentos asociados.
-          </p>
-        </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2">
+          <div>
+            <label className={labelCn}>
+              Código del proyecto{" "}
+              <span className="text-destructive">*</span>
+            </label>
+            <Input
+              value={form.codigo}
+              onChange={(e) => set("codigo", e.target.value)}
+              placeholder="Ej. 26-020"
+              className="font-mono"
+              aria-invalid={!!errors.codigo}
+            />
+            {errors.codigo && (
+              <p className="mt-1 text-xs text-destructive">{errors.codigo}</p>
+            )}
+            <p className="mt-1 text-xs text-muted-foreground">
+              El código se sugiere automáticamente al crear el proyecto, pero
+              puede corregirse aquí si quedó mal asignado.{" "}
+              {o.parentId ? "Subproyecto" : "Proyecto principal"}
+              {o.categoriaServicio
+                ? ` · ${o.categoriaServicio === "ING" ? "Ingeniería" : "Mantenimiento"}`
+                : ""}
+            </p>
+          </div>
+          <div>
             <label className={labelCn}>
               Nombre del proyecto <span className="text-destructive">*</span>
             </label>
