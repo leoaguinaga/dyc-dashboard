@@ -4,15 +4,6 @@ import type { SolicitudesResponse, User } from "@/types/api";
 import { NuevaSolicitudSheet } from "./NuevaSolicitudSheet";
 import { SolicitudesView } from "./SolicitudesView";
 
-const ROLES_PRECOTIZADO = [
-  "supervisor",
-  "supervisor_civil",
-  "supervisor_electrico",
-  "pdr",
-  "administrador",
-  "admin_ti",
-];
-
 interface Props {
   abrirNuevaSolicitud?: boolean;
 }
@@ -24,8 +15,7 @@ export async function SolicitudesTable({ abrirNuevaSolicitud = false }: Props) {
     ).catch((error: Error) => error),
     serverFetch<User>("/users/me").catch(() => null),
   ]);
-  const puedeCrearPrecotizado =
-    !!user?.role && ROLES_PRECOTIZADO.includes(user.role);
+  const puedeCrearPrecotizado = !!user?.role;
 
   if (result instanceof Error) {
     return (

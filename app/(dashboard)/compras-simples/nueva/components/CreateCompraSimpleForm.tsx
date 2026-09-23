@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 import { UNIDAD_OPTIONS } from '@/lib/inventario'
-import type { DestinoPago, MetodoPagoTrabajador, Proyecto, Proveedor, Role, Trabajador, TipoRequerimiento, User } from '@/types/api'
+import type { DestinoPago, MetodoPagoTrabajador, Proyecto, Proveedor, Trabajador, TipoRequerimiento, User } from '@/types/api'
 
 type MiTrabajador = Pick<Trabajador, 'id' | 'nombre' | 'banco' | 'numeroCuenta'>
 type AprobadorInformal = Pick<User, 'id' | 'name' | 'role'>
@@ -97,15 +97,7 @@ const TIPO_LABELS: Record<TipoRequerimiento, string> = {
   administrativo: 'Administrativo',
 }
 
-// Qué tipos puede registrar cada rol (debe coincidir con ROLE_TIPOS del backend)
-const ROLE_TIPOS: Partial<Record<Role, TipoRequerimiento[]>> = {
-  supervisor: ['civil'],
-  supervisor_civil: ['civil'],
-  supervisor_electrico: ['electrico'],
-  pdr: ['seguridad'],
-  administrador: ['civil', 'electrico', 'seguridad', 'administrativo'],
-  admin_ti: ['civil', 'electrico', 'seguridad', 'administrativo'],
-}
+const TIPOS_DISPONIBLES: TipoRequerimiento[] = ['civil', 'electrico', 'seguridad', 'administrativo']
 
 function fmtMoney(v: number) {
   return `S/ ${v.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -113,14 +105,11 @@ function fmtMoney(v: number) {
 
 export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
   const { data: session } = useSession()
-  const role = (session?.user as { role?: Role } | undefined)?.role
-  const allowedTipos = (role ? ROLE_TIPOS[role] : undefined) ?? []
+  const allowedTipos = TIPOS_DISPONIBLES
 
   const router = useRouter()
   const [nombre, setNombre] = useState('')
-  const [tipo, setTipo] = useState<TipoRequerimiento>(
-    allowedTipos.length === 1 ? allowedTipos[0] : 'civil',
-  )
+  const [tipo, setTipo] = useState<TipoRequerimiento>('civil')
   const [esRendicion, setEsRendicion] = useState(false)
   const [comprobante, setComprobante] = useState<File | null>(null)
   const [fotoProducto, setFotoProducto] = useState<File | null>(null)
@@ -161,7 +150,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
   function discardDraft() {
     clearDraft()
     setNombre('')
-    setTipo(allowedTipos.length === 1 ? allowedTipos[0] : 'civil')
+    setTipo('civil')
     setEsRendicion(false)
     setProyectoId('')
     setNota('')
@@ -371,24 +360,18 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
             <label className={labelCn}>
               Tipo <span className="text-destructive">*</span>
             </label>
-            {allowedTipos.length <= 1 ? (
-              <div className="flex h-9 items-center rounded-lg border border-border bg-muted/50 px-3 text-sm text-muted-foreground">
-                {TIPO_LABELS[tipo]}
-              </div>
-            ) : (
-              <Select value={tipo} onValueChange={(v) => setTipo(v as TipoRequerimiento)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue>
-                    {(value: TipoRequerimiento | null) => (value ? TIPO_LABELS[value] : '')}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {allowedTipos.map((t) => (
-                    <SelectItem key={t} value={t}>{TIPO_LABELS[t]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <Select value={tipo} onValueChange={(v) => setTipo(v as TipoRequerimiento)}>
+              <SelectTrigger className="w-full">
+                <SelectValue>
+                  {(value: TipoRequerimiento | null) => (value ? TIPO_LABELS[value] : '')}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {allowedTipos.map((t) => (
+                  <SelectItem key={t} value={t}>{TIPO_LABELS[t]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

@@ -17,7 +17,14 @@ const TIPO_APPROVERS_TECNICO: Record<TipoRequerimiento, Role[]> = {
 }
 
 // Paso 2 (final, genera el pago)
-const ROLES_APROBACION_GERENCIA: Role[] = ['gerencia', 'administrador', 'admin_ti']
+const ROLES_APROBACION_GERENCIA: Role[] = [
+  'gerencia',
+  'administrador',
+  'admin_ti',
+  'ing_civil',
+  'ing_electrico',
+  'jefe_sig',
+]
 
 interface Props {
   grupo: OrdenCompra
