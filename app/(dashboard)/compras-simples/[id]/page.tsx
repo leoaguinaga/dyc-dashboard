@@ -90,7 +90,7 @@ export default async function CompraSimpleDetailPage({ params, searchParams }: P
       )}
       <div className="space-y-1">
         <Link
-          href="/compras-simples"
+          href="/solicitudes"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-[120ms] hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" />
