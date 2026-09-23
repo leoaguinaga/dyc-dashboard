@@ -170,8 +170,9 @@ const s = StyleSheet.create({
   fpTdText: { fontSize: 8 },
   fpColConcepto: { flex: 1.3 },
   fpColPct: { width: 28, textAlign: 'right' },
-  fpColBruto: { width: 60, textAlign: 'right' },
-  fpColNeto: { width: 68, textAlign: 'right' },
+  fpColBruto: { width: 56, textAlign: 'right' },
+  fpColDetraccion: { width: 56, textAlign: 'right' },
+  fpColNeto: { width: 60, textAlign: 'right' },
 
   // ── Monto en letras ──────────────────────────────────────────────────────
   sonRow: { marginTop: 8, padding: 6 },
@@ -273,22 +274,34 @@ export function OcPdfDocument({ oc }: Props) {
   const igv = round2(oc.incluyeIgv ? itemsTotal - subtotal : itemsTotal * 0.18)
   const total = round2(oc.incluyeIgv ? itemsTotal : subtotal + igv)
 
-  const adelantoPct = oc.adelantoPorcentaje ? parseFloat(oc.adelantoPorcentaje) : 50
-  const saldoPct = oc.saldoPorcentaje ? parseFloat(oc.saldoPorcentaje) : 50
-
   const detraccionRaw = oc.detraccionPorcentaje ? parseFloat(oc.detraccionPorcentaje) : null
   const retencionRaw = oc.retencionPorcentaje ? parseFloat(oc.retencionPorcentaje) : null
-  // Detracción y retención son excluyentes; si ninguna está definida se asume detracción
-  // de referencia (10%), comportamiento histórico de este documento.
-  const descuentoLabel = retencionRaw != null && detraccionRaw == null ? 'Retención' : 'Detracción'
-  const descuentoPct = detraccionRaw ?? retencionRaw ?? 10
+  const tieneFiscal = Boolean(detraccionRaw || retencionRaw)
+  const fiscalLabel = retencionRaw != null && detraccionRaw == null ? 'Retención' : 'Detracción'
+  const fiscalPct = detraccionRaw ?? retencionRaw ?? 0
 
-  const adelantoBruto = round2(total * (adelantoPct / 100))
-  const saldoBruto = round2(total * (saldoPct / 100))
-  const adelantoNeto = round2(adelantoBruto * (1 - descuentoPct / 100))
-  const saldoNeto = round2(saldoBruto * (1 - descuentoPct / 100))
-  const descuentoTotal = round2(total * (descuentoPct / 100))
-  const netoADepositarTotal = round2(total - descuentoTotal)
+  const pagosActivos = (oc.pagos ?? []).filter((p) => p.estado !== 'cancelado')
+  const filasPago =
+    pagosActivos.length > 0
+      ? pagosActivos.map((p, index) => {
+          const bruto = round2(parseFloat(p.monto))
+          const detraccion = tieneFiscal ? round2((bruto * fiscalPct) / 100) : 0
+          return {
+            concepto: p.nota?.trim() || `Cuota ${index + 1} (${fmtDate(p.fechaProgramada)})`,
+            porcentaje: parseFloat(p.porcentaje),
+            bruto,
+            detraccion,
+            neto: round2(bruto - detraccion),
+          }
+        })
+      : (() => {
+          const detraccion = tieneFiscal ? round2((total * fiscalPct) / 100) : 0
+          return [{ concepto: 'Pago único', porcentaje: 100, bruto: total, detraccion, neto: round2(total - detraccion) }]
+        })()
+
+  const descuentoMonto = oc.descuentoMonto ? round2(parseFloat(oc.descuentoMonto)) : 0
+  const sumaNetos = round2(filasPago.reduce((s, f) => s + f.neto, 0))
+  const totalNetoAPagar = round2(sumaNetos - descuentoMonto)
 
   const requerimiento = oc.solicitud?.requerimiento
   // El PDF solo se exporta para OCs del flujo macro, donde el proveedor siempre está presente.
@@ -455,20 +468,18 @@ export function OcPdfDocument({ oc }: Props) {
               <Text style={[s.fpThText, s.fpColConcepto]}>Concepto</Text>
               <Text style={[s.fpThText, s.fpColPct]}>%</Text>
               <Text style={[s.fpThText, s.fpColBruto]}>Bruto</Text>
-              <Text style={[s.fpThText, s.fpColNeto]}>Neto a depositar</Text>
+              {tieneFiscal && <Text style={[s.fpThText, s.fpColDetraccion]}>{fiscalLabel}</Text>}
+              <Text style={[s.fpThText, s.fpColNeto]}>Neto</Text>
             </View>
-            <View style={s.formaPagoRow}>
-              <Text style={[s.fpTdText, s.fpColConcepto]}>Adelanto a la emisión de la OC</Text>
-              <Text style={[s.fpTdText, s.fpColPct]}>{fmtPercent(adelantoPct)}</Text>
-              <Text style={[s.fpTdText, s.fpColBruto]}>{fmtMoney(adelantoBruto)}</Text>
-              <Text style={[s.fpTdText, s.fpColNeto]}>{fmtMoney(adelantoNeto)}</Text>
-            </View>
-            <View style={s.formaPagoRow}>
-              <Text style={[s.fpTdText, s.fpColConcepto]}>Saldo al término de obra</Text>
-              <Text style={[s.fpTdText, s.fpColPct]}>{fmtPercent(saldoPct)}</Text>
-              <Text style={[s.fpTdText, s.fpColBruto]}>{fmtMoney(saldoBruto)}</Text>
-              <Text style={[s.fpTdText, s.fpColNeto]}>{fmtMoney(saldoNeto)}</Text>
-            </View>
+            {filasPago.map((fila, index) => (
+              <View key={index} style={s.formaPagoRow}>
+                <Text style={[s.fpTdText, s.fpColConcepto]}>{fila.concepto}</Text>
+                <Text style={[s.fpTdText, s.fpColPct]}>{fmtPercent(fila.porcentaje)}</Text>
+                <Text style={[s.fpTdText, s.fpColBruto]}>{fmtMoney(fila.bruto)}</Text>
+                {tieneFiscal && <Text style={[s.fpTdText, s.fpColDetraccion]}>{fmtMoney(fila.detraccion)}</Text>}
+                <Text style={[s.fpTdText, s.fpColNeto]}>{fmtMoney(fila.neto)}</Text>
+              </View>
+            ))}
           </View>
 
           <View style={[s.paymentBox, s.paymentBoxNarrow]}>
@@ -479,14 +490,14 @@ export function OcPdfDocument({ oc }: Props) {
                 {oc.tipoCambio ? Number(oc.tipoCambio).toLocaleString('es-PE', { maximumFractionDigits: 4 }) : '0'}
               </Text>
             </View>
-            <Text style={[s.paymentTitle, { marginTop: 8 }]}>{descuentoLabel}</Text>
+            <Text style={[s.paymentTitle, { marginTop: 8 }]}>Descuento</Text>
             <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>{fmtPercent(descuentoPct)}</Text>
-              <Text style={s.paymentValue}>{fmtMoney(descuentoTotal)}</Text>
+              <Text style={s.paymentLabel}>Ajuste</Text>
+              <Text style={s.paymentValue}>{fmtMoney(descuentoMonto)}</Text>
             </View>
             <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Total</Text>
-              <Text style={s.paymentValue}>{fmtMoney(netoADepositarTotal)}</Text>
+              <Text style={s.paymentLabel}>Total neto</Text>
+              <Text style={s.paymentValue}>{fmtMoney(totalNetoAPagar)}</Text>
             </View>
           </View>
         </View>

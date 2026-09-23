@@ -255,8 +255,28 @@ export async function renderOcExcel(oc: OrdenCompra) {
   sectionTitle(sheet, paymentTitleRow, 'A', 'F', 'Forma de pago')
   infoLine(sheet, paymentTitleRow + 1, 'A', 'B', 'F', 'Condición', oc.condicionPago ?? 'Por coordinar')
   const paymentHeaderRow = paymentTitleRow + 3
-  sheet.getRow(paymentHeaderRow).values = ['Concepto', '', '', '%', 'Bruto', 'Neto a depositar']
-  sheet.mergeCells(`A${paymentHeaderRow}:C${paymentHeaderRow}`)
+
+  const tieneFiscal = number(oc.detraccionPorcentaje) > 0 || number(oc.retencionPorcentaje) > 0
+  const pctFiscal = number(oc.detraccionPorcentaje) > 0 ? number(oc.detraccionPorcentaje) : number(oc.retencionPorcentaje)
+  const labelFiscal = number(oc.detraccionPorcentaje) > 0 ? 'Detracción' : 'Retención'
+  const pagosActivos = (oc.pagos ?? []).filter((p) => p.estado !== 'cancelado')
+
+  type FilaPago = { concepto: string; porcentaje: number; bruto: number; detraccion: number }
+  const filas: FilaPago[] =
+    pagosActivos.length > 0
+      ? pagosActivos.map((p, index) => {
+          const bruto = number(p.monto)
+          return {
+            concepto: p.nota?.trim() || `Cuota ${index + 1} (${formatDate(p.fechaProgramada)})`,
+            porcentaje: number(p.porcentaje),
+            bruto,
+            detraccion: tieneFiscal ? round2((bruto * pctFiscal) / 100) : 0,
+          }
+        })
+      : [{ concepto: 'Pago único', porcentaje: 100, bruto: total, detraccion: tieneFiscal ? round2((total * pctFiscal) / 100) : 0 }]
+
+  sheet.getRow(paymentHeaderRow).values = ['Concepto', '', '%', 'Bruto', labelFiscal, 'Neto a depositar']
+  sheet.mergeCells(`A${paymentHeaderRow}:B${paymentHeaderRow}`)
   sheet.getRow(paymentHeaderRow).eachCell((cell) => {
     cell.font = { name: 'Arial', size: 8, bold: true, color: { argb: COLORS.gray } }
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.light } }
@@ -264,24 +284,16 @@ export async function renderOcExcel(oc: OrdenCompra) {
     cell.border = thinBorder
   })
 
-  const adelantoPct = oc.adelantoPorcentaje ? number(oc.adelantoPorcentaje) : 50
-  const saldoPct = oc.saldoPorcentaje ? number(oc.saldoPorcentaje) : 50
-  const descuento = oc.detraccionPorcentaje
-    ? number(oc.detraccionPorcentaje)
-    : oc.retencionPorcentaje ? number(oc.retencionPorcentaje) : 10
-  const descuentoLabel = oc.retencionPorcentaje && !oc.detraccionPorcentaje ? 'Retención' : 'Detracción'
-  const paymentRows: Array<[string, number, number, number]> = [
-    [`Adelanto a la emisión de la ${oc.tipo === 'servicio' ? 'OS' : 'OC'}`, adelantoPct, round2(total * adelantoPct / 100), round2(total * adelantoPct / 100 * (1 - descuento / 100))],
-    ['Saldo al término de obra', saldoPct, round2(total * saldoPct / 100), round2(total * saldoPct / 100 * (1 - descuento / 100))],
-  ]
-  paymentRows.forEach(([concept, percentage, gross, net], index) => {
+  filas.forEach((fila, index) => {
     const rowNumber = paymentHeaderRow + 1 + index
-    sheet.mergeCells(`A${rowNumber}:C${rowNumber}`)
-    sheet.getCell(`A${rowNumber}`).value = concept
-    sheet.getCell(`D${rowNumber}`).value = percentage / 100
-    sheet.getCell(`E${rowNumber}`).value = gross
-    sheet.getCell(`F${rowNumber}`).value = net
-    sheet.getCell(`D${rowNumber}`).numFmt = '0.0%'
+    sheet.mergeCells(`A${rowNumber}:B${rowNumber}`)
+    sheet.getCell(`A${rowNumber}`).value = fila.concepto
+    sheet.getCell(`C${rowNumber}`).value = fila.porcentaje / 100
+    sheet.getCell(`D${rowNumber}`).value = fila.bruto
+    sheet.getCell(`E${rowNumber}`).value = tieneFiscal ? fila.detraccion : null
+    sheet.getCell(`F${rowNumber}`).value = round2(fila.bruto - fila.detraccion)
+    sheet.getCell(`C${rowNumber}`).numFmt = '0.0%'
+    sheet.getCell(`D${rowNumber}`).numFmt = MONEY_2
     sheet.getCell(`E${rowNumber}`).numFmt = MONEY_2
     sheet.getCell(`F${rowNumber}`).numFmt = MONEY_2
     sheet.getRow(rowNumber).eachCell((cell, column) => {
@@ -291,22 +303,23 @@ export async function renderOcExcel(oc: OrdenCompra) {
     })
   })
 
-  const financialRow = paymentHeaderRow + 4
+  const financialRow = paymentHeaderRow + 1 + filas.length + 1
   infoLine(sheet, financialRow, 'A', 'B', 'C', 'Tipo de cambio', number(oc.tipoCambio))
   sheet.getCell(`B${financialRow}`).value = number(oc.tipoCambio)
   sheet.getCell(`B${financialRow}`).numFmt = '#,##0.0000'
-  infoLine(sheet, financialRow, 'D', 'E', 'F', descuentoLabel, descuento / 100)
-  sheet.getCell(`E${financialRow}`).value = descuento / 100
-  sheet.getCell(`E${financialRow}`).numFmt = '0.0%'
-  const discountValueRow = financialRow + 1
-  infoLine(sheet, discountValueRow, 'A', 'B', 'C', 'Descuento', round2(total * descuento / 100))
-  sheet.getCell(`B${discountValueRow}`).value = round2(total * descuento / 100)
-  sheet.getCell(`B${discountValueRow}`).numFmt = MONEY_2
-  infoLine(sheet, discountValueRow, 'D', 'E', 'F', 'Total neto', round2(total * (1 - descuento / 100)))
-  sheet.getCell(`E${discountValueRow}`).value = round2(total * (1 - descuento / 100))
-  sheet.getCell(`E${discountValueRow}`).numFmt = MONEY_2
+  const descuentoMonto = number(oc.descuentoMonto)
+  infoLine(sheet, financialRow, 'D', 'E', 'F', 'Descuento', descuentoMonto)
+  sheet.getCell(`F${financialRow}`).value = descuentoMonto
+  sheet.getCell(`F${financialRow}`).numFmt = MONEY_2
 
-  const contactTitleRow = financialRow + 3
+  const totalNetoRow = financialRow + 1
+  const sumaNetos = filas.reduce((s, fila) => s + (fila.bruto - fila.detraccion), 0)
+  const totalNetoAPagar = round2(sumaNetos - descuentoMonto)
+  infoLine(sheet, totalNetoRow, 'D', 'E', 'F', 'Total neto a pagar', totalNetoAPagar)
+  sheet.getCell(`F${totalNetoRow}`).value = totalNetoAPagar
+  sheet.getCell(`F${totalNetoRow}`).numFmt = MONEY_2
+
+  const contactTitleRow = totalNetoRow + 2
   sectionTitle(sheet, contactTitleRow, 'A', 'C', 'Contacto proveedor')
   sectionTitle(sheet, contactTitleRow, 'D', 'F', 'Contacto D&C')
   const providerInfo: Array<[string, unknown]> = [

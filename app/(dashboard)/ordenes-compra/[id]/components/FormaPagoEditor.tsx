@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Switch } from '@/components/ui/switch'
 import { Pencil, Check, X, Info } from 'lucide-react'
-import { formatPercent } from '@/lib/utils'
+import { formatCurrency, formatPercent } from '@/lib/utils'
 import type { OrdenCompra } from '@/types/api'
 
 const DETRACCION_REFERENCIA = [
@@ -24,10 +24,9 @@ interface Props {
   ocId: string
   oc: Pick<
     OrdenCompra,
-    | 'adelantoPorcentaje'
-    | 'saldoPorcentaje'
     | 'detraccionPorcentaje'
     | 'retencionPorcentaje'
+    | 'descuentoMonto'
     | 'incluyeIgv'
     | 'tipoCambio'
     | 'contactoProveedorNombre'
@@ -43,10 +42,9 @@ interface Props {
 }
 
 type FormState = {
-  adelantoPorcentaje: string
-  saldoPorcentaje: string
   detraccionPorcentaje: string
   retencionPorcentaje: string
+  descuentoMonto: string
   incluyeIgv: boolean
   tipoCambio: string
   contactoProveedorNombre: string
@@ -61,10 +59,9 @@ type FormState = {
 
 function toForm(oc: Props['oc']): FormState {
   return {
-    adelantoPorcentaje: oc.adelantoPorcentaje ?? '',
-    saldoPorcentaje: oc.saldoPorcentaje ?? '',
     detraccionPorcentaje: oc.detraccionPorcentaje ?? '',
     retencionPorcentaje: oc.retencionPorcentaje ?? '',
+    descuentoMonto: oc.descuentoMonto ?? '',
     incluyeIgv: oc.incluyeIgv,
     tipoCambio: oc.tipoCambio ?? '',
     contactoProveedorNombre: oc.contactoProveedorNombre ?? '',
@@ -104,10 +101,9 @@ export function FormaPagoEditor({ ocId, oc, editable = true }: Props) {
     setErr(null)
     try {
       await api.patch(`/ordenes-compra/${ocId}`, {
-        adelantoPorcentaje: form.adelantoPorcentaje !== '' ? Number(form.adelantoPorcentaje) : null,
-        saldoPorcentaje: form.saldoPorcentaje !== '' ? Number(form.saldoPorcentaje) : null,
         detraccionPorcentaje: form.detraccionPorcentaje !== '' ? Number(form.detraccionPorcentaje) : null,
         retencionPorcentaje: form.retencionPorcentaje !== '' ? Number(form.retencionPorcentaje) : null,
+        descuentoMonto: form.descuentoMonto !== '' ? Number(form.descuentoMonto) : null,
         incluyeIgv: form.incluyeIgv,
         tipoCambio: form.tipoCambio !== '' ? Number(form.tipoCambio) : null,
         contactoProveedorNombre: form.contactoProveedorNombre.trim() || null,
@@ -136,7 +132,7 @@ export function FormaPagoEditor({ ocId, oc, editable = true }: Props) {
 
   if (!editing) {
     const hasData =
-      oc.adelantoPorcentaje || oc.saldoPorcentaje || oc.detraccionPorcentaje || oc.retencionPorcentaje ||
+      oc.detraccionPorcentaje || oc.retencionPorcentaje || oc.descuentoMonto ||
       oc.tipoCambio || oc.contactoProveedorNombre || oc.contactoProveedorTelefono || oc.condicionPago ||
       oc.tiempoEntrega || oc.contactoDycNombre || oc.contactoDycArea || oc.contactoDycCelular || oc.contactoDycTelefono
 
@@ -151,12 +147,6 @@ export function FormaPagoEditor({ ocId, oc, editable = true }: Props) {
               </div>
             )}
             <div>
-              <dt className="text-xs text-muted-foreground">Adelanto / Saldo</dt>
-              <dd className="font-medium">
-                {oc.adelantoPorcentaje ? formatPercent(oc.adelantoPorcentaje) : '—'} / {oc.saldoPorcentaje ? formatPercent(oc.saldoPorcentaje) : '—'}
-              </dd>
-            </div>
-            <div>
               <dt className="text-xs text-muted-foreground">Detracción</dt>
               <dd className="font-medium">{oc.detraccionPorcentaje ? formatPercent(oc.detraccionPorcentaje) : '—'}</dd>
             </div>
@@ -164,6 +154,12 @@ export function FormaPagoEditor({ ocId, oc, editable = true }: Props) {
               <dt className="text-xs text-muted-foreground">Retención IGV</dt>
               <dd className="font-medium">{oc.retencionPorcentaje ? formatPercent(oc.retencionPorcentaje) : '—'}</dd>
             </div>
+            {oc.descuentoMonto && (
+              <div>
+                <dt className="text-xs text-muted-foreground">Descuento (redondeo)</dt>
+                <dd className="font-medium">{formatCurrency(oc.descuentoMonto)}</dd>
+              </div>
+            )}
             <div>
               <dt className="text-xs text-muted-foreground">IGV</dt>
               <dd className="font-medium">{oc.incluyeIgv ? 'Incluido en los precios' : 'Se agrega (18%)'}</dd>
@@ -228,28 +224,6 @@ export function FormaPagoEditor({ ocId, oc, editable = true }: Props) {
         />
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={labelCn}>Adelanto (%)</label>
-          <Input
-            type="number"
-            min={0}
-            max={100}
-            value={form.adelantoPorcentaje}
-            onChange={(e) => set('adelantoPorcentaje', e.target.value)}
-            placeholder="50"
-          />
-        </div>
-        <div>
-          <label className={labelCn}>Saldo (%)</label>
-          <Input
-            type="number"
-            min={0}
-            max={100}
-            value={form.saldoPorcentaje}
-            onChange={(e) => set('saldoPorcentaje', e.target.value)}
-            placeholder="50"
-          />
-        </div>
         <div>
           <div className="mb-1 flex items-center gap-1">
             <label className="text-xs text-muted-foreground">Detracción (%)</label>
@@ -325,6 +299,29 @@ export function FormaPagoEditor({ ocId, oc, editable = true }: Props) {
             size="sm"
           />
           <label className="text-xs text-foreground">Los precios incluyen IGV</label>
+        </div>
+        <div>
+          <div className="mb-1 flex items-center gap-1">
+            <label className="text-xs text-muted-foreground">Descuento (S/)</label>
+            <Popover>
+              <PopoverTrigger className="text-muted-foreground hover:text-foreground">
+                <Info className="size-3" />
+              </PopoverTrigger>
+              <PopoverContent className="w-64">
+                <p className="text-xs text-foreground">
+                  Ajuste manual (no un %) para redondear el total a pagar, por ejemplo al depositar un monto exacto.
+                </p>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <Input
+            type="number"
+            min={0}
+            step="0.01"
+            value={form.descuentoMonto}
+            onChange={(e) => set('descuentoMonto', e.target.value)}
+            placeholder="0.00"
+          />
         </div>
         <div>
           <label className={labelCn}>Tipo de cambio</label>

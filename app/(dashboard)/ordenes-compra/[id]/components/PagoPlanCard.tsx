@@ -2,17 +2,24 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Check, X, AlertTriangle, ChevronRight } from 'lucide-react'
+import { Pencil, Check, X, AlertTriangle, ChevronRight } from 'lucide-react'
 import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { TramosPagoEditor } from '@/components/pagos/TramosPagoEditor'
 import { cn, formatCurrency, formatDateOnly, formatPercent } from '@/lib/utils'
 import type { OrdenCompra, Pago } from '@/types/api'
 
 interface Props {
   oc: OrdenCompra
   pagos: Pago[]
+  editable?: boolean
+}
+
+interface EditRow {
+  id?: string
+  porcentaje: string
+  fecha: string
 }
 
 const ESTADO_LABEL: Record<Pago['estadoEfectivo'], string> = {
@@ -33,201 +40,236 @@ const ESTADO_CLASS: Record<Pago['estadoEfectivo'], string> = {
 
 const fmtDate = formatDateOnly
 
-export function PagoPlanCard({ oc, pagos: initialPagos }: Props) {
+// Fecha va a ancho fijo (su contenido es texto corto, no un control que
+// llene la celda); el espacio flexible se deja al final, en Estado, que es
+// donde una celda angosta luce natural en vez de generar un salto raro
+// justo después de la primera columna.
+const PAGOS_GRID_SIN_FISCAL = 'sm:grid-cols-[150px_70px_100px_100px_1fr_24px]'
+const PAGOS_GRID_CON_FISCAL = 'sm:grid-cols-[150px_70px_90px_90px_90px_1fr_24px]'
+
+function toEditRows(pagos: Pago[]): EditRow[] {
+  const editables = pagos.filter((p) => p.estado === 'pendiente' || p.estado === 'borrador')
+  if (editables.length === 0) return [{ porcentaje: '', fecha: '' }]
+  return editables.map((p) => ({ id: p.id, porcentaje: String(Number(p.porcentaje)), fecha: p.fechaProgramada.slice(0, 10) }))
+}
+
+export function PagoPlanCard({ oc, pagos: initialPagos, editable = true }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const role = session?.user?.role
-  const canManage = role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia'
+  const canManage = editable && (role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia')
 
   const [pagos, setPagos] = useState(initialPagos)
-  const [adding, setAdding] = useState(false)
-  const [porcentaje, setPorcentaje] = useState('')
-  const [fechaProgramada, setFechaProgramada] = useState('')
-  const [nota, setNota] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [rows, setRows] = useState<EditRow[]>(() => toEditRows(initialPagos))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const activos = pagos.filter((p) => p.estado !== 'cancelado')
-  const porcentajePlanificado = activos.reduce((s, p) => s + Number(p.porcentaje), 0)
-  const porcentajeDisponible = Math.max(0, 100 - porcentajePlanificado)
-  const totalPlanificado = activos.reduce((s, p) => s + Number(p.monto), 0)
-  const cubre100 = Math.abs(porcentajePlanificado - 100) < 0.01
+  const bloqueados = pagos.filter((p) => p.estado === 'pagado' || p.estado === 'cancelado')
+  const pctBloqueado = bloqueados
+    .filter((p) => p.estado === 'pagado')
+    .reduce((s, p) => s + Number(p.porcentaje), 0)
 
-  async function refresh() {
-    const data = await api.get<Pago[]>(`/pagos/orden/${oc.id}`)
-    setPagos(data)
+  const montoTotal = Number(oc.montoTotal)
+  const tieneDescuentoFiscal = Boolean(Number(oc.detraccionPorcentaje) > 0 || Number(oc.retencionPorcentaje) > 0)
+  const pctFiscal = Number(oc.detraccionPorcentaje) > 0 ? Number(oc.detraccionPorcentaje) : Number(oc.retencionPorcentaje)
+  const labelFiscal = Number(oc.detraccionPorcentaje) > 0 ? 'Detracción' : 'Retención'
+
+  function montoDe(row: EditRow) {
+    return (montoTotal * (parseFloat(row.porcentaje) || 0)) / 100
+  }
+  function detraccionDe(row: EditRow) {
+    return tieneDescuentoFiscal ? (montoDe(row) * pctFiscal) / 100 : 0
+  }
+  function netoDe(row: EditRow) {
+    return montoDe(row) - detraccionDe(row)
   }
 
-  function prefill(pct: number) {
-    setPorcentaje(String(Math.min(pct, porcentajeDisponible)))
-    setAdding(true)
+  function startEditing() {
+    setRows(toEditRows(pagos))
+    setError(null)
+    setEditing(true)
   }
 
-  async function crearPago() {
-    const pct = Number(porcentaje)
-    if (!porcentaje || pct <= 0) { setError('El porcentaje debe ser mayor a 0'); return }
-    if (pct > porcentajeDisponible + 0.01) { setError(`Máximo disponible: ${porcentajeDisponible.toFixed(2)}%`); return }
-    if (!fechaProgramada) { setError('La fecha programada es requerida'); return }
+  function cancelEditing() {
+    setEditing(false)
+    setError(null)
+  }
+
+  function updateRow(i: number, field: 'porcentaje' | 'fecha', value: string) {
+    setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, [field]: value } : r)))
+  }
+
+  function addRow() {
+    const suma = rows.reduce((s, r) => s + (parseFloat(r.porcentaje) || 0), 0)
+    const restante = Math.round((100 - pctBloqueado - suma) * 100) / 100
+    setRows((prev) => [...prev, { porcentaje: restante > 0 ? String(restante) : '', fecha: '' }])
+  }
+
+  function removeRow(i: number) {
+    setRows((prev) => prev.filter((_, idx) => idx !== i))
+  }
+
+  async function guardar() {
+    const completos = rows.every((r) => r.porcentaje && parseFloat(r.porcentaje) > 0 && r.fecha)
+    if (!completos) {
+      setError('Completa el porcentaje y la fecha de cada cuota')
+      return
+    }
     setSaving(true)
     setError(null)
     try {
-      await api.post('/pagos', {
-        ordenCompraId: oc.id,
-        porcentaje: pct,
-        fechaProgramada,
-        nota: nota.trim() || undefined,
+      const data = await api.put<Pago[]>(`/pagos/orden/${oc.id}`, {
+        tramos: rows.map((r) => ({
+          id: r.id,
+          porcentaje: parseFloat(r.porcentaje),
+          fecha: r.fecha,
+        })),
       })
-      setPorcentaje(''); setFechaProgramada(''); setNota(''); setAdding(false)
-      await refresh()
+      setPagos(data)
+      setEditing(false)
       router.refresh()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al registrar el pago')
+      setError(e instanceof Error ? e.message : 'Error al guardar el plan de pagos')
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <div className="rounded-xl border border-border bg-white overflow-x-auto">
+    <div className="rounded-xl border border-border bg-white">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Plan de pagos</h2>
-        {canManage && porcentajeDisponible > 0.01 && (
-          <div className="flex items-center gap-2">
-            {oc.adelantoPorcentaje && (
-              <button onClick={() => prefill(Number(oc.adelantoPorcentaje))} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                + Adelanto ({formatPercent(oc.adelantoPorcentaje)})
-              </button>
-            )}
-            {oc.saldoPorcentaje && (
-              <button onClick={() => prefill(Number(oc.saldoPorcentaje))} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                + Saldo ({formatPercent(oc.saldoPorcentaje)})
-              </button>
-            )}
-            {!adding && (
-              <button onClick={() => setAdding(true)} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                <Plus className="size-3.5" />
-                Agregar tramo
-              </button>
-            )}
-          </div>
+        {canManage && !editing && (
+          <button
+            onClick={startEditing}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+          >
+            <Pencil className="size-3" />
+            Editar
+          </button>
         )}
       </div>
 
-      {pagos.length === 0 && !adding && (
+      {!editing && pagos.length === 0 && (
         <p className="px-5 py-4 text-sm text-muted-foreground">Sin pagos programados aún.</p>
       )}
 
-      {pagos.length > 0 && (
-        <table className="w-full text-sm">
-          <thead className="bg-muted/30">
-            <tr>
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Fecha</th>
-              <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">%</th>
-              <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Monto</th>
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Estado</th>
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Nota</th>
-              <th className="px-4 py-2.5 w-10" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {pagos.map((p) => (
-              <tr
-                key={p.id}
-                className="group cursor-pointer hover:bg-muted/20"
-                onClick={() => router.push(`/pagos/${p.id}`)}
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1.5">
-                    {p.estadoEfectivo === 'vencido' && <AlertTriangle className="size-3.5 text-destructive" />}
-                    {fmtDate(p.fechaProgramada)}
-                  </div>
-                  {p.fechaPagoReal && (
-                    <div className="text-xs text-muted-foreground">Pagado {fmtDate(p.fechaPagoReal)}</div>
+      {!editing && pagos.length > 0 && (
+        <div>
+          <div
+            className={cn(
+              'hidden gap-2 bg-muted/30 px-4 py-2.5 text-xs font-medium text-muted-foreground sm:grid',
+              tieneDescuentoFiscal ? PAGOS_GRID_CON_FISCAL : PAGOS_GRID_SIN_FISCAL,
+            )}
+          >
+            <span>Fecha</span>
+            <span className="text-right">%</span>
+            <span className="text-right">Bruto</span>
+            {tieneDescuentoFiscal && <span className="text-right">{labelFiscal}</span>}
+            <span className="text-right">Neto</span>
+            <span>Estado</span>
+            <span />
+          </div>
+          <div className="divide-y divide-border sm:divide-y-0">
+            {pagos.map((p) => {
+              const detraccion = tieneDescuentoFiscal ? (Number(p.monto) * pctFiscal) / 100 : 0
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => router.push(`/pagos/${p.id}`)}
+                  className={cn(
+                    'group grid grid-cols-2 items-center gap-y-1.5 gap-x-3 p-4 cursor-pointer hover:bg-muted/20 sm:gap-2 sm:border-t sm:border-border sm:py-3',
+                    tieneDescuentoFiscal ? PAGOS_GRID_CON_FISCAL : PAGOS_GRID_SIN_FISCAL,
                   )}
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums font-medium">{formatPercent(p.porcentaje)}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatCurrency(p.monto)}</td>
-                <td className="px-4 py-3">
-                  <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', ESTADO_CLASS[p.estadoEfectivo])}>
-                    {ESTADO_LABEL[p.estadoEfectivo]}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground text-xs">{p.nota ?? '—'}</td>
-                <td className="px-2 py-3 text-muted-foreground/50 group-hover:text-foreground">
-                  <ChevronRight className="size-3.5" />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot className="border-t border-border bg-muted/20">
-            <tr>
-              <td className="px-4 py-3 text-right text-sm font-medium">Planificado</td>
-              <td className="px-4 py-3 text-right tabular-nums font-bold">{porcentajePlanificado.toFixed(2)}%</td>
-              <td className="px-4 py-3 text-right tabular-nums font-bold">{formatCurrency(totalPlanificado)}</td>
-              <td colSpan={2} className="px-4 py-3 text-xs text-muted-foreground">
-                {cubre100
-                  ? 'Cubre el 100% de la OC'
-                  : `Disponible por planificar: ${porcentajeDisponible.toFixed(2)}%`}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+                >
+                  <div className="col-span-2 sm:col-span-1">
+                    <div className="flex items-center gap-1.5">
+                      {p.estadoEfectivo === 'vencido' && <AlertTriangle className="size-3.5 text-destructive" />}
+                      {fmtDate(p.fechaProgramada)}
+                    </div>
+                    {p.fechaPagoReal && (
+                      <div className="text-xs text-muted-foreground">Pagado {fmtDate(p.fechaPagoReal)}</div>
+                    )}
+                  </div>
+                  <div className="text-right tabular-nums font-medium sm:text-right">
+                    <span className="sm:hidden text-muted-foreground mr-1 text-[11px] font-normal">%:</span>
+                    {formatPercent(p.porcentaje)}
+                  </div>
+                  <div className="text-right tabular-nums text-muted-foreground">
+                    <span className="sm:hidden text-muted-foreground mr-1 text-[11px]">Bruto:</span>
+                    {formatCurrency(p.monto)}
+                  </div>
+                  {tieneDescuentoFiscal && (
+                    <div className="text-right tabular-nums text-muted-foreground">
+                      <span className="sm:hidden text-muted-foreground mr-1 text-[11px]">{labelFiscal}:</span>
+                      {formatCurrency(detraccion)}
+                    </div>
+                  )}
+                  <div className="text-right tabular-nums font-medium">
+                    <span className="sm:hidden text-muted-foreground mr-1 text-[11px]">Neto:</span>
+                    {formatCurrency(Number(p.monto) - detraccion)}
+                  </div>
+                  <div>
+                    <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', ESTADO_CLASS[p.estadoEfectivo])}>
+                      {ESTADO_LABEL[p.estadoEfectivo]}
+                    </span>
+                  </div>
+                  <div className="hidden sm:flex text-muted-foreground/50 group-hover:text-foreground justify-end">
+                    <ChevronRight className="size-3.5" />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       )}
 
-      {adding && (
-        <div className="px-5 py-4 border-t border-border space-y-3 bg-muted/10">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                % (máx. {porcentajeDisponible.toFixed(2)}%)
-              </label>
-              <Input
-                type="number"
-                min="0.01"
-                max={porcentajeDisponible}
-                step="0.01"
-                value={porcentaje}
-                onChange={(e) => setPorcentaje(e.target.value)}
-                className="h-8 text-sm"
-                autoFocus
-              />
+      {editing && (
+        <div className="px-5 py-4 space-y-3">
+          {bloqueados.length > 0 && (
+            <div className="rounded-md border border-border/70 bg-muted/20 p-2.5 text-xs text-muted-foreground space-y-1">
+              <p className="font-medium text-foreground/80">Cuotas ya pagadas o canceladas (no editables aquí)</p>
+              {bloqueados.map((p) => (
+                <div key={p.id} className="flex items-center justify-between gap-2">
+                  <span>{fmtDate(p.fechaProgramada)} · {formatPercent(p.porcentaje)} · {formatCurrency(p.monto)}</span>
+                  <span className={cn('inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium', ESTADO_CLASS[p.estadoEfectivo])}>
+                    {ESTADO_LABEL[p.estadoEfectivo]}
+                  </span>
+                </div>
+              ))}
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Monto</label>
-              <Input
-                value={porcentaje ? formatCurrency((Number(oc.montoTotal) * Number(porcentaje)) / 100) : '—'}
-                disabled
-                className="h-8 text-sm tabular-nums"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Fecha programada</label>
-              <Input type="date" value={fechaProgramada} onChange={(e) => setFechaProgramada(e.target.value)} className="h-8 text-sm" />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Nota (opcional)</label>
-            <Input value={nota} onChange={(e) => setNota(e.target.value)} className="h-8 text-sm" placeholder="Ej. Adelanto contra factura" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={crearPago} disabled={saving} size="sm">
-              <Check className="size-3.5" />
-              {saving ? 'Guardando…' : 'Guardar'}
+          )}
+
+          <TramosPagoEditor
+            rows={rows}
+            onUpdate={updateRow}
+            onAdd={addRow}
+            onRemove={removeRow}
+            disabled={saving}
+            extraColumns={[
+              { header: 'Bruto', align: 'right', render: (row) => formatCurrency(montoDe(row)) },
+              ...(tieneDescuentoFiscal
+                ? [{ header: labelFiscal, align: 'right' as const, render: (row: EditRow) => formatCurrency(detraccionDe(row)) }]
+                : []),
+              { header: 'Neto', align: 'right', render: (row) => formatCurrency(netoDe(row)) },
+            ]}
+          />
+
+          {error && <p className="text-xs text-destructive">{error}</p>}
+
+          <div className="flex items-center gap-1.5 pt-1">
+            <Button size="sm" onClick={guardar} disabled={saving} className="h-7 px-3 text-xs gap-1">
+              <Check className="size-3" />
+              {saving ? 'Guardando…' : 'Guardar plan de pagos'}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => { setAdding(false); setPorcentaje(''); setFechaProgramada(''); setNota(''); setError(null) }}
-              disabled={saving}
-            >
-              <X className="size-3.5" />
+            <Button size="sm" variant="ghost" onClick={cancelEditing} disabled={saving} className="h-7 px-2 text-xs gap-1">
+              <X className="size-3" />
               Cancelar
             </Button>
           </div>
         </div>
       )}
-
-      {error && <p className="px-5 py-2 text-xs text-destructive border-t border-border">{error}</p>}
     </div>
   )
 }

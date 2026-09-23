@@ -7,8 +7,8 @@ import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DatePicker } from '@/components/ui/date-picker'
 import { Switch } from '@/components/ui/switch'
+import { TramosPagoEditor } from '@/components/pagos/TramosPagoEditor'
 import { cn } from '@/lib/utils'
 import { UNIDAD_OPTIONS } from '@/lib/inventario'
 import type { Cotizacion, SolicitudItem, UnidadMedida } from '@/types/api'
@@ -33,6 +33,17 @@ interface Props {
   /** Cuando se pasa, el formulario precarga estos datos para corregir una
    * respuesta ya registrada (recibida/aprobada) en lugar de partir en blanco. */
   cotizacionExistente?: Cotizacion
+}
+
+const ALLOWED_ARCHIVO_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.ms-excel', // .xls
+]
+const ALLOWED_ARCHIVO_EXTENSIONS = ['.pdf', '.xlsx', '.xls']
+
+function esArchivoExcel(nombre: string) {
+  return /\.xlsx?$/i.test(nombre)
 }
 
 const emptyLinea = (solicitudItem?: SolicitudItem): LineaItem => ({
@@ -90,13 +101,16 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, 
   const [loading, setLoading] = useState(false)
   const [archivoPdf, setArchivoPdf] = useState<File | null>(null)
   const [archivoError, setArchivoError] = useState<string | null>(null)
+  const [archivosExistentes, setArchivosExistentes] = useState(c?.archivos ?? [])
+  const [eliminandoArchivoId, setEliminandoArchivoId] = useState<string | null>(null)
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
-    if (file.type !== 'application/pdf') {
-      setArchivoError('Solo se permiten archivos PDF')
+    const extensionValida = ALLOWED_ARCHIVO_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext))
+    if (!ALLOWED_ARCHIVO_TYPES.includes(file.type) && !extensionValida) {
+      setArchivoError('Solo se permiten archivos PDF o Excel (.xlsx, .xls)')
       return
     }
     if (file.size > 15 * 1024 * 1024) {
@@ -105,6 +119,21 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, 
     }
     setArchivoError(null)
     setArchivoPdf(file)
+  }
+
+  async function handleEliminarArchivoExistente(archivoId: string) {
+    if (!cotizacionId) return
+    setEliminandoArchivoId(archivoId)
+    setArchivoError(null)
+    try {
+      await api.delete(`/solicitudes-cotizacion/cotizaciones/${cotizacionId}/archivos/${archivoId}`)
+      setArchivosExistentes((prev) => prev.filter((a) => a.id !== archivoId))
+      router.refresh()
+    } catch (err) {
+      setArchivoError(err instanceof Error ? err.message : 'Error al eliminar el archivo')
+    } finally {
+      setEliminandoArchivoId(null)
+    }
   }
 
   const sumaPorcentajes = condicionesPago.reduce((s, c) => s + (parseFloat(c.porcentaje) || 0), 0)
@@ -276,17 +305,9 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, 
       <div className="space-y-4 border-border pt-4 pb-5 border-y">
         {/* Forma de pago */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-foreground">
-              Forma de Pago
-            </label>
-            <span className={cn(
-              'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full tabular-nums',
-              sumaCompleta ? 'bg-chart-2/15 text-chart-2' : 'bg-amber-500/15 text-amber-600'
-            )}>
-              {sumaCompleta ? '✓ Suma 100%' : `Faltan ${restante > 0 ? restante : 0}% para 100%`}
-            </span>
-          </div>
+          <label className="text-sm font-medium text-foreground">
+            Forma de Pago
+          </label>
 
           {/* Presets rápidos de pago */}
           <div className="flex flex-wrap items-center gap-1.5 py-0.5">
@@ -340,54 +361,12 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, 
             </button>
           </div>
 
-          <div className="hidden sm:grid grid-cols-[110px_1fr_28px] gap-2 px-1 text-xs font-medium text-muted-foreground">
-            <span>Porcentaje (%)</span>
-            <span>Fecha estimada de pago</span>
-            <span />
-          </div>
-
-          {condicionesPago.map((c, i) => (
-            <div key={i} className="grid grid-cols-[110px_1fr_28px] gap-2 items-start">
-              <div>
-                <Input
-                  type="number"
-                  min="0.01"
-                  max="100"
-                  step="0.01"
-                  value={c.porcentaje}
-                  onChange={(e) => updateCondicionPago(i, 'porcentaje', e.target.value)}
-                  placeholder="Ej. 100"
-                  className="h-8 text-sm font-mono text-right"
-                />
-              </div>
-              <div>
-                <DatePicker
-                  value={c.fecha}
-                  onValueChange={(v) => updateCondicionPago(i, 'fecha', v)}
-                  placeholder="Seleccionar fecha…"
-                  className="h-8"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => quitarCondicionPago(i)}
-                disabled={condicionesPago.length === 1}
-                aria-label="Eliminar cuota"
-                className="mt-0.5 flex size-7 items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors duration-[120ms] disabled:pointer-events-none disabled:opacity-30"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
-            </div>
-          ))}
-
-          <button
-            type="button"
-            onClick={agregarCondicionPago}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors duration-[120ms] py-1"
-          >
-            <Plus className="size-3.5" />
-            Agregar cuota de pago
-          </button>
+          <TramosPagoEditor
+            rows={condicionesPago}
+            onUpdate={updateCondicionPago}
+            onAdd={agregarCondicionPago}
+            onRemove={quitarCondicionPago}
+          />
         </div>
 
         {/* Condiciones adicionales y notas */}
@@ -426,30 +405,39 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, 
             />
           </div>
 
-          {/* Adjuntar Proforma PDF */}
+          {/* Adjuntar Proforma */}
           <div className="sm:col-span-2 space-y-1.5 pt-1">
             <label className="block text-xs font-medium text-muted-foreground">
-              Proforma o cotización oficial en PDF <span className="font-normal text-muted-foreground/70">(opcional)</span>
+              Proforma o cotización oficial (PDF o Excel) <span className="font-normal text-muted-foreground/70">(opcional)</span>
             </label>
             {!archivoPdf ? (
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-dashed border-border hover:border-foreground/40 bg-muted/20 hover:bg-muted/50 cursor-pointer text-xs font-medium text-foreground transition-colors duration-[120ms]">
                   <Paperclip className="size-3.5 text-muted-foreground" />
-                  <span>Adjuntar proforma en PDF</span>
+                  <span>Adjuntar proforma (PDF o Excel)</span>
                   <input
                     type="file"
-                    accept="application/pdf,.pdf"
+                    accept="application/pdf,.pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xlsx,application/vnd.ms-excel,.xls"
                     onChange={handleFileSelect}
                     className="sr-only"
                   />
                 </label>
-                {c?.archivos && c.archivos.length > 0 && (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                {archivosExistentes.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                     <span className="text-[11px]">Ya adjunto:</span>
-                    {c.archivos.map((a) => (
+                    {archivosExistentes.map((a) => (
                       <span key={a.id} className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground bg-muted/60 px-2 py-0.5 rounded border border-border/70">
-                        <FileText className="size-3 text-red-500" />
+                        <FileText className={cn('size-3', esArchivoExcel(a.nombre) ? 'text-emerald-600' : 'text-red-500')} />
                         <span className="truncate max-w-[160px]">{a.nombre}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleEliminarArchivoExistente(a.id)}
+                          disabled={eliminandoArchivoId === a.id}
+                          aria-label="Eliminar archivo adjunto"
+                          className="ml-0.5 rounded text-muted-foreground hover:text-destructive disabled:pointer-events-none disabled:opacity-40"
+                        >
+                          <X className="size-3" />
+                        </button>
                       </span>
                     ))}
                   </div>
@@ -460,7 +448,7 @@ export function ReceiveCotizacionForm({ cotizacionId, solicitudItems, onCancel, 
               </div>
             ) : (
               <div className="flex items-center gap-2 p-2 rounded-md border border-border bg-muted/30 w-fit text-xs">
-                <FileText className="size-4 text-red-500 shrink-0" />
+                <FileText className={cn('size-4 shrink-0', esArchivoExcel(archivoPdf.name) ? 'text-emerald-600' : 'text-red-500')} />
                 <span className="font-medium text-foreground max-w-xs truncate">{archivoPdf.name}</span>
                 <span className="text-muted-foreground text-[11px]">
                   ({(archivoPdf.size / (1024 * 1024)).toFixed(2)} MB)

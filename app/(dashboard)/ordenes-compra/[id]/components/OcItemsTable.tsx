@@ -28,11 +28,15 @@ type LineaItem = {
 
 const emptyLinea = (): LineaItem => ({ codigo: '', descripcion: '', cantidad: '', unidad: 'und', precioUnitario: '' })
 
+const GRID_WITH_ACTIONS = 'sm:grid-cols-[70px_1fr_70px_100px_90px_90px_64px]'
+const GRID_SIN_ACTIONS = 'sm:grid-cols-[70px_1fr_70px_100px_90px_90px]'
+
 export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const role = session?.user?.role
   const canEdit = editable && (role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia')
+  const gridCols = canEdit ? GRID_WITH_ACTIONS : GRID_SIN_ACTIONS
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editLinea, setEditLinea] = useState<LineaItem>(emptyLinea())
@@ -118,8 +122,8 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-white overflow-x-auto h-fit">
-      <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+    <div className="rounded-xl border border-border bg-white h-fit">
+      <div className="px-5 py-4 border-b border-border flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Ítems</h2>
         {canEdit && !adding && (
           <button
@@ -131,129 +135,117 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
           </button>
         )}
       </div>
-      <table className="w-full text-sm">
-        <thead className="bg-muted/30">
-          <tr>
-            <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Cód.</th>
-            <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Descripción</th>
-            <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Cant.</th>
-            <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Unidad</th>
-            <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P. unit</th>
-            <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Total</th>
-            {canEdit && <th className="px-4 py-2.5 w-16" />}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {items.map((item) => {
-            if (editingId === item.id) {
-              return (
-                <tr key={item.id} className="bg-muted/20">
-                  <td className="px-2 py-2">
-                    <Input value={editLinea.codigo} onChange={(e) => setEditLinea((p) => ({ ...p, codigo: e.target.value }))} className="h-8 text-xs" />
-                  </td>
-                  <td className="px-2 py-2">
-                    <Input value={editLinea.descripcion} onChange={(e) => setEditLinea((p) => ({ ...p, descripcion: e.target.value }))} className="h-8 text-sm" />
-                  </td>
-                  <td className="px-2 py-2 w-24">
-                    <Input type="number" min="0.01" step="0.01" value={editLinea.cantidad} onChange={(e) => setEditLinea((p) => ({ ...p, cantidad: e.target.value }))} className="h-8 text-sm text-right" />
-                  </td>
-                  <td className="px-2 py-2 w-28">
-                    <Select value={editLinea.unidad} onValueChange={(v) => setEditLinea((p) => ({ ...p, unidad: (v ?? 'und') as UnidadMedida }))}>
-                      <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-                      <SelectContent>{UNIDAD_OPTIONS.map(([u, label]) => <SelectItem key={u} value={u}>{label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </td>
-                  <td className="px-2 py-2 w-28">
-                    <Input type="number" min="0" step="0.01" value={editLinea.precioUnitario} onChange={(e) => setEditLinea((p) => ({ ...p, precioUnitario: e.target.value }))} className="h-8 text-sm text-right" />
-                  </td>
-                  <td className="px-4 py-2 text-right text-muted-foreground tabular-nums">
-                    {formatCurrency((parseFloat(editLinea.cantidad) || 0) * (parseFloat(editLinea.precioUnitario) || 0))}
-                  </td>
-                  <td className="px-2 py-2">
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => saveEdit(item.id)} disabled={saving} className="flex size-7 items-center justify-center rounded text-chart-2 hover:bg-chart-2/10">
-                        <Check className="size-3.5" />
-                      </button>
-                      <button onClick={() => setEditingId(null)} disabled={saving} className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-muted">
-                        <X className="size-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )
-            }
-            return (
-              <tr key={item.id} className="group">
-                <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{item.codigo ?? '—'}</td>
-                <td className="px-4 py-3 font-medium text-foreground">{item.descripcion}</td>
-                <td className="px-4 py-3 text-right tabular-nums">{Number(item.cantidad).toLocaleString('es-PE')}</td>
-                <td className="px-4 py-3 text-muted-foreground">{item.unidad}</td>
-                <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(item.precioUnitario)}</td>
-                <td className="px-4 py-3 text-right tabular-nums font-medium text-foreground">{formatCurrency(item.precioTotal)}</td>
-                {canEdit && (
-                  <td className="px-2 py-3">
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => startEdit(item)} className="flex size-7 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted">
-                        <Pencil className="size-3.5" />
-                      </button>
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        disabled={saving || items.length === 1}
-                        className="flex size-7 items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/5 disabled:pointer-events-none disabled:opacity-30"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                )}
-              </tr>
-            )
-          })}
 
-          {adding && (
-            <tr className="bg-muted/20">
-              <td className="px-2 py-2">
-                <Input value={nueva.codigo} onChange={(e) => setNueva((p) => ({ ...p, codigo: e.target.value }))} className="h-8 text-xs" placeholder="Opcional" />
-              </td>
-              <td className="px-2 py-2">
-                <Input value={nueva.descripcion} onChange={(e) => setNueva((p) => ({ ...p, descripcion: e.target.value }))} className="h-8 text-sm" placeholder="Ej. Transporte a obra" autoFocus />
-              </td>
-              <td className="px-2 py-2 w-24">
-                <Input type="number" min="0.01" step="0.01" value={nueva.cantidad} onChange={(e) => setNueva((p) => ({ ...p, cantidad: e.target.value }))} className="h-8 text-sm text-right" placeholder="1" />
-              </td>
-              <td className="px-2 py-2 w-28">
-                <Select value={nueva.unidad} onValueChange={(v) => setNueva((p) => ({ ...p, unidad: (v ?? 'und') as UnidadMedida }))}>
+      <div className={cn('hidden bg-muted/30 px-4 py-2.5 text-xs font-medium text-muted-foreground sm:grid gap-2', gridCols)}>
+        <span>Cód.</span>
+        <span>Descripción</span>
+        <span className="text-right">Cant.</span>
+        <span>Unidad</span>
+        <span className="text-right">P. unit</span>
+        <span className="text-right">Total</span>
+        {canEdit && <span />}
+      </div>
+
+      <div className="divide-y divide-border sm:divide-y-0">
+        {items.map((item) => {
+          if (editingId === item.id) {
+            return (
+              <div key={item.id} className={cn('grid grid-cols-1 gap-2 bg-muted/20 p-3 sm:items-center sm:py-2', gridCols)}>
+                <Input value={editLinea.codigo} onChange={(e) => setEditLinea((p) => ({ ...p, codigo: e.target.value }))} className="h-8 text-xs" placeholder="Cód." />
+                <Input value={editLinea.descripcion} onChange={(e) => setEditLinea((p) => ({ ...p, descripcion: e.target.value }))} className="h-8 text-sm" placeholder="Descripción" />
+                <Input type="number" min="0.01" step="0.01" value={editLinea.cantidad} onChange={(e) => setEditLinea((p) => ({ ...p, cantidad: e.target.value }))} className="h-8 text-sm text-right" placeholder="Cant." />
+                <Select value={editLinea.unidad} onValueChange={(v) => setEditLinea((p) => ({ ...p, unidad: (v ?? 'und') as UnidadMedida }))}>
                   <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>{UNIDAD_OPTIONS.map(([u, label]) => <SelectItem key={u} value={u}>{label}</SelectItem>)}</SelectContent>
                 </Select>
-              </td>
-              <td className="px-2 py-2 w-28">
-                <Input type="number" min="0" step="0.01" value={nueva.precioUnitario} onChange={(e) => setNueva((p) => ({ ...p, precioUnitario: e.target.value }))} className="h-8 text-sm text-right" placeholder="0.00" />
-              </td>
-              <td className="px-4 py-2 text-right text-muted-foreground tabular-nums">
-                {formatCurrency((parseFloat(nueva.cantidad) || 0) * (parseFloat(nueva.precioUnitario) || 0))}
-              </td>
-              <td className="px-2 py-2">
-                <div className="flex items-center gap-1">
-                  <button onClick={addItem} disabled={saving} className="flex size-7 items-center justify-center rounded text-chart-2 hover:bg-chart-2/10">
+                <Input type="number" min="0" step="0.01" value={editLinea.precioUnitario} onChange={(e) => setEditLinea((p) => ({ ...p, precioUnitario: e.target.value }))} className="h-8 text-sm text-right" placeholder="P. unit" />
+                <div className="flex items-center h-8 justify-end text-sm tabular-nums text-muted-foreground">
+                  <span className="sm:hidden text-muted-foreground mr-auto text-[11px]">Total:</span>
+                  {formatCurrency((parseFloat(editLinea.cantidad) || 0) * (parseFloat(editLinea.precioUnitario) || 0))}
+                </div>
+                <div className="flex items-center gap-1 justify-end sm:justify-center">
+                  <button onClick={() => saveEdit(item.id)} disabled={saving} className="flex size-7 items-center justify-center rounded text-chart-2 hover:bg-chart-2/10">
                     <Check className="size-3.5" />
                   </button>
-                  <button onClick={() => { setAdding(false); setNueva(emptyLinea()); setError(null) }} disabled={saving} className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-muted">
+                  <button onClick={() => setEditingId(null)} disabled={saving} className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-muted">
                     <X className="size-3.5" />
                   </button>
                 </div>
-              </td>
-            </tr>
-          )}
-        </tbody>
-        <tfoot className="border-t border-border bg-muted/20">
-          <tr>
-            <td colSpan={canEdit ? 5 : 5} className="px-4 py-3 text-right text-sm font-medium">Total</td>
-            <td className="px-4 py-3 text-right tabular-nums font-bold">{formatCurrency(montoTotal)}</td>
-            {canEdit && <td />}
-          </tr>
-        </tfoot>
-      </table>
+              </div>
+            )
+          }
+          return (
+            <div key={item.id} className={cn('group grid grid-cols-1 gap-1.5 p-3 sm:items-center sm:gap-2 sm:py-3', gridCols)}>
+              <div className="text-muted-foreground font-mono text-xs">
+                <span className="sm:hidden text-muted-foreground/70 mr-1">Cód.:</span>
+                {item.codigo ?? '—'}
+              </div>
+              <div className="font-medium text-foreground">{item.descripcion}</div>
+              <div className="text-right tabular-nums">
+                <span className="sm:hidden text-muted-foreground mr-1 text-[11px]">Cant.:</span>
+                {Number(item.cantidad).toLocaleString('es-PE')}
+              </div>
+              <div className="text-muted-foreground">
+                <span className="sm:hidden text-muted-foreground/70 mr-1">Unidad:</span>
+                {item.unidad}
+              </div>
+              <div className="text-right tabular-nums">
+                <span className="sm:hidden text-muted-foreground mr-1 text-[11px]">P. unit:</span>
+                {formatCurrency(item.precioUnitario)}
+              </div>
+              <div className="text-right tabular-nums font-medium text-foreground">
+                <span className="sm:hidden text-muted-foreground mr-1 text-[11px] font-normal">Total:</span>
+                {formatCurrency(item.precioTotal)}
+              </div>
+              {canEdit && (
+                <div className="flex items-center gap-1 justify-end sm:justify-center">
+                  <button onClick={() => startEdit(item)} className="flex size-7 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted">
+                    <Pencil className="size-3.5" />
+                  </button>
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    disabled={saving || items.length === 1}
+                    className="flex size-7 items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/5 disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {adding && (
+          <div className={cn('grid grid-cols-1 gap-2 bg-muted/20 p-3 sm:items-center sm:py-2', gridCols)}>
+            <Input value={nueva.codigo} onChange={(e) => setNueva((p) => ({ ...p, codigo: e.target.value }))} className="h-8 text-xs" placeholder="Cód. (opcional)" />
+            <Input value={nueva.descripcion} onChange={(e) => setNueva((p) => ({ ...p, descripcion: e.target.value }))} className="h-8 text-sm" placeholder="Ej. Transporte a obra" autoFocus />
+            <Input type="number" min="0.01" step="0.01" value={nueva.cantidad} onChange={(e) => setNueva((p) => ({ ...p, cantidad: e.target.value }))} className="h-8 text-sm text-right" placeholder="1" />
+            <Select value={nueva.unidad} onValueChange={(v) => setNueva((p) => ({ ...p, unidad: (v ?? 'und') as UnidadMedida }))}>
+              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+              <SelectContent>{UNIDAD_OPTIONS.map(([u, label]) => <SelectItem key={u} value={u}>{label}</SelectItem>)}</SelectContent>
+            </Select>
+            <Input type="number" min="0" step="0.01" value={nueva.precioUnitario} onChange={(e) => setNueva((p) => ({ ...p, precioUnitario: e.target.value }))} className="h-8 text-sm text-right" placeholder="0.00" />
+            <div className="flex items-center h-8 justify-end text-sm tabular-nums text-muted-foreground">
+              <span className="sm:hidden text-muted-foreground mr-auto text-[11px]">Total:</span>
+              {formatCurrency((parseFloat(nueva.cantidad) || 0) * (parseFloat(nueva.precioUnitario) || 0))}
+            </div>
+            <div className="flex items-center gap-1 justify-end sm:justify-center">
+              <button onClick={addItem} disabled={saving} className="flex size-7 items-center justify-center rounded text-chart-2 hover:bg-chart-2/10">
+                <Check className="size-3.5" />
+              </button>
+              <button onClick={() => { setAdding(false); setNueva(emptyLinea()); setError(null) }} disabled={saving} className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-muted">
+                <X className="size-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-border bg-muted/20 px-4 py-3 flex items-center justify-between sm:justify-end sm:gap-4">
+        <span className="text-sm font-medium">Total</span>
+        <span className="tabular-nums font-bold">{formatCurrency(montoTotal)}</span>
+      </div>
+
       {error && (
         <p className={cn('px-5 py-2 text-xs text-destructive border-t border-border')}>{error}</p>
       )}
