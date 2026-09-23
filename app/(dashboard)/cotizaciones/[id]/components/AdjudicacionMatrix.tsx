@@ -6,7 +6,7 @@ import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
-import { Check, ShoppingCart, Trophy } from 'lucide-react'
+import { Check, Download, ShoppingCart, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ordenBasePath } from '@/lib/ordenes'
 import type { SolicitudItem, Cotizacion, EstadoSolicitud, OrdenCompra, TipoOrdenCompra } from '@/types/api'
@@ -149,6 +149,14 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
             Adjudicación — comparación de cotizaciones
           </h2>
         </div>
+        <div className="flex items-center gap-2">
+        <a
+          href={`/api/cotizaciones/${solicitudId}/excel`}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors"
+        >
+          <Download className="size-3.5" />
+          Exportar
+        </a>
         {canGenerar ? (
           <div className="flex items-center gap-2">
             <Select value={tipo} onValueChange={(v) => setTipo(v as TipoOrdenCompra)}>
@@ -188,6 +196,7 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
             <span>Adjudicación completada · Órdenes generadas</span>
           </div>
         ) : null}
+        </div>
       </div>
 
       {/* Matriz comparativa */}

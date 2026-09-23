@@ -185,6 +185,18 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function formatDateCorta(value: string) {
+  const date = new Date(value);
+  const dia = String(date.getDate()).padStart(2, "0");
+  const mes = String(date.getMonth() + 1).padStart(2, "0");
+  const anio = String(date.getFullYear()).slice(-2);
+  return `${dia}/${mes}/${anio}`;
+}
+
+function codigoCorto(codigo: string) {
+  return codigo.split("-").pop() ?? codigo;
+}
+
 function EstadoBadge({ solicitud }: { solicitud: SolicitudResumen }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
@@ -328,42 +340,60 @@ function SolicitudesKanban({
         getStatus={(solicitud) => solicitud.columnaKanban}
         getId={(solicitud) => solicitud.id}
         emptyMessage={kanbanEmptyMessage}
-        renderCard={(solicitud) => (
-          <Link
-            href={solicitud.hrefDetalle}
-            className="flex items-stretch gap-2.5 rounded-lg border border-border bg-card p-3 text-sm shadow-sm transition-colors duration-[120ms] hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
-          >
-            <div
-              className={cn(
-                "w-1.5 shrink-0 self-stretch rounded-xl",
-                TIPO_COLOR[solicitud.tipo],
-              )}
-              aria-hidden="true"
-            />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-2">
-                <NombreSolicitud solicitud={solicitud} />
-                <span
-                  className={cn(
-                    "shrink-0 rounded-md px-2 py-0.5 text-xs font-medium",
-                    ORIGEN_CLASS[solicitud.origen],
-                  )}
-                >
-                  {ORIGEN_LABEL[solicitud.origen]}
-                </span>
+        renderCard={(solicitud) => {
+          const fechaEntrega =
+            solicitud.flujo.origen === "macro"
+              ? solicitud.flujo.requerimiento.fechaEntregaRequerida
+              : null;
+
+          return (
+            <Link
+              href={solicitud.hrefDetalle}
+              className="flex items-stretch gap-3 rounded-xl border border-border bg-card p-3.5 text-sm shadow-sm transition-colors duration-[120ms] hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+            >
+              <div
+                className={cn(
+                  "w-1.5 shrink-0 self-stretch rounded-full",
+                  TIPO_COLOR[solicitud.tipo],
+                )}
+                aria-hidden="true"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="min-w-0 font-medium">
+                    {solicitud.proyecto.nombre}
+                  </p>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium mb-auto",
+                      ORIGEN_CLASS[solicitud.origen],
+                    )}
+                  >
+                    {ORIGEN_LABEL[solicitud.origen]}
+                  </span>
+                </div>
+                <p className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug">
+                  {solicitud.nombre}
+                </p>
+                <div className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                  <span className="truncate">{solicitud.creadoPor.name}</span>
+                  <span className="shrink-0 font-mono tabular-nums">
+                    #{codigoCorto(solicitud.codigo)}
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                  <span className="truncate">
+                    F. Sol: {formatDateCorta(solicitud.creadoEn)}
+                  </span>
+                  <span className="shrink-0 truncate">
+                    F. Ent:{" "}
+                    {fechaEntrega ? formatDateCorta(fechaEntrega) : "—"}
+                  </span>
+                </div>
               </div>
-              <p className="mt-2 text-xs font-medium">
-                {solicitud.proyecto.nombre}
-              </p>
-              <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                <span className="truncate">{solicitud.creadoPor.name}</span>
-                <span className="shrink-0 font-mono tabular-nums">
-                  {formatDate(solicitud.creadoEn)}
-                </span>
-              </div>
-            </div>
-          </Link>
-        )}
+            </Link>
+          );
+        }}
       />
     </div>
   );

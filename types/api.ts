@@ -1107,6 +1107,7 @@ export interface OrdenCompra {
   saldoPorcentaje?: string | null;
   detraccionPorcentaje?: string | null;
   retencionPorcentaje?: string | null;
+  descuentoMonto?: string | null;
   incluyeIgv: boolean;
   tipoCambio?: string | null;
   contactoProveedorNombre?: string | null;
@@ -1124,6 +1125,7 @@ export interface OrdenCompra {
   creadoEn: string;
   actualizadoEn: string;
   items: OrdenCompraItem[];
+  pagos?: Pago[];
   _count?: { items: number };
 }
 

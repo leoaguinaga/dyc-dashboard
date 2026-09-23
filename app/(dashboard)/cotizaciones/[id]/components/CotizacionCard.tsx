@@ -240,7 +240,7 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-md bg-muted/60 border border-border px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted hover:text-primary transition-colors duration-[120ms]"
                 >
-                  <FileText className="size-3.5 text-red-500" />
+                  <FileText className={cn('size-3.5', /\.xlsx?$/i.test(a.nombre) ? 'text-emerald-600' : 'text-red-500')} />
                   <span className="truncate max-w-[220px]">{a.nombre}</span>
                   <ExternalLink className="size-3 text-muted-foreground" />
                 </a>

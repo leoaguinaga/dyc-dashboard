@@ -69,16 +69,16 @@ export function CotizacionesKanban({ solicitudes, emptyMessage, activeTipo, onTi
                       {s.codigo}
                     </span>
                     {s.requerimiento?.nombre && (
-                      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                      <p className="mt-0.5 line-clamp-3 text-xs text-muted-foreground">
                         {s.requerimiento.nombre}
                       </p>
                     )}
                   </div>
                 </div>
-                <p className="mt-2 text-xs font-medium">
+                <p className="mt-1 text-xs font-medium">
                   {s.proyecto?.nombre ?? '—'}
                 </p>
-                <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                <div className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
                   <span className="tabular-nums">
                     {s._count?.items ?? s.items?.length ?? 0} ítems · {s._count?.cotizaciones ?? s.cotizaciones?.length ?? 0} cotiz.
                   </span>

@@ -10,7 +10,7 @@ import { NumeroTipoEditor } from './components/NumeroTipoEditor'
 import { ReferenciaConceptoEditor } from './components/ReferenciaConceptoEditor'
 import { OcItemsTable } from './components/OcItemsTable'
 import { PagoPlanCard } from './components/PagoPlanCard'
-import type { EstadoOrdenCompra, OrdenCompra, Pago, TipoRequerimiento } from '@/types/api'
+import type { EstadoOrdenCompra, OrdenCompra, TipoRequerimiento } from '@/types/api'
 import { cn, formatCurrency } from '@/lib/utils'
 
 const ESTADO_LABEL: Record<EstadoOrdenCompra, string> = {
@@ -44,7 +44,7 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
   const { id } = await params
   const oc = await serverFetch<OrdenCompra>(`/ordenes-compra/${id}`).catch(() => null)
   if (!oc) notFound()
-  const pagos = await serverFetch<Pago[]>(`/pagos/orden/${id}`).catch(() => [])
+  const pagos = oc.pagos ?? []
 
   const requerimiento = oc.solicitud?.requerimiento
 
@@ -61,7 +61,18 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
             Órdenes C/S
           </Link>
           <div className="flex items-center gap-3 flex-wrap">
-            <NumeroTipoEditor ocId={oc.id} numero={oc.numero} tipo={oc.tipo} />
+            <div className="flex items-center gap-2 flex-wrap">
+              <NombreOcEditor ocId={oc.id} nombre={oc.nombre} />
+              <span
+                className={cn(
+                  'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium',
+                  ESTADO_CLASS[oc.estado]
+                )}
+              >
+                {ESTADO_LABEL[oc.estado]}
+              </span>
+            </div>
+
             <a
               href={`/api/ordenes-compra/${oc.id}/pdf`}
               target="_blank"
@@ -80,17 +91,7 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
               Exportar Excel
             </a>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <NombreOcEditor ocId={oc.id} nombre={oc.nombre} />
-            <span
-              className={cn(
-                'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium',
-                ESTADO_CLASS[oc.estado]
-              )}
-            >
-              {ESTADO_LABEL[oc.estado]}
-            </span>
-          </div>
+          <NumeroTipoEditor ocId={oc.id} numero={oc.numero} tipo={oc.tipo} />
         </div>
 
         {/* Acciones principales */}
@@ -272,7 +273,7 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
           />
 
           {/* Plan de pagos */}
-          <PagoPlanCard oc={oc} pagos={pagos} />
+          <PagoPlanCard oc={oc} pagos={pagos} editable={oc.estado === 'borrador' || oc.estado === 'emitida'} />
         </div>
       </div>
     </div>
