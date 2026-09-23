@@ -16,6 +16,8 @@ import type { Requerimiento, Role } from '@/types/api'
 // Roles que representan al solicitante real (quien generó el requerimiento).
 const ROLES_SOLICITANTE: Role[] = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr']
 const ROLES_ADMIN_GERENCIA: Role[] = ['administrador', 'admin_ti', 'gerencia']
+// Roles que pueden aprobar/observar un requerimiento que ellos mismos crearon.
+const ROLES_AUTOAPROBACION: Role[] = ['ing_civil', 'ing_electrico', 'jefe_sig', 'admin_ti']
 // El solicitante solo puede cancelar antes de que exista una solicitud de
 // cotización en curso; admin/gerencia pueden cancelar en cualquier estado no terminal.
 const ESTADOS_PRE_COTIZACION: Requerimiento['estado'][] = ['borrador', 'enviado', 'aprobado', 'observado']
@@ -69,7 +71,9 @@ export function RequerimientoActions({ requerimiento: r }: Props) {
   const canEnviar = r.estado === 'borrador' && (
     role === 'administrador' || role === 'admin_ti' || r.creadoPorId === session?.user?.id
   )
-  const canAprobarObservar = r.estado === 'enviado' && r.creadoPorId !== session?.user?.id && approvers.includes(role!)
+  const canAprobarObservar = r.estado === 'enviado' && approvers.includes(role!) && (
+    r.creadoPorId !== session?.user?.id || (!!role && ROLES_AUTOAPROBACION.includes(role))
+  )
   const canCrearCotizacion = r.estado === 'aprobado' && (role === 'logistica' || role === 'administrador' || role === 'admin_ti' || role === 'gerencia')
   const canExportarPDF = r.estado === 'aprobado'
   const esCreador = r.creadoPorId === session?.user?.id
