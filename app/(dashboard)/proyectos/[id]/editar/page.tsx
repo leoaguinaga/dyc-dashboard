@@ -14,11 +14,12 @@ interface Props {
 export default async function EditarProyectoPage({ params }: Props) {
   const { id } = await params;
 
-  const [result, clientes, trabajadores, user] = await Promise.all([
+  const [result, clientes, trabajadores, user, proyectos] = await Promise.all([
     serverFetch<Proyecto>(`/proyectos/${id}`).catch((e: Error) => e),
     serverFetch<Cliente[]>("/clientes").catch(() => [] as Cliente[]),
     serverFetch<Trabajador[]>("/trabajadores").catch(() => [] as Trabajador[]),
     serverFetch<User>("/users/me").catch(() => null),
+    serverFetch<Proyecto[]>("/proyectos").catch(() => [] as Proyecto[]),
   ]);
 
   if (!user || !CON_ACCESO_EDICION.includes(user.role))
@@ -55,6 +56,7 @@ export default async function EditarProyectoPage({ params }: Props) {
           proyecto={result}
           clientes={clientes}
           trabajadores={trabajadores}
+          proyectos={proyectos}
         />
       </div>
     </div>

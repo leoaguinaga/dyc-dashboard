@@ -32,12 +32,12 @@ export default function LoginPage() {
     const result = await signIn.email({
       email: data.email,
       password: data.password,
-      callbackURL: '/proyectos',
+      callbackURL: '/dashboard',
     })
     if (result?.error) {
       setError('root', { message: 'Credenciales incorrectas' })
     } else {
-      router.push('/proyectos')
+      router.push('/dashboard')
     }
   }
 

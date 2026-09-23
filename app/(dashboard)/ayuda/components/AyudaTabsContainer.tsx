@@ -20,7 +20,7 @@ interface Props {
 }
 
 export function AyudaTabsContainer({ initialVideos }: Props) {
-  const [tab, setTab] = useState('mi-ayuda')
+  const [tab, setTab] = useState('biblioteca')
   const { data: session } = useSession()
   const role = session?.user?.role as Role | undefined
   const roleId = role && ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'ing_civil', 'ing_electrico'].includes(role)
@@ -46,27 +46,27 @@ export function AyudaTabsContainer({ initialVideos }: Props) {
         <TabsList className="h-10 bg-muted/80 p-1 rounded-xl">
           <TabsIndicator className="rounded-lg shadow-xs" />
           <TabsTab
-            value="mi-ayuda"
-            className="flex items-center gap-2 px-4 py-1.5 text-xs sm:text-sm font-semibold cursor-pointer"
-          >
-            <BookOpen className="size-4" />
-            <span>Mi ayuda</span>
-          </TabsTab>
-          <TabsTab
             value="biblioteca"
             className="flex items-center gap-2 px-4 py-1.5 text-xs sm:text-sm font-semibold cursor-pointer"
           >
             <Library className="size-4" />
             <span>Biblioteca</span>
           </TabsTab>
+          <TabsTab
+            value="mi-ayuda"
+            className="flex items-center gap-2 px-4 py-1.5 text-xs sm:text-sm font-semibold cursor-pointer"
+          >
+            <BookOpen className="size-4" />
+            <span>Mi ayuda</span>
+          </TabsTab>
         </TabsList>
       </div>
 
-      <TabsPanel value="mi-ayuda">
-        <MiAyuda currentRole={currentRole} onOpenLibrary={() => setTab('biblioteca')} />
-      </TabsPanel>
       <TabsPanel value="biblioteca">
         <GuiasUso videos={initialVideos} />
+      </TabsPanel>
+      <TabsPanel value="mi-ayuda">
+        <MiAyuda currentRole={currentRole} onOpenLibrary={() => setTab('biblioteca')} />
       </TabsPanel>
     </Tabs>
   )

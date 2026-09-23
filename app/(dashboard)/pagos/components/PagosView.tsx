@@ -6,6 +6,7 @@ import { AlertTriangle } from "lucide-react";
 import type { Pago, PagoRecurrente, Proyecto } from "@/types/api";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth/session";
+import { getBeneficiario, getConcepto } from "@/lib/pagos-utils";
 import { PagosPageHeader } from "./PagosPageHeader";
 import { PagosTableClient } from "./PagosTableClient";
 import { PagosFijosPanel } from "./PagosFijosPanel";
@@ -81,14 +82,8 @@ function FilaPago({
   const beneficiario =
     p.tipoBeneficiario === "trabajador"
       ? `Depósito a ${p.beneficiarioTrabajador?.nombre ?? p.beneficiarioNombre ?? "Trabajador"}`
-      : (p.beneficiarioNombre ??
-        p.ordenCompra?.proveedor?.razonSocial ??
-        p.ordenCompra?.proveedorNombreLibre ??
-        "Sin beneficiario");
-  const conceptoOc =
-    p.ordenCompra?.concepto ??
-    (p.concepto && p.concepto !== beneficiario ? p.concepto : null) ??
-    "Sin concepto";
+      : getBeneficiario(p);
+  const conceptoOc = getConcepto(p);
   const identificador = p.ordenCompra
     ? `${p.ordenCompra.numero} · ${conceptoOc}`
     : (p.concepto ?? "Pago manual");

@@ -7,6 +7,7 @@ import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ export function OrdenCompraActions({ oc }: Props) {
   const [cancelarOpen, setCancelarOpen] = useState(false)
   const [fechaEntregaReal, setFechaEntregaReal] = useState(() => new Date().toISOString().slice(0, 10))
   const [calificacionCalidad, setCalificacionCalidad] = useState(0)
+  const [comentarioRecepcion, setComentarioRecepcion] = useState('')
 
   const role = session?.user?.role
   const canAct = role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia'
@@ -61,6 +63,7 @@ export function OrdenCompraActions({ oc }: Props) {
       await api.post(`/ordenes-compra/${oc.id}/recibir`, {
         fechaEntregaReal,
         calificacionCalidad: calificacionCalidad > 0 ? calificacionCalidad : undefined,
+        comentarioRecepcion: comentarioRecepcion.trim() || undefined,
       })
       setRecibirOpen(false)
       router.refresh()
@@ -181,6 +184,17 @@ export function OrdenCompraActions({ oc }: Props) {
                   {calificacionCalidad > 0 ? `${calificacionCalidad} de 5 estrellas` : 'Sin calificar'}
                 </span>
               </div>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-foreground">
+                Comentario (opcional)
+              </label>
+              <Textarea
+                value={comentarioRecepcion}
+                onChange={(e) => setComentarioRecepcion(e.target.value)}
+                placeholder="Observaciones sobre la recepción…"
+                className="min-h-20 text-sm resize-none"
+              />
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">

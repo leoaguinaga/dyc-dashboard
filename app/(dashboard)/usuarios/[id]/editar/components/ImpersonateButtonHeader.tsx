@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useSession } from '@/lib/auth/session'
-import { ROLE_LABELS } from '../../../components/columns'
+import { ROLE_LABELS } from '@/lib/roles'
 import type { User } from '@/types/api'
 
 interface Props {

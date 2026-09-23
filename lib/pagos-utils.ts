@@ -146,6 +146,16 @@ export function getBeneficiario(p: Pago) {
       'Sin beneficiario')
 }
 
+export function getConcepto(p: Pago) {
+  const beneficiario = getBeneficiario(p)
+  return (
+    p.ordenCompra?.nombre ??
+    p.ordenCompra?.concepto ??
+    (p.concepto && p.concepto !== beneficiario ? p.concepto : null) ??
+    'Sin concepto'
+  )
+}
+
 export function getUrgencia(fechaProgramada: string) {
   const hoy = new Date()
   hoy.setHours(0, 0, 0, 0)

@@ -87,6 +87,18 @@ export type EstadoOrdenCompra =
 export type EstadoPago = "borrador" | "pendiente" | "pagado" | "cancelado";
 export type EstadoPagoEfectivo = EstadoPago | "vencido";
 export type TipoBeneficiario = "proveedor" | "trabajador" | "otro";
+export type TipoDocumentoComprobante =
+  | "factura"
+  | "boleta"
+  | "guia_remision"
+  | "recibo"
+  | "nota_credito"
+  | "nota_debito"
+  | "voucher_deposito"
+  | "cotizacion_propia"
+  | "cotizacion_proveedor"
+  | "otro";
+export type EstadoComprobante = "abierto" | "cerrado";
 export type OrigenOrdenCompra = "macro" | "simple";
 export type TipoOrdenCompra = "compra" | "servicio";
 export type EstadoAprobacionCompra =
@@ -110,6 +122,95 @@ export interface User {
   role: Role;
   cargo?: string | null;
   createdAt: string;
+}
+
+export interface UserActivityCounts {
+  requerimientos: number;
+  requerimientosRecepcionados: number;
+  ordenesCompra: number;
+  ordenesCompraAprobadas: number;
+  comprasSimplesCreadas: number;
+  comprasSimplesAprobadasInformalmente: number;
+  pagosRegistrados: number;
+  pagosEjecutados: number;
+  comprobantesGenerados: number;
+  pagosRecurrentesCreados: number;
+  cobrosRegistrados: number;
+  cobrosMarcados: number;
+  notificaciones: number;
+  turnosAbiertos: number;
+  turnosCerrados: number;
+  turnosCorregidos: number;
+  registrosVisitaComoVisitante: number;
+  registrosVisitaRegistradosPor: number;
+  visitasTerceroRegistradas: number;
+  planillasGeneradas: number;
+  planillasStaffGeneradas: number;
+  compraSimpleArchivosSubidos: number;
+  helpVideosCreados: number;
+  solicitudesCotizacionAprobadasComoSolicitante: number;
+  solicitudesCotizacionAprobadasComoGerencia: number;
+  cotizacionesCreadas: number;
+  proyectosComoSupervisor: number;
+}
+
+export interface UserActivityAsistencia {
+  id: string;
+  estado: "presente" | "tardio" | "falta";
+  horasNormales: string;
+  horasExtra: string;
+  turno: { fecha: string; proyecto: { nombre: string } };
+}
+
+export interface UserActivityTrabajador {
+  id: string;
+  nombre: string;
+  cargo?: string | null;
+  activo: boolean;
+  asistencias: UserActivityAsistencia[];
+}
+
+export interface UserActivityItem {
+  tipo:
+    | "requerimiento"
+    | "compra_simple"
+    | "orden_compra"
+    | "pago_registrado"
+    | "pago_ejecutado"
+    | "cobro"
+    | "comprobante"
+    | "turno_abierto"
+    | "turno_cerrado"
+    | "planilla";
+  id: string;
+  etiqueta: string;
+  fecha: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  userId: string | null;
+  method: string;
+  path: string;
+  entidadTipo: string | null;
+  entidadId: string | null;
+  statusCode: number | null;
+  ip: string | null;
+  creadoEn: string;
+}
+
+export interface AuditLogPage {
+  items: AuditLogEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface UserActivity {
+  user: Pick<User, "id" | "name" | "email" | "role" | "createdAt">;
+  counts: UserActivityCounts;
+  trabajador: UserActivityTrabajador | null;
+  actividadReciente: UserActivityItem[];
 }
 
 export interface ContactoCliente {
@@ -216,6 +317,7 @@ export interface Proyecto {
   toleranciaSalidaMinutos?: number;
   turnoConfigs?: TurnoConfig[];
 
+  fechaAsignacion?: string;
   fechaInicio?: string;
   fechaFin?: string;
   fechaInicioReal?: string;
@@ -1076,6 +1178,7 @@ export interface Pago {
         OrdenCompra,
         | "id"
         | "numero"
+        | "nombre"
         | "concepto"
         | "montoTotal"
         | "proveedorNombreLibre"
@@ -1126,10 +1229,34 @@ export interface Pago {
   nota?: string | null;
   comprobanteNombre?: string | null;
   comprobanteUrl?: string | null;
+  comprobantes: Comprobante[];
   registradoPorId: string;
   registradoPor: Pick<User, "id" | "name">;
   pagadoPorId?: string | null;
   pagadoPor?: Pick<User, "id" | "name"> | null;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+export interface Comprobante {
+  id: string;
+  pagoId: string;
+  numero: string;
+  subNumero: number;
+  tipoDocumento: TipoDocumentoComprobante;
+  tipoOperacion?: string | null;
+  banco?: string | null;
+  cuenta?: string | null;
+  detalleGasto?: string | null;
+  proveedor?: string | null;
+  cuentaProveedor?: string | null;
+  importe: string;
+  importeRendido?: string | null;
+  estado: EstadoComprobante;
+  archivoNombre: string;
+  archivoUrl: string;
+  generadoPorId: string;
+  generadoPor: Pick<User, "id" | "name">;
   creadoEn: string;
   actualizadoEn: string;
 }
