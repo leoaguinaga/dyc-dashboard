@@ -15,12 +15,16 @@ interface CotizacionesLeyendProps {
   className?: string
   onScrollLeft?: () => void
   onScrollRight?: () => void
+  activeTipo?: TipoRequerimiento | null
+  onTipoClick?: (tipo: TipoRequerimiento) => void
 }
 
 export function CotizacionesLeyend({
   className,
   onScrollLeft,
   onScrollRight,
+  activeTipo,
+  onTipoClick,
 }: CotizacionesLeyendProps) {
   return (
     <div className={cn('flex items-center justify-between gap-2', className)}>
@@ -37,16 +41,20 @@ export function CotizacionesLeyend({
 
       <div className="flex flex-wrap items-center justify-center gap-2 flex-1">
         {TIPOS.map((tipo) => (
-          <span
+          <button
             key={tipo}
+            type="button"
+            onClick={() => onTipoClick?.(tipo)}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium',
+              'inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium transition-opacity duration-[120ms] cursor-pointer',
               TIPO_CLASS[tipo],
+              activeTipo && activeTipo !== tipo && 'opacity-40',
+              activeTipo === tipo && 'ring-2 ring-ring/50',
             )}
           >
             <span className={cn('size-2 rounded-full shrink-0', TIPO_COLOR[tipo])} />
             {TIPO_LABEL[tipo]}
-          </span>
+          </button>
         ))}
       </div>
 

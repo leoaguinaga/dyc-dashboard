@@ -406,8 +406,7 @@ export default async function PagoDetailPage({ params }: Props) {
           {/* Ficha 1: Comprobante de Pago */}
           <ComprobantePagoSection
             pagoId={pago.id}
-            comprobanteUrl={pago.comprobanteUrl}
-            comprobanteNombre={pago.comprobanteNombre}
+            comprobantes={pago.comprobantes}
           />
 
           {/* Ficha 2: Liquidación del Pago */}

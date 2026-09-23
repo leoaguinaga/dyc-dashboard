@@ -90,7 +90,8 @@ export function RequerimientoItemsCard({ requerimiento: r, proyectos = [] }: Pro
           </Button>
         )}
       </div>
-      <div className="overflow-x-auto rounded-lg border border-border">
+      {/* Vista de tabla: md y superior */}
+      <div className="hidden overflow-x-auto rounded-lg border border-border md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/50">
@@ -135,6 +136,58 @@ export function RequerimientoItemsCard({ requerimiento: r, proyectos = [] }: Pro
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Vista de tarjetas: móvil */}
+      <div className="space-y-3 md:hidden">
+        {r.items.map((item, i) => (
+          <div key={item.id} className="rounded-lg border border-border p-3.5 space-y-2.5">
+            <div className="flex items-start justify-between gap-3">
+              <span className="text-xs text-muted-foreground tabular-nums shrink-0 mt-0.5">
+                #{i + 1}
+              </span>
+              <p className="font-medium text-sm flex-1">{item.descripcion}</p>
+            </div>
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Cantidad
+              </span>
+              <span className="tabular-nums font-mono">
+                {Number(item.cantidad).toLocaleString('es-PE')}
+                <span className="ml-1 text-xs text-muted-foreground">{UNIDAD_ABBR[item.unidad]}</span>
+              </span>
+            </div>
+            {item.nota && (
+              <div className="flex flex-col gap-1 text-sm">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Nota
+                </span>
+                <span className="text-muted-foreground">{item.nota}</span>
+              </div>
+            )}
+            {!!item.archivos?.length && (
+              <div className="flex flex-col gap-1.5 text-sm">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Archivos
+                </span>
+                <div className="flex flex-col gap-1">
+                  {item.archivos.map((archivo) => (
+                    <a
+                      key={archivo.id}
+                      href={`${API_ORIGIN}${archivo.url}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-primary hover:underline"
+                    >
+                      <FileText className="size-3.5 shrink-0" />
+                      {archivo.nombre}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )

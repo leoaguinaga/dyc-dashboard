@@ -68,6 +68,7 @@ type FormData = {
   coordinadorEmpresaId: string;
   ejecutorId: string;
   prevencionistaId: string;
+  fechaAsignacion: string;
   fechaInicio: string;
   fechaFin: string;
   fechaInicioReal: string;
@@ -91,6 +92,7 @@ const initial: FormData = {
   coordinadorEmpresaId: "",
   ejecutorId: "",
   prevencionistaId: "",
+  fechaAsignacion: "",
   fechaInicio: "",
   fechaFin: "",
   fechaInicioReal: "",
@@ -907,6 +909,19 @@ export function CreateProyectoForm({
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
+                <label className={labelCn}>
+                  Fecha de asignación{" "}
+                  <span className="text-muted-foreground font-normal">
+                    (opcional)
+                  </span>
+                </label>
+                <DatePicker
+                  value={form.fechaAsignacion}
+                  onValueChange={(v) => set("fechaAsignacion", v ?? "")}
+                  placeholder="Seleccionar fecha"
+                />
+              </div>
+              <div>
                 <label className={labelCn}>Inicio programado</label>
                 <DatePicker
                   value={form.fechaInicio}
@@ -943,9 +958,9 @@ export function CreateProyectoForm({
               </div>
               <div>
                 <label className={labelCn}>
-                  Fin real{" "}
+                  Fecha de cierre{" "}
                   <span className="text-muted-foreground font-normal">
-                    (opcional)
+                    (fin real, opcional)
                   </span>
                 </label>
                 <DatePicker

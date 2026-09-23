@@ -235,9 +235,13 @@ function NombreSolicitud({ solicitud }: { solicitud: SolicitudResumen }) {
 function SolicitudesLeyenda({
   onScrollLeft,
   onScrollRight,
+  activeTipo,
+  onTipoClick,
 }: {
   onScrollLeft: () => void;
   onScrollRight: () => void;
+  activeTipo?: TipoRequerimiento | null;
+  onTipoClick?: (tipo: TipoRequerimiento) => void;
 }) {
   return (
     <div className="flex items-center justify-between gap-2">
@@ -254,18 +258,22 @@ function SolicitudesLeyenda({
 
       <div className="flex flex-1 flex-wrap items-center justify-center gap-2">
         {(Object.keys(TIPO_LABEL) as TipoRequerimiento[]).map((tipo) => (
-          <span
+          <button
             key={tipo}
+            type="button"
+            onClick={() => onTipoClick?.(tipo)}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium",
+              "inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium transition-opacity duration-[120ms]",
               TIPO_CLASS[tipo],
+              activeTipo && activeTipo !== tipo && "opacity-40",
+              activeTipo === tipo && "ring-2 ring-ring/50",
             )}
           >
             <span
               className={cn("size-2 shrink-0 rounded-full", TIPO_COLOR[tipo])}
             />
             {TIPO_LABEL[tipo]}
-          </span>
+          </button>
         ))}
       </div>
 
@@ -286,9 +294,13 @@ function SolicitudesLeyenda({
 function SolicitudesKanban({
   solicitudes,
   emptyMessage,
+  activeTipo,
+  onTipoClick,
 }: {
   solicitudes: SolicitudResumen[];
   emptyMessage: string;
+  activeTipo?: TipoRequerimiento | null;
+  onTipoClick?: (tipo: TipoRequerimiento) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const operativas = solicitudes.filter(esSolicitudKanban);
@@ -306,6 +318,8 @@ function SolicitudesKanban({
         onScrollRight={() =>
           scrollRef.current?.scrollBy({ left: 300, behavior: "smooth" })
         }
+        activeTipo={activeTipo}
+        onTipoClick={onTipoClick}
       />
       <KanbanBoard
         scrollRef={scrollRef}
@@ -370,6 +384,7 @@ export function SolicitudesView({
   const [origen, setOrigen] = useState<OrigenFiltro>("todos");
   const [etapa, setEtapa] = useState<EtapaFiltro>("todos");
   const [proyectoId, setProyectoId] = useState("todos");
+  const [tipo, setTipo] = useState<"todos" | TipoRequerimiento>("todos");
   const [search, setSearch] = useState("");
 
   const proyectos = useMemo(() => {
@@ -392,6 +407,7 @@ export function SolicitudesView({
         return false;
       if (proyectoId !== "todos" && solicitud.proyecto.id !== proyectoId)
         return false;
+      if (tipo !== "todos" && solicitud.tipo !== tipo) return false;
       if (!term) return true;
 
       return [
@@ -402,7 +418,7 @@ export function SolicitudesView({
         solicitud.creadoPor.name,
       ].some((value) => value.toLowerCase().includes(term));
     });
-  }, [etapa, origen, proyectoId, search, solicitudes, view]);
+  }, [etapa, origen, proyectoId, tipo, search, solicitudes, view]);
 
   const emptyMessage = search.trim()
     ? "Sin resultados para “" + search.trim() + "”"
@@ -521,6 +537,10 @@ export function SolicitudesView({
           <SolicitudesKanban
             solicitudes={filtered}
             emptyMessage={emptyMessage}
+            activeTipo={tipo === "todos" ? null : tipo}
+            onTipoClick={(t) =>
+              setTipo((prev) => (prev === t ? "todos" : t))
+            }
           />
         </TabsPanel>
 

@@ -17,6 +17,7 @@ import {
 import { TrabajadorCombobox } from "@/components/ui/trabajador-combobox";
 import { TurnoConfigListEditor } from "@/components/asistencia/TurnoConfigListEditor";
 import { PERU_UBIGEO } from "@/lib/peru-ubigeo";
+import { AlertTriangle } from "lucide-react";
 import type {
   Cliente,
   ContactoCliente,
@@ -28,12 +29,14 @@ interface Props {
   proyecto: Proyecto;
   clientes: Cliente[];
   trabajadores: Trabajador[];
+  proyectos: Proyecto[];
 }
 
 type FormData = {
   codigo: string;
   nombre: string;
   clienteId: string;
+  parentId: string;
   ambitoGeografico: string;
   ciudad: string;
   direccion: string;
@@ -43,6 +46,7 @@ type FormData = {
   coordinadorEmpresaId: string;
   ejecutorId: string;
   prevencionistaId: string;
+  fechaAsignacion: string;
   fechaInicio: string;
   fechaFin: string;
   fechaInicioReal: string;
@@ -65,6 +69,7 @@ export function EditProyectoForm({
   proyecto: o,
   clientes,
   trabajadores,
+  proyectos,
 }: Props) {
   const router = useRouter();
 
@@ -72,6 +77,7 @@ export function EditProyectoForm({
     codigo: o.codigo ?? "",
     nombre: o.nombre,
     clienteId: o.clienteId ?? "",
+    parentId: o.parentId ?? "",
     ambitoGeografico: o.ambitoGeografico ?? "local",
     ciudad: o.ciudad ?? "",
     direccion: o.direccion ?? "",
@@ -81,6 +87,7 @@ export function EditProyectoForm({
     coordinadorEmpresaId: o.coordinadorEmpresaId ?? "",
     ejecutorId: o.ejecutorId ?? "",
     prevencionistaId: o.prevencionistaId ?? "",
+    fechaAsignacion: toDateInput(o.fechaAsignacion),
     fechaInicio: toDateInput(o.fechaInicio),
     fechaFin: toDateInput(o.fechaFin),
     fechaInicioReal: toDateInput(o.fechaInicioReal),
@@ -109,6 +116,10 @@ export function EditProyectoForm({
 
   const distritos =
     PERU_UBIGEO.find((d) => d.nombre === form.ciudad)?.distritos ?? [];
+  const proyectosPadre = proyectos.filter(
+    (p) => p.id !== o.id && !p.parentId && Boolean(p.codigo),
+  );
+  const parentChanged = form.parentId !== (o.parentId ?? "");
   const showLocalFields = form.ambitoGeografico === "local";
   const datesDiffer =
     form.fechaInicio &&
@@ -177,6 +188,7 @@ export function EditProyectoForm({
       const payload: Record<string, unknown> = Object.fromEntries(
         Object.entries(form).filter(([, v]) => v !== ""),
       );
+      if (parentChanged) payload.parentId = form.parentId || null;
       await api.patch<Proyecto>(`/proyectos/${o.id}`, payload);
       router.push(`/proyectos/${o.id}`);
       router.refresh();
@@ -233,6 +245,50 @@ export function EditProyectoForm({
               <p className="mt-1 text-xs text-destructive">{errors.nombre}</p>
             )}
           </div>
+        </div>
+
+        <div>
+          <label className={labelCn}>Proyecto padre</label>
+          <Select
+            value={form.parentId || "__none__"}
+            onValueChange={(v) =>
+              set("parentId", v === "__none__" ? "" : (v ?? ""))
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Sin proyecto padre (proyecto principal)">
+                {(value: string) => {
+                  if (value === "__none__" || !value)
+                    return "Sin proyecto padre (proyecto principal)";
+                  const parent = proyectos.find((p) => p.id === value);
+                  return parent
+                    ? `${parent.codigo} — ${parent.nombre}`
+                    : "Sin proyecto padre (proyecto principal)";
+                }}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">
+                Sin proyecto padre (proyecto principal)
+              </SelectItem>
+              {proyectosPadre.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.codigo} — {p.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {parentChanged && (
+            <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800">
+              <AlertTriangle className="size-4 shrink-0 mt-0.5" />
+              <p>
+                <span className="font-medium">Importante:</span> cambiar el
+                proyecto padre modifica la jerarquía y el agrupamiento de este
+                proyecto (y puede afectar la sugerencia de código de
+                subproyectos). Verifica que sea correcto antes de guardar.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -451,6 +507,19 @@ export function EditProyectoForm({
         <h2 className={sectionTitleCn}>Fechas</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
+            <label className={labelCn}>
+              Fecha de asignación{" "}
+              <span className="text-muted-foreground font-normal">
+                (opcional)
+              </span>
+            </label>
+            <DatePicker
+              value={form.fechaAsignacion}
+              onValueChange={(v) => set("fechaAsignacion", v ?? "")}
+              placeholder="Seleccionar fecha"
+            />
+          </div>
+          <div>
             <label className={labelCn}>Inicio programado</label>
             <DatePicker
               value={form.fechaInicio}
@@ -485,9 +554,9 @@ export function EditProyectoForm({
           </div>
           <div>
             <label className={labelCn}>
-              Fin real{" "}
+              Fecha de cierre{" "}
               <span className="text-muted-foreground font-normal">
-                (opcional)
+                (fin real, opcional)
               </span>
             </label>
             <DatePicker

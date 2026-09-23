@@ -132,7 +132,12 @@ export function CotizacionesView({ solicitudes }: Props) {
       </div>
 
       <TabsPanel value="kanban">
-        <CotizacionesKanban solicitudes={filtered} emptyMessage={emptyMessage} />
+        <CotizacionesKanban
+          solicitudes={filtered}
+          emptyMessage={emptyMessage}
+          activeTipo={tipo === 'todos' ? null : tipo}
+          onTipoClick={(t) => setTipo((prev) => (prev === t ? 'todos' : t))}
+        />
       </TabsPanel>
       <TabsPanel value="tabla">
         <CotizacionesTableClient solicitudes={filtered} emptyMessage={emptyMessage} />

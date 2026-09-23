@@ -7,7 +7,7 @@ import { KanbanBoard } from '@/components/shared/KanbanBoard'
 import { ESTADO_LABEL, ESTADO_CLASS, fmt } from './CotizacionesTableClient'
 import { CotizacionesLeyend } from './CotizacionesLeyend'
 import { TIPO_COLOR } from '../../requerimientos/components/RequerimientosTableClient'
-import type { SolicitudCotizacion, EstadoSolicitud } from '@/types/api'
+import type { SolicitudCotizacion, EstadoSolicitud, TipoRequerimiento } from '@/types/api'
 
 const COLUMNS = (Object.keys(ESTADO_LABEL) as EstadoSolicitud[]).map((key) => ({
   key,
@@ -18,9 +18,11 @@ const COLUMNS = (Object.keys(ESTADO_LABEL) as EstadoSolicitud[]).map((key) => ({
 interface Props {
   solicitudes: SolicitudCotizacion[]
   emptyMessage?: string
+  activeTipo?: TipoRequerimiento | null
+  onTipoClick?: (tipo: TipoRequerimiento) => void
 }
 
-export function CotizacionesKanban({ solicitudes, emptyMessage }: Props) {
+export function CotizacionesKanban({ solicitudes, emptyMessage, activeTipo, onTipoClick }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const handleScrollLeft = () => {
@@ -36,6 +38,8 @@ export function CotizacionesKanban({ solicitudes, emptyMessage }: Props) {
       <CotizacionesLeyend
         onScrollLeft={handleScrollLeft}
         onScrollRight={handleScrollRight}
+        activeTipo={activeTipo}
+        onTipoClick={onTipoClick}
       />
       <KanbanBoard
         scrollRef={scrollRef}

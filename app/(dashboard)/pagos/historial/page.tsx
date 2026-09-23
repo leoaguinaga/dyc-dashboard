@@ -4,9 +4,16 @@ import { serverFetch } from '@/lib/api/server'
 import type { Pago, Proyecto } from '@/types/api'
 import { PagosHistorialClient } from './components/PagosHistorialClient'
 
-export default async function PagosHistorialPage() {
+interface Props {
+  searchParams: Promise<{ registradoPorId?: string; registradoPorNombre?: string }>
+}
+
+export default async function PagosHistorialPage({ searchParams }: Props) {
+  const { registradoPorId, registradoPorNombre } = await searchParams
+  const pagosQuery = registradoPorId ? `?registradoPorId=${registradoPorId}` : ''
+
   const [pagosResult, proyectosResult] = await Promise.all([
-    serverFetch<Pago[]>('/pagos').catch((e: Error) => e),
+    serverFetch<Pago[]>(`/pagos${pagosQuery}`).catch((e: Error) => e),
     serverFetch<Proyecto[]>('/proyectos').catch((e: Error) => e),
   ])
 
@@ -44,7 +51,13 @@ export default async function PagosHistorialPage() {
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-[200ms] ease-out">
-      <PagosHistorialClient pagos={pagos} proyectos={proyectos} />
+      <PagosHistorialClient
+        pagos={pagos}
+        proyectos={proyectos}
+        registradoPorFiltro={
+          registradoPorId ? { id: registradoPorId, nombre: registradoPorNombre ?? 'este usuario' } : undefined
+        }
+      />
     </div>
   )
 }

@@ -41,6 +41,7 @@ import {
   fmtFechaCorta,
   getDestinoPago,
   getBeneficiario,
+  getConcepto,
 } from '@/lib/pagos-utils'
 import type { Pago, Proyecto } from '@/types/api'
 import { useSession } from '@/lib/auth/session'
@@ -53,6 +54,7 @@ type ModoVista = 'timeline' | 'tabla'
 interface Props {
   pagos: Pago[]
   proyectos: Proyecto[]
+  registradoPorFiltro?: { id: string; nombre: string }
 }
 
 function isoDeFecha(fecha?: string | null): string {
@@ -65,6 +67,19 @@ function hoyISO(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+const TIPO_DOC_LABEL: Record<string, string> = {
+  factura: 'Factura',
+  boleta: 'Boleta',
+  guia_remision: 'Guía remisión',
+  recibo: 'Recibo',
+  nota_credito: 'N. Crédito',
+  nota_debito: 'N. Débito',
+  voucher_deposito: 'Voucher',
+  cotizacion_propia: 'Cotiz. propia',
+  cotizacion_proveedor: 'Cotiz. proveedor',
+  otro: 'Otro',
+}
+
 function fmtFechaLarga(iso: string) {
   return new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString('es-PE', {
     weekday: 'long',
@@ -74,18 +89,22 @@ function fmtFechaLarga(iso: string) {
   })
 }
 
-export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props) {
+export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registradoPorFiltro }: Props) {
   const { data: session } = useSession()
   const puedeDescargarReporte = ['administrador', 'gerencia', 'admin_ti'].includes(session?.user?.role ?? '')
   // Historial considera principalmente los registros cerrados (pagado y cancelado)
   const pagosHistorialBase = useMemo(() => {
     return todosLosPagos.filter((p) => p.estado === 'pagado' || p.estado === 'cancelado')
   }, [todosLosPagos])
+  const pagosAbiertosCount = useMemo(
+    () => todosLosPagos.filter((p) => p.estado === 'pendiente' || p.estado === 'borrador').length,
+    [todosLosPagos],
+  )
 
   // Estados de control
-  const [modoVista, setModoVista] = useState<ModoVista>('timeline')
+  const [modoVista, setModoVista] = useState<ModoVista>('tabla')
   const [search, setSearch] = useState('')
-  const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('pagado')
+  const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>(registradoPorFiltro ? 'todos' : 'pagado')
   const [proyectoId, setProyectoId] = useState<string>('todos')
   const [bancoFilter, setBancoFilter] = useState<string>('todos')
   const [rangoPreestablecido, setRangoPreestablecido] = useState<RangoPreestablecido>('30d')
@@ -210,7 +229,7 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
       const q = search.trim().toLowerCase()
       result = result.filter((p) => {
         const benef = getBeneficiario(p).toLowerCase()
-        const concepto = (p.concepto ?? p.ordenCompra?.concepto ?? '').toLowerCase()
+        const concepto = getConcepto(p).toLowerCase()
         const ocNum = (p.ordenCompra?.numero ?? '').toLowerCase()
         const proyNom = (p.proyecto?.nombre ?? p.ordenCompra?.proyecto?.nombre ?? '').toLowerCase()
         const proyCod = (p.proyecto?.codigo ?? p.ordenCompra?.proyecto?.codigo ?? '').toLowerCase()
@@ -394,7 +413,7 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
       const destino = getDestinoPago(p)
       const fPago = p.fechaPagoReal ? formatDateOnly(p.fechaPagoReal) : 'Sin fecha'
       const nOp = p.numeroOperacion ? ` · Op: ${p.numeroOperacion}` : ''
-      const concepto = p.concepto ?? p.ordenCompra?.concepto ?? 'Pago'
+      const concepto = getConcepto(p)
       const proyecto = p.proyecto?.codigo ?? p.ordenCompra?.proyecto?.codigo ?? 'ADM'
 
       lineas.push(
@@ -451,7 +470,7 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
         p.tipoBeneficiario,
         `"${(proyecto?.nombre ?? 'Administración').replace(/"/g, '""')}"`,
         proyecto?.codigo ?? 'ADM',
-        `"${(p.concepto ?? p.ordenCompra?.concepto ?? '').replace(/"/g, '""')}"`,
+        `"${getConcepto(p).replace(/"/g, '""')}"`,
         p.ordenCompra?.numero ?? 'MANUAL',
         destino.metodoLabel,
         destino.bancoNorm,
@@ -543,6 +562,31 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
           )}
         </div>
       </div>
+
+      {/* Filtro activo por usuario (llegado desde la ficha de usuario) */}
+      {registradoPorFiltro && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
+          <span>
+            Mostrando pagos registrados por{' '}
+            <span className="font-medium text-foreground">{registradoPorFiltro.nombre}</span>.
+            {pagosAbiertosCount > 0 && (
+              <span className="text-muted-foreground">
+                {' '}
+                {pagosAbiertosCount} {pagosAbiertosCount === 1 ? 'pago' : 'pagos'} adicionales de este usuario
+                siguen {pagosAbiertosCount === 1 ? 'pendiente' : 'pendientes'} y no aparecen aquí — revisa{' '}
+                <Link href="/pagos" className="underline hover:text-foreground">
+                  Pagos pendientes
+                </Link>
+                .
+              </span>
+            )}
+          </span>
+          <Link href="/pagos/historial" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+            <X className="size-3.5" />
+            Quitar filtro
+          </Link>
+        </div>
+      )}
 
       {/* KPI Cards informativas con métricas del período */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -789,22 +833,8 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
             </PopoverContent>
           </Popover>
 
-          {/* Alternador de Modo de Vista (Timeline vs Tabla) */}
+          {/* Alternador de Modo de Vista (Tabla vs Timeline) */}
           <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5">
-            <button
-              type="button"
-              onClick={() => setModoVista('timeline')}
-              className={cn(
-                'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors duration-100 cursor-pointer',
-                modoVista === 'timeline'
-                  ? 'bg-white shadow-xs text-foreground font-semibold'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-              title="Vista agrupada por fecha de liquidación"
-            >
-              <LayoutList className="size-3.5" />
-              <span className="hidden sm:inline">Por fecha</span>
-            </button>
             <button
               type="button"
               onClick={() => setModoVista('tabla')}
@@ -818,6 +848,20 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
             >
               <TableIcon className="size-3.5" />
               <span className="hidden sm:inline">Tabla</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setModoVista('timeline')}
+              className={cn(
+                'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors duration-100 cursor-pointer',
+                modoVista === 'timeline'
+                  ? 'bg-white shadow-xs text-foreground font-semibold'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+              title="Vista agrupada por fecha de liquidación"
+            >
+              <LayoutList className="size-3.5" />
+              <span className="hidden sm:inline">Por fecha</span>
             </button>
           </div>
         </div>
@@ -1045,11 +1089,11 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
       ) : (
         /* VISTA 2: TABLA DETALLADA */
         <div className="rounded-xl border border-border bg-white overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="border-b border-border bg-muted/40 text-xs font-semibold text-muted-foreground">
+          <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
+            <table className="w-full min-w-[820px] text-left">
+              <thead className="border-b border-border bg-muted/30 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="w-10 px-3 py-3 text-center">
+                  <th className="w-11 px-4 py-3 text-center">
                     <input
                       type="checkbox"
                       aria-label="Seleccionar todos los pagos"
@@ -1058,15 +1102,16 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
                       className="size-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
                     />
                   </th>
-                  <th className="px-3 py-3 min-w-[130px]">Fecha Pago</th>
-                  <th className="px-3 py-3 min-w-[200px]">Concepto / Documento</th>
-                  <th className="px-3 py-3 min-w-[220px]">Beneficiario y Destino</th>
-                  <th className="px-3 py-3 min-w-[140px]">Centro de Costo</th>
-                  <th className="px-3 py-3 min-w-[120px]">N° Operación</th>
-                  <th className="px-3 py-3 text-center w-24">Sustento</th>
-                  <th className="px-3 py-3 text-right min-w-[120px]">Monto</th>
-                  <th className="px-3 py-3 text-center w-24">Estado</th>
-                  <th className="px-3 py-3 text-right min-w-[80px]">Detalle</th>
+                  <th className="px-4 py-3 min-w-[120px]">Fecha pago</th>
+                  <th className="px-4 py-3 min-w-[220px]">Concepto y documento</th>
+                  <th className="px-4 py-3 min-w-[200px]">Beneficiario y destino</th>
+                  <th className="hidden px-4 py-3 min-w-[140px] lg:table-cell">Centro de costo</th>
+                  <th className="hidden px-4 py-3 min-w-[170px] lg:table-cell">Comprobante</th>
+                  <th className="px-4 py-3 text-right min-w-[120px]">Monto</th>
+                  <th className="px-4 py-3 text-center w-[100px]">Estado</th>
+                  <th className="px-4 py-3 text-right min-w-[56px]">
+                    <span className="sr-only">Detalle</span>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -1176,7 +1221,7 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
                 href={`/pagos/${p.id}`}
                 className="font-medium text-foreground hover:text-primary transition-colors text-sm line-clamp-1"
               >
-                {p.concepto ?? oc?.concepto ?? 'Pago'}
+                {getConcepto(p)}
               </Link>
               {origenTag}
               <span
@@ -1336,6 +1381,10 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
       ? ocNumRaw
       : ocNumRaw ? `OC ${ocNumRaw}` : null
 
+    const hayComprobantes = p.comprobantes && p.comprobantes.length > 0
+    const hayAbiertos = hayComprobantes ? p.comprobantes!.some((c) => c.estado === 'abierto') : false
+    const tiposDoc = hayComprobantes ? [...new Set(p.comprobantes!.map((c) => c.tipoDocumento))] : []
+
     return (
       <tr
         key={p.id}
@@ -1345,7 +1394,7 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
         )}
       >
         {/* Checkbox */}
-        <td className="px-3 py-3 text-center">
+        <td className="px-4 py-3.5 text-center">
           <input
             type="checkbox"
             aria-label={`Seleccionar pago ${p.id}`}
@@ -1356,57 +1405,71 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
         </td>
 
         {/* Fecha de Pago Real */}
-        <td className="px-3 py-3">
-          <div className="flex flex-col">
-            <span className="font-semibold text-foreground text-xs">
+        <td className="px-4 py-3.5">
+          <div className="flex flex-col gap-0.5">
+            <span className="font-semibold text-foreground text-sm tabular-nums">
               {p.fechaPagoReal ? fmtFechaCorta(p.fechaPagoReal) : '—'}
             </span>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground tabular-nums">
               Prog: {fmtFechaCorta(p.fechaProgramada)}
             </span>
           </div>
         </td>
 
         {/* Concepto y Documento */}
-        <td className="px-3 py-3">
-          <div className="space-y-0.5">
+        <td className="px-4 py-3.5">
+          <div className="space-y-1">
             <Link
               href={`/pagos/${p.id}`}
-              className="font-medium text-foreground hover:text-primary transition-colors text-xs line-clamp-1"
+              className="font-medium text-foreground hover:text-primary transition-colors text-sm line-clamp-1"
             >
-              {p.concepto ?? oc?.concepto ?? 'Pago'}
+              {getConcepto(p)}
             </Link>
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
               {ocNumClean ? (
-                <span className="font-mono text-[10px] text-primary font-medium">
+                <span className="font-mono text-primary font-medium">
                   {ocNumClean}
                 </span>
               ) : (
-                <span className="text-[10px] text-muted-foreground capitalize">
+                <span className="text-muted-foreground capitalize">
                   {p.origen.replace('_', ' ')}
                 </span>
               )}
               {p.porcentaje && (
-                <span className="text-[10px] text-muted-foreground">
-                  ({p.porcentaje}%)
-                </span>
+                <span className="text-muted-foreground">({p.porcentaje}%)</span>
+              )}
+              {p.numeroOperacion && (
+                <button
+                  type="button"
+                  onClick={() => copiarTexto(p.numeroOperacion!, `${p.id}-op-tbl`)}
+                  className="inline-flex items-center gap-1 font-mono text-foreground hover:text-primary transition-colors cursor-pointer"
+                  title="Copiar N° de operación"
+                >
+                  <span className="text-muted-foreground">Op:</span>
+                  <span className="font-semibold">{p.numeroOperacion}</span>
+                  {copiadoKey === `${p.id}-op-tbl` ? (
+                    <Check className="size-2.5 text-chart-2" />
+                  ) : (
+                    <Copy className="size-2.5 opacity-40 hover:opacity-100" />
+                  )}
+                </button>
               )}
             </div>
           </div>
         </td>
 
         {/* Beneficiario y Destino */}
-        <td className="px-3 py-3">
-          <div className="space-y-0.5">
-            <p className="font-medium text-foreground text-xs truncate max-w-[220px]" title={benef}>
+        <td className="px-4 py-3.5">
+          <div className="space-y-1">
+            <p className="font-medium text-foreground text-sm truncate max-w-[220px]" title={benef}>
               {benef}
             </p>
 
             {destino.esBilletera ? (
-              <div className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
                 <span
                   className={cn(
-                    'rounded px-1 py-0.2 font-bold text-[9px]',
+                    'rounded px-1.5 py-0.5 font-bold text-[9px]',
                     destino.billetera === 'yape'
                       ? 'bg-[#732282]/15 text-[#732282]'
                       : 'bg-[#00d1d2]/20 text-[#008283]',
@@ -1431,9 +1494,9 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
                 )}
               </div>
             ) : destino.banco || destino.numero || destino.cci ? (
-              <div className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
+              <div className="flex flex-col items-start gap-0.5 text-[11px] font-mono text-muted-foreground">
                 {destino.bancoNorm && destino.bancoNorm !== 'Sin banco' && (
-                  <span className="rounded bg-muted px-1 py-0.2 font-semibold text-foreground text-[9px]">
+                  <span className="rounded bg-muted px-1.5 py-0.5 font-semibold text-foreground text-[9px]">
                     {destino.bancoNorm}
                   </span>
                 )}
@@ -1454,76 +1517,86 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
                 )}
               </div>
             ) : (
-              <span className="text-[10px] text-muted-foreground/60 italic">Sin datos bancarios</span>
+              <span className="text-[11px] text-muted-foreground/60 italic">Sin datos bancarios</span>
             )}
           </div>
         </td>
 
         {/* Centro de Costo */}
-        <td className="px-3 py-3">
+        <td className="hidden px-4 py-3.5 lg:table-cell">
           {proyecto ? (
             <Link
               href={`/proyectos/${proyecto.id}`}
-              className="block min-w-0 hover:text-primary transition-colors text-xs"
+              className="block min-w-0 hover:text-primary transition-colors text-sm"
             >
               <span className="block font-medium text-foreground truncate max-w-[150px]">
                 {proyecto.nombre ?? proyecto.codigo}
               </span>
               {proyecto.nombre && (
-                <span className="block text-[10px] text-muted-foreground truncate max-w-[150px]">
+                <span className="block text-[11px] text-muted-foreground truncate max-w-[150px]">
                   {proyecto.codigo}
                 </span>
               )}
             </Link>
           ) : (
-            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <Building2 className="size-3" />
+            <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+              <Building2 className="size-3.5" />
               Administración
             </span>
           )}
         </td>
 
-        {/* N° Operación Bancaria */}
-        <td className="px-3 py-3">
-          {p.numeroOperacion ? (
-            <button
-              type="button"
-              onClick={() => copiarTexto(p.numeroOperacion!, `${p.id}-op-tbl`)}
-              className="inline-flex items-center gap-1 font-mono text-xs font-semibold text-foreground hover:text-primary transition-colors cursor-pointer"
-              title="Copiar N° de operación"
-            >
-              <span>{p.numeroOperacion}</span>
-              {copiadoKey === `${p.id}-op-tbl` ? (
-                <Check className="size-3 text-chart-2" />
-              ) : (
-                <Copy className="size-3 opacity-40 hover:opacity-100" />
+        {/* Comprobante: sustento + tipo de documento + N° + estado de rendición, consolidados */}
+        <td className="hidden px-4 py-3.5 lg:table-cell">
+          {p.comprobanteUrl || hayComprobantes ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {p.comprobanteUrl && (
+                <a
+                  href={`${API_ORIGIN}${p.comprobanteUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-foreground hover:bg-muted/80 transition-colors"
+                  title={p.comprobanteNombre ?? 'Ver comprobante'}
+                >
+                  <FileText className="size-3 text-primary" />
+                  {p.comprobanteUrl.endsWith('.pdf') ? 'PDF' : 'Foto'}
+                </a>
               )}
-            </button>
+              {tiposDoc.length > 0 && (
+                <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary">
+                  {TIPO_DOC_LABEL[tiposDoc[0]] ?? tiposDoc[0]}
+                </span>
+              )}
+              {hayComprobantes && (
+                <span
+                  className="font-mono text-[11px] text-muted-foreground"
+                  title={p.comprobantes!.map((c) => c.numero).join(', ')}
+                >
+                  {p.comprobantes!.length === 1
+                    ? p.comprobantes![0].numero
+                    : `${p.comprobantes![0].numero} +${p.comprobantes!.length - 1}`}
+                </span>
+              )}
+              {hayComprobantes && (
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium border',
+                    hayAbiertos
+                      ? 'bg-amber-500/10 text-amber-700 border-amber-500/20'
+                      : 'bg-emerald-500/10 text-emerald-800 border-emerald-500/20',
+                  )}
+                >
+                  {hayAbiertos ? 'Rendición abierta' : 'Rendición cerrada'}
+                </span>
+              )}
+            </div>
           ) : (
-            <span className="text-xs text-muted-foreground/50">—</span>
-          )}
-        </td>
-
-        {/* Sustento / Factura */}
-        <td className="px-3 py-3 text-center">
-          {p.comprobanteUrl ? (
-            <a
-              href={`${API_ORIGIN}${p.comprobanteUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted/80 transition-colors"
-              title={p.comprobanteNombre ?? 'Ver comprobante'}
-            >
-              <FileText className="size-3.5 text-primary" />
-              <span>{p.comprobanteUrl.endsWith('.pdf') ? 'PDF' : 'Foto'}</span>
-            </a>
-          ) : (
-            <span className="text-[11px] text-muted-foreground/40">—</span>
+            <span className="text-[11px] text-muted-foreground/50">Sin comprobante</span>
           )}
         </td>
 
         {/* Monto */}
-        <td className="px-3 py-3 text-right">
+        <td className="px-4 py-3.5 text-right">
           <span
             className={cn(
               'font-bold tabular-nums text-sm',
@@ -1535,10 +1608,10 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
         </td>
 
         {/* Estado */}
-        <td className="px-3 py-3 text-center">
+        <td className="px-4 py-3.5 text-center">
           <span
             className={cn(
-              'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border',
+              'inline-flex items-center whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-medium border',
               esPagado
                 ? 'bg-emerald-500/10 text-emerald-800 border-emerald-500/20'
                 : 'bg-muted text-muted-foreground border-border',
@@ -1549,7 +1622,7 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos }: Props)
         </td>
 
         {/* Acciones */}
-        <td className="px-3 py-3 text-right">
+        <td className="px-4 py-3.5 text-right">
           <Link
             href={`/pagos/${p.id}`}
             className="inline-flex items-center justify-center size-7 rounded-md border border-border bg-white text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
