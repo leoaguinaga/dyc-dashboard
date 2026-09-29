@@ -4,6 +4,7 @@ import { serverFetch } from '@/lib/api/server'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ProveedoresTableClient } from './ProveedoresTableClient'
+import { ProveedoresKpis } from './ProveedoresKpis'
 import type { Proveedor } from '@/types/api'
 
 export async function ProveedoresTable() {
@@ -42,5 +43,10 @@ export async function ProveedoresTable() {
     )
   }
 
-  return <ProveedoresTableClient proveedores={result} />
+  return (
+    <div className="space-y-4">
+      <ProveedoresKpis proveedores={result} />
+      <ProveedoresTableClient proveedores={result} />
+    </div>
+  )
 }

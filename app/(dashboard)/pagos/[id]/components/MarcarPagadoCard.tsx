@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import type { Pago } from '@/types/api'
 import { getDestinoPago } from '@/lib/pagos-utils'
 import { useSession } from '@/lib/auth/session'
@@ -31,6 +32,7 @@ export function MarcarPagadoCard({ pago }: { pago: Pago }) {
 
   const [fechaPagoReal, setFechaPagoReal] = useState(hoyISO)
   const [metodoPago, setMetodoPago] = useState(metodoInicial)
+  const [confirmarCancelar, setConfirmarCancelar] = useState(false)
   const [numeroOperacion, setNumeroOperacion] = useState('')
   const [saving, setSaving] = useState(false)
   const [cancelando, setCancelando] = useState(false)
@@ -55,7 +57,6 @@ export function MarcarPagadoCard({ pago }: { pago: Pago }) {
   }
 
   async function cancelarPago() {
-    if (!confirm('¿Estás seguro de cancelar este pago?')) return
     setCancelando(true)
     setError(null)
     try {
@@ -120,7 +121,7 @@ export function MarcarPagadoCard({ pago }: { pago: Pago }) {
       <div className="flex items-center gap-2 justify-between">
         <Button
           variant="outline"
-          onClick={cancelarPago}
+          onClick={() => setConfirmarCancelar(true)}
           disabled={saving || cancelando}
         >
           {cancelando ? 'Cancelando...' : 'Cancelar pago'}
@@ -132,6 +133,18 @@ export function MarcarPagadoCard({ pago }: { pago: Pago }) {
           {saving ? 'Guardando...' : 'Confirmar pago'}
         </Button>
       </div>
+
+      <ConfirmDialog
+        open={confirmarCancelar}
+        onOpenChange={setConfirmarCancelar}
+        title="Cancelar pago"
+        description="El pago quedará cancelado y no requerirá desembolso. Esta acción no se puede deshacer."
+        confirmLabel="Cancelar pago"
+        cancelLabel="Volver"
+        destructive
+        loading={cancelando}
+        onConfirm={cancelarPago}
+      />
     </div>
   )
 }

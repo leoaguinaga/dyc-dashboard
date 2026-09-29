@@ -384,6 +384,7 @@ export interface Trabajador {
 }
 
 export type EstadoTurno = "abierto" | "cerrado";
+export type OrigenTurno = "campo" | "hoja";
 export type EstadoAsistencia = "presente" | "tardio" | "falta";
 
 export interface Asistencia {
@@ -392,6 +393,7 @@ export interface Asistencia {
   trabajadorId: string;
   estado: EstadoAsistencia;
   horaLlegadaReal?: string;
+  horaSalidaReal?: string;
   justificada?: boolean;
   justificacion?: string;
   salidaTempranaHora?: string;
@@ -524,6 +526,23 @@ export interface Jornada {
   obreros: number;
   horasNormales: number;
   horasExtra: number;
+  origen: OrigenTurno;
+  cierreAutomatico: boolean;
+  cierreRevisado: boolean;
+}
+
+export interface ObraHoy {
+  proyectoId: string;
+  nombre: string;
+  codigo?: string | null;
+  horarios: Pick<TurnoConfig, "id" | "nombre" | "horaInicio" | "horaFin">[];
+  turnos: { id: string; estado: EstadoTurno; horario: string; obreros: number }[];
+  puedeOperar: boolean;
+}
+
+export interface ObrasHoyResponse {
+  fecha: string;
+  obras: ObraHoy[];
 }
 
 export interface JornadaTrabajador {
@@ -531,6 +550,9 @@ export interface JornadaTrabajador {
   nombre: string;
   dni: string;
   estado: EstadoAsistencia;
+  horaLlegadaReal?: string | null;
+  horaSalidaReal?: string | null;
+  salidaTempranaHora?: string | null;
   justificada?: boolean;
   horasNormales: number;
   horasExtra: number;
@@ -550,6 +572,14 @@ export interface JornadaDetalle {
   turnoNombre: string;
   abiertoPor?: Pick<User, "id" | "name">;
   cerradoPor?: Pick<User, "id" | "name">;
+  corregidoPor?: Pick<User, "id" | "name">;
+  corregidoEn?: string;
+  motivoCorreccion?: string;
+  origen: OrigenTurno;
+  fotoUrl?: string | null;
+  fotoOmitida: boolean;
+  cierreAutomatico: boolean;
+  cierreRevisado: boolean;
   trabajadores: JornadaTrabajador[];
   totales: { horasNormales: number; horasExtra: number };
 }
@@ -670,6 +700,13 @@ export interface Proveedor {
   creadoEn: string;
   contactos?: ContactoProveedor[];
   _count?: { contactos: number; cotizaciones: number };
+  actividad?: {
+    ordenes: number;
+    montoTotal: number;
+    monto90d: number;
+    ultimaActividad: string | null;
+    puntaje: number | null;
+  };
 }
 
 export interface ItemInventario {
@@ -791,6 +828,9 @@ export interface FlujoMacroSolicitud {
     notaRevision: string | null;
     fechaEntregaRequerida: string | null;
     items: number;
+    cerradoEn: string | null;
+    conformidad: boolean;
+    fueAprobado: boolean;
   };
   solicitudesCotizacion: Array<{
     id: string;
@@ -1185,6 +1225,7 @@ export interface Pago {
         | "montoTotal"
         | "proveedorNombreLibre"
         | "destinoPago"
+        | "compraSimpleId"
         | "pagoMetodo"
         | "pagoBanco"
         | "pagoNumeroCuenta"
@@ -1231,6 +1272,7 @@ export interface Pago {
   nota?: string | null;
   comprobanteNombre?: string | null;
   comprobanteUrl?: string | null;
+  codigoComprobante?: string | null;
   comprobantes: Comprobante[];
   registradoPorId: string;
   registradoPor: Pick<User, "id" | "name">;
@@ -1388,6 +1430,7 @@ export interface TareaDashboard {
   tipo: string;
   prioridad: PrioridadDashboard;
   titulo: string;
+  concepto?: string;
   contexto: string;
   href: string;
   fecha?: string;

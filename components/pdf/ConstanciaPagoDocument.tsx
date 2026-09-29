@@ -230,7 +230,10 @@ export function ConstanciaPagoDocument({ pago, generadoEn }: Props) {
   const destino = getDestinoPago(pago);
   const proyecto = pago.proyecto ?? pago.ordenCompra?.proyecto;
   const cuenta = destino.numero ?? pago.numeroCuenta;
-  const referencia = pago.numeroOperacion || pago.id.slice(-8).toUpperCase();
+  const referencia =
+    pago.codigoComprobante ||
+    pago.numeroOperacion ||
+    pago.id.slice(-8).toUpperCase();
   const concepto =
     pago.concepto ?? pago.ordenCompra?.concepto ?? "Pago registrado";
 
@@ -248,7 +251,7 @@ export function ConstanciaPagoDocument({ pago, generadoEn }: Props) {
           </View>
           <View style={s.document}>
             <Text style={s.documentTitle}>CONSTANCIA DE PAGO</Text>
-            <Text style={s.documentNumber}>Referencia: {referencia}</Text>
+            <Text style={s.documentNumber}>N° {referencia}</Text>
             <Text style={s.documentNumber}>Emitida: {date(generadoEn)}</Text>
           </View>
         </View>
@@ -272,8 +275,8 @@ export function ConstanciaPagoDocument({ pago, generadoEn }: Props) {
           <View style={s.twoCol}>
             <View style={s.box}>
               <Detail
-                label="N° de subcomprobante"
-                value={pago.id.slice(-8).toUpperCase()}
+                label="N° de comprobante"
+                value={referencia}
               />
               <Detail label="Tipo de gasto" value={value(pago.categoria)} />
               <Detail label="Responsable" value={pago.registradoPor.name} />

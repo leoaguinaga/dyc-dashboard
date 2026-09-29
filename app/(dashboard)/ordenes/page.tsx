@@ -1,16 +1,5 @@
 import { Suspense } from 'react'
-import { OrdenesCompraKpis } from '../ordenes-compra/components/OrdenesCompraKpis'
 import { OrdenesCompraTable } from '../ordenes-compra/components/OrdenesCompraTable'
-
-function KpisSkeleton() {
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-hidden="true">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="h-24 animate-pulse rounded-xl border border-border bg-muted/40" />
-      ))}
-    </div>
-  )
-}
 
 function TableSkeleton() {
   return (
@@ -34,9 +23,6 @@ export default function OrdenesPage() {
           Órdenes de compra y servicio en una sola vista operativa.
         </p>
       </div>
-      {/*  <Suspense fallback={<KpisSkeleton />}>
-        <OrdenesCompraKpis />
-      </Suspense> */}
       <Suspense fallback={<TableSkeleton />}>
         <OrdenesCompraTable />
       </Suspense>

@@ -8,7 +8,7 @@ export function ProveedoresPageHeader() {
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Proveedores</h1>
         <p className="text-sm text-muted-foreground">
-          Gestión de proveedores y comparativas de ofertas por proyecto.
+          Directorio y desempeño de compras.
         </p>
       </div>
       <Link href="/proveedores/nuevo">

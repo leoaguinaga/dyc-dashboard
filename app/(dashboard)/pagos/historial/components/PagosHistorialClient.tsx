@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   Search,
@@ -13,8 +14,6 @@ import {
   Download,
   Calendar,
   Building2,
-  CheckCircle2,
-  XCircle,
   LayoutList,
   Table as TableIcon,
   ChevronRight,
@@ -80,6 +79,27 @@ const TIPO_DOC_LABEL: Record<string, string> = {
   otro: 'Otro',
 }
 
+function diasEntre(desdeIso: string, hastaIso: string): number {
+  const a = Date.UTC(+desdeIso.slice(0, 4), +desdeIso.slice(5, 7) - 1, +desdeIso.slice(8, 10))
+  const b = Date.UTC(+hastaIso.slice(0, 4), +hastaIso.slice(5, 7) - 1, +hastaIso.slice(8, 10))
+  return Math.round((b - a) / 86400000)
+}
+
+function fmtFechaCortaSinAnio(iso: string) {
+  return new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString('es-PE', {
+    day: '2-digit',
+    month: 'short',
+  })
+}
+
+function fmtMes(clave: string) {
+  if (clave === 'Sin fecha') return clave
+  return new Date(`${clave}-01T00:00:00`).toLocaleDateString('es-PE', {
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
 function fmtFechaLarga(iso: string) {
   return new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString('es-PE', {
     weekday: 'long',
@@ -90,6 +110,7 @@ function fmtFechaLarga(iso: string) {
 }
 
 export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registradoPorFiltro }: Props) {
+  const router = useRouter()
   const { data: session } = useSession()
   const puedeDescargarReporte = ['administrador', 'gerencia', 'admin_ti'].includes(session?.user?.role ?? '')
   // Historial considera principalmente los registros cerrados (pagado y cancelado)
@@ -366,6 +387,35 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registra
     })
   }, [filtered, sortBy])
 
+  // Filas de la tabla: agrupadas por mes cuando el orden es por fecha
+  const filasTabla = useMemo(() => {
+    if (sortBy !== 'fecha_desc' && sortBy !== 'fecha_asc') {
+      return filtered.map((p) => ({ tipo: 'pago' as const, p }))
+    }
+    const out: (
+      | { tipo: 'mes'; clave: string; count: number; subtotal: number }
+      | { tipo: 'pago'; p: Pago }
+    )[] = []
+    let actual = ''
+    for (const p of filtered) {
+      const clave = isoDeFecha(p.fechaPagoReal ?? p.fechaProgramada).slice(0, 7) || 'Sin fecha'
+      if (clave !== actual) {
+        actual = clave
+        const delMes = filtered.filter(
+          (x) => (isoDeFecha(x.fechaPagoReal ?? x.fechaProgramada).slice(0, 7) || 'Sin fecha') === clave,
+        )
+        out.push({
+          tipo: 'mes',
+          clave,
+          count: delMes.length,
+          subtotal: delMes.filter((x) => x.estado === 'pagado').reduce((t, x) => t + Number(x.monto), 0),
+        })
+      }
+      out.push({ tipo: 'pago', p })
+    }
+    return out
+  }, [filtered, sortBy])
+
   // Selección múltiple
   const seleccionadosList = useMemo(
     () => filtered.filter((p) => selectedIds.has(p.id)),
@@ -588,76 +638,34 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registra
         </div>
       )}
 
-      {/* KPI Cards informativas con métricas del período */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {/* KPI 1: Total desembolsado */}
-        <div className="rounded-xl border border-border bg-white p-4 space-y-1 shadow-xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Total Desembolsado
-            </span>
-            <CheckCircle2 className="size-4 text-emerald-600" />
-          </div>
-          <p className="text-2xl font-bold tabular-nums text-foreground">
+      {/* Resumen del período en una franja compacta */}
+      <dl className="flex flex-wrap divide-x divide-border overflow-hidden rounded-xl border border-border bg-white shadow-xs [&>div]:min-w-[140px] [&>div]:flex-1 [&>div]:px-4 [&>div]:py-3">
+        <div>
+          <dt className="text-xs font-medium text-muted-foreground">Total desembolsado</dt>
+          <dd className="text-xl font-semibold tabular-nums tracking-tight">
             {fmtMoney(kpis.totalDesembolsado)}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            En {kpis.pagadosCount} {kpis.pagadosCount === 1 ? 'pago liquidado' : 'pagos liquidados'}
-          </p>
+          </dd>
         </div>
-
-        {/* KPI 2: Cantidad de operaciones pagadas */}
-        <div className="rounded-xl border border-border bg-white p-4 space-y-1 shadow-xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Operaciones Pagadas
-            </span>
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
-              Completadas
-            </span>
-          </div>
-          <p className="text-2xl font-bold tabular-nums text-foreground">
-            {kpis.pagadosCount}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Transacciones financieras
-          </p>
+        <div>
+          <dt className="text-xs font-medium text-muted-foreground">Pagos realizados</dt>
+          <dd className="text-xl font-semibold tabular-nums tracking-tight">{kpis.pagadosCount}</dd>
         </div>
-
-        {/* KPI 3: Beneficiarios atendidos */}
-        <div className="rounded-xl border border-border bg-white p-4 space-y-1 shadow-xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Beneficiarios
-            </span>
-            <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
-              Atendidos
-            </span>
-          </div>
-          <p className="text-2xl font-bold tabular-nums text-foreground">
+        <div>
+          <dt className="text-xs font-medium text-muted-foreground">Beneficiarios</dt>
+          <dd className="text-xl font-semibold tabular-nums tracking-tight">
             {kpis.beneficiariosCount}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Proveedores y personal
-          </p>
+          </dd>
         </div>
-
-        {/* KPI 4: Cancelados / Anulados */}
-        <div className="rounded-xl border border-border bg-white p-4 space-y-1 shadow-xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Cancelados
-            </span>
-            <XCircle className="size-4 text-muted-foreground/60" />
+        {kpis.canceladosCount > 0 && (
+          <div>
+            <dt className="text-xs font-medium text-muted-foreground">Cancelados</dt>
+            <dd className="text-xl font-semibold tabular-nums tracking-tight text-muted-foreground">
+              {kpis.canceladosCount}
+              <span className="ml-2 text-sm font-normal">{fmtMoney(kpis.totalCancelado)}</span>
+            </dd>
           </div>
-          <p className="text-2xl font-bold tabular-nums text-muted-foreground">
-            {kpis.canceladosCount}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {kpis.totalCancelado > 0 ? `${fmtMoney(kpis.totalCancelado)} anulados` : 'Sin pagos anulados'}
-          </p>
-        </div>
-      </div>
+        )}
+      </dl>
 
       {/* Controles de Filtros, Búsqueda y Alternador de Vistas */}
       <div className="space-y-2">
@@ -981,18 +989,10 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registra
         )}
       </div>
 
-      {/* Resumen del conteo y montos filtrados */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-        <span>
-          Mostrando <strong>{filtered.length}</strong> de <strong>{pagosHistorialBase.length}</strong> pagos cerrados
-        </span>
-        <span>
-          Monto desembolsado en vista:{' '}
-          <strong className="text-foreground font-semibold tabular-nums">
-            {fmtMoney(kpis.totalDesembolsado)}
-          </strong>
-        </span>
-      </div>
+      {/* Resumen del conteo filtrado */}
+      <p className="px-1 text-xs text-muted-foreground">
+        Mostrando <strong>{filtered.length}</strong> de <strong>{pagosHistorialBase.length}</strong> pagos cerrados
+      </p>
 
       {/* CONTENIDO PRINCIPAL: Vacío / Vista Timeline / Vista Tabla */}
       {filtered.length === 0 ? (
@@ -1090,10 +1090,10 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registra
         /* VISTA 2: TABLA DETALLADA */
         <div className="rounded-xl border border-border bg-white overflow-hidden shadow-xs">
           <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
-            <table className="w-full min-w-[820px] text-left">
-              <thead className="border-b border-border bg-muted/30 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <table className="w-full min-w-[1040px] text-left text-sm">
+              <thead className="border-b border-border text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="w-11 px-4 py-3 text-center">
+                  <th className="w-10 px-3 py-2.5 text-center">
                     <input
                       type="checkbox"
                       aria-label="Seleccionar todos los pagos"
@@ -1102,20 +1102,32 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registra
                       className="size-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
                     />
                   </th>
-                  <th className="px-4 py-3 min-w-[120px]">Fecha pago</th>
-                  <th className="px-4 py-3 min-w-[220px]">Concepto y documento</th>
-                  <th className="px-4 py-3 min-w-[200px]">Beneficiario y destino</th>
-                  <th className="hidden px-4 py-3 min-w-[140px] lg:table-cell">Centro de costo</th>
-                  <th className="hidden px-4 py-3 min-w-[170px] lg:table-cell">Comprobante</th>
-                  <th className="px-4 py-3 text-right min-w-[120px]">Monto</th>
-                  <th className="px-4 py-3 text-center w-[100px]">Estado</th>
-                  <th className="px-4 py-3 text-right min-w-[56px]">
-                    <span className="sr-only">Detalle</span>
-                  </th>
+                  <th className="w-[130px] px-3 py-2.5 font-medium">Fecha de pago</th>
+                  <th className="min-w-[260px] px-3 py-2.5 font-medium">Beneficiario y concepto</th>
+                  <th className="min-w-[150px] px-3 py-2.5 font-medium">Obra</th>
+                  <th className="min-w-[200px] px-3 py-2.5 font-medium">Destino</th>
+                  <th className="min-w-[130px] px-3 py-2.5 font-medium">Comprobante</th>
+                  <th className="min-w-[120px] px-3 py-2.5 text-right font-medium">Monto</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
-                {filtered.map((p) => renderFilaTabla(p))}
+              <tbody>
+                {filasTabla.map((fila) =>
+                  fila.tipo === 'mes' ? (
+                    <tr key={`mes-${fila.clave}`} className="border-y border-border bg-muted/40 first:border-t-0">
+                      <td colSpan={6} className="px-3 py-2 text-sm font-semibold capitalize">
+                        {fmtMes(fila.clave)}
+                        <span className="ml-2 text-xs font-normal normal-case text-muted-foreground">
+                          {fila.count} {fila.count === 1 ? 'pago' : 'pagos'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono text-sm font-medium tabular-nums">
+                        {fmtMoney(fila.subtotal)}
+                      </td>
+                    </tr>
+                  ) : (
+                    <Fragment key={fila.p.id}>{renderFilaTabla(fila.p)}</Fragment>
+                  ),
+                )}
               </tbody>
             </table>
           </div>
@@ -1380,162 +1392,108 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registra
     const ocNumClean = ocNumRaw.toUpperCase().startsWith('OC') || ocNumRaw.toUpperCase().startsWith('OS')
       ? ocNumRaw
       : ocNumRaw ? `OC ${ocNumRaw}` : null
+    const parcial = p.porcentaje && Number(p.porcentaje) < 100 ? Number(p.porcentaje) : null
 
-    const hayComprobantes = p.comprobantes && p.comprobantes.length > 0
+    const hayComprobantes = !!p.comprobantes && p.comprobantes.length > 0
     const hayAbiertos = hayComprobantes ? p.comprobantes!.some((c) => c.estado === 'abierto') : false
-    const tiposDoc = hayComprobantes ? [...new Set(p.comprobantes!.map((c) => c.tipoDocumento))] : []
+    const tipoDoc = hayComprobantes ? p.comprobantes![0].tipoDocumento : null
+
+    // Desfase entre lo programado y lo pagado: es lo que se audita
+    let desfase: { texto: string; tarde: boolean } | null = null
+    if (p.fechaPagoReal) {
+      const d = diasEntre(isoDeFecha(p.fechaProgramada), isoDeFecha(p.fechaPagoReal))
+      desfase =
+        d === 0
+          ? { texto: 'en fecha', tarde: false }
+          : d > 0
+            ? { texto: `${d} d después`, tarde: true }
+            : { texto: `${-d} d antes`, tarde: false }
+    }
+
+    const principal = destino.numero ?? destino.cci ?? null
 
     return (
       <tr
         key={p.id}
+        data-selected={isSelected}
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest('a,button,input,label')) return
+          router.push(`/pagos/${p.id}`)
+        }}
         className={cn(
-          'transition-colors duration-100 hover:bg-muted/20',
-          isSelected ? 'bg-primary/5' : '',
+          'cursor-pointer border-b border-border last:border-b-0 transition-colors duration-[120ms] hover:bg-muted/30',
+          isSelected && 'bg-primary/5 hover:bg-primary/5',
         )}
       >
         {/* Checkbox */}
-        <td className="px-4 py-3.5 text-center">
+        <td className="px-3 py-2 text-center">
           <input
             type="checkbox"
-            aria-label={`Seleccionar pago ${p.id}`}
+            aria-label={`Seleccionar pago a ${benef}`}
             checked={isSelected}
             onChange={() => toggleSelectOne(p.id)}
             className="size-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
           />
         </td>
 
-        {/* Fecha de Pago Real */}
-        <td className="px-4 py-3.5">
-          <div className="flex flex-col gap-0.5">
-            <span className="font-semibold text-foreground text-sm tabular-nums">
-              {p.fechaPagoReal ? fmtFechaCorta(p.fechaPagoReal) : '—'}
+        {/* Fecha de pago y desfase respecto a lo programado */}
+        <td className="whitespace-nowrap px-3 py-2">
+          <div className="leading-snug">
+            <span className="block font-mono text-[13px] tabular-nums">
+              {p.fechaPagoReal ? fmtFechaCortaSinAnio(p.fechaPagoReal) : '—'}
             </span>
-            <span className="text-[11px] text-muted-foreground tabular-nums">
-              Prog: {fmtFechaCorta(p.fechaProgramada)}
+            <span
+              className={cn(
+                'block text-xs',
+                desfase?.tarde ? 'font-medium text-amber-700' : 'text-muted-foreground',
+              )}
+              title={`Programado: ${fmtFechaCorta(p.fechaProgramada)}`}
+            >
+              {desfase ? desfase.texto : `prog. ${fmtFechaCortaSinAnio(p.fechaProgramada)}`}
             </span>
           </div>
         </td>
 
-        {/* Concepto y Documento */}
-        <td className="px-4 py-3.5">
-          <div className="space-y-1">
-            <Link
-              href={`/pagos/${p.id}`}
-              className="font-medium text-foreground hover:text-primary transition-colors text-sm line-clamp-1"
-            >
-              {getConcepto(p)}
-            </Link>
-            <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
-              {ocNumClean ? (
-                <span className="font-mono text-primary font-medium">
-                  {ocNumClean}
+        {/* Beneficiario y concepto */}
+        <td className="px-3 py-2">
+          <div className="min-w-0 leading-snug">
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/pagos/${p.id}`}
+                className="block max-w-[320px] truncate font-medium text-foreground hover:text-primary transition-colors"
+                title={benef}
+              >
+                {benef}
+              </Link>
+              {!esPagado && (
+                <span className="shrink-0 rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                  Cancelado
                 </span>
-              ) : (
-                <span className="text-muted-foreground capitalize">
-                  {p.origen.replace('_', ' ')}
-                </span>
-              )}
-              {p.porcentaje && (
-                <span className="text-muted-foreground">({p.porcentaje}%)</span>
-              )}
-              {p.numeroOperacion && (
-                <button
-                  type="button"
-                  onClick={() => copiarTexto(p.numeroOperacion!, `${p.id}-op-tbl`)}
-                  className="inline-flex items-center gap-1 font-mono text-foreground hover:text-primary transition-colors cursor-pointer"
-                  title="Copiar N° de operación"
-                >
-                  <span className="text-muted-foreground">Op:</span>
-                  <span className="font-semibold">{p.numeroOperacion}</span>
-                  {copiadoKey === `${p.id}-op-tbl` ? (
-                    <Check className="size-2.5 text-chart-2" />
-                  ) : (
-                    <Copy className="size-2.5 opacity-40 hover:opacity-100" />
-                  )}
-                </button>
               )}
             </div>
-          </div>
-        </td>
-
-        {/* Beneficiario y Destino */}
-        <td className="px-4 py-3.5">
-          <div className="space-y-1">
-            <p className="font-medium text-foreground text-sm truncate max-w-[220px]" title={benef}>
-              {benef}
+            <p className="max-w-[340px] truncate text-[13px] text-muted-foreground" title={getConcepto(p)}>
+              {getConcepto(p)}
+              <span className="text-muted-foreground/60"> · </span>
+              <span className="font-mono text-xs">{ocNumClean ?? p.origen.replace('_', ' ')}</span>
+              {parcial !== null && (
+                <span className="font-medium text-amber-700"> · Parcial {parcial}%</span>
+              )}
             </p>
-
-            {destino.esBilletera ? (
-              <div className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
-                <span
-                  className={cn(
-                    'rounded px-1.5 py-0.5 font-bold text-[9px]',
-                    destino.billetera === 'yape'
-                      ? 'bg-[#732282]/15 text-[#732282]'
-                      : 'bg-[#00d1d2]/20 text-[#008283]',
-                  )}
-                >
-                  {destino.metodoLabel}
-                </span>
-                {destino.numero && (
-                  <button
-                    type="button"
-                    onClick={() => copiarTexto(destino.numero!, `${p.id}-cel`)}
-                    className="inline-flex items-center gap-1 hover:text-foreground cursor-pointer"
-                    title="Copiar celular"
-                  >
-                    <span>{destino.numero}</span>
-                    {copiadoKey === `${p.id}-cel` ? (
-                      <Check className="size-2.5 text-chart-2" />
-                    ) : (
-                      <Copy className="size-2.5 opacity-50" />
-                    )}
-                  </button>
-                )}
-              </div>
-            ) : destino.banco || destino.numero || destino.cci ? (
-              <div className="flex flex-col items-start gap-0.5 text-[11px] font-mono text-muted-foreground">
-                {destino.bancoNorm && destino.bancoNorm !== 'Sin banco' && (
-                  <span className="rounded bg-muted px-1.5 py-0.5 font-semibold text-foreground text-[9px]">
-                    {destino.bancoNorm}
-                  </span>
-                )}
-                {destino.numero && (
-                  <button
-                    type="button"
-                    onClick={() => copiarTexto(destino.numero!, `${p.id}-num`)}
-                    className="inline-flex items-center gap-1 hover:text-foreground cursor-pointer"
-                    title="Copiar cuenta"
-                  >
-                    <span>{destino.numeroLabel}: {destino.numero}</span>
-                    {copiadoKey === `${p.id}-num` ? (
-                      <Check className="size-2.5 text-chart-2" />
-                    ) : (
-                      <Copy className="size-2.5 opacity-50" />
-                    )}
-                  </button>
-                )}
-              </div>
-            ) : (
-              <span className="text-[11px] text-muted-foreground/60 italic">Sin datos bancarios</span>
-            )}
           </div>
         </td>
 
-        {/* Centro de Costo */}
-        <td className="hidden px-4 py-3.5 lg:table-cell">
+        {/* Obra */}
+        <td className="px-3 py-2">
           {proyecto ? (
             <Link
               href={`/proyectos/${proyecto.id}`}
-              className="block min-w-0 hover:text-primary transition-colors text-sm"
+              className="block min-w-0 leading-snug hover:text-primary transition-colors"
             >
-              <span className="block font-medium text-foreground truncate max-w-[150px]">
+              <span className="block max-w-[190px] truncate font-medium text-foreground">
                 {proyecto.nombre ?? proyecto.codigo}
               </span>
               {proyecto.nombre && (
-                <span className="block text-[11px] text-muted-foreground truncate max-w-[150px]">
-                  {proyecto.codigo}
-                </span>
+                <span className="block font-mono text-xs text-muted-foreground">{proyecto.codigo}</span>
               )}
             </Link>
           ) : (
@@ -1546,90 +1504,112 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registra
           )}
         </td>
 
-        {/* Comprobante: sustento + tipo de documento + N° + estado de rendición, consolidados */}
-        <td className="hidden px-4 py-3.5 lg:table-cell">
+        {/* Destino: banco o billetera y un solo número copiable; el N° de operación va debajo */}
+        <td className="px-3 py-2">
+          {principal ? (
+            <div className="leading-snug">
+              <div className="flex items-center gap-1.5">
+                {destino.esBilletera ? (
+                  <span
+                    className={cn(
+                      'rounded px-1.5 py-0.5 text-[11px] font-semibold',
+                      destino.billetera === 'yape'
+                        ? 'bg-[#732282]/15 text-[#732282]'
+                        : 'bg-[#00d1d2]/20 text-[#008283]',
+                    )}
+                  >
+                    {destino.metodoLabel}
+                  </span>
+                ) : (
+                  destino.bancoNorm !== 'Sin banco' && (
+                    <span className="rounded border border-border px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      {destino.bancoNorm}
+                    </span>
+                  )
+                )}
+                <span className="truncate font-mono text-[13px] tabular-nums" title={principal}>
+                  {principal}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => copiarTexto(principal, `${p.id}-num`)}
+                  aria-label="Copiar cuenta"
+                  title="Copiar cuenta"
+                  className={cn(
+                    'flex size-6 shrink-0 items-center justify-center rounded transition-colors duration-[120ms] cursor-pointer',
+                    copiadoKey === `${p.id}-num`
+                      ? 'text-chart-2'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                >
+                  {copiadoKey === `${p.id}-num` ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                </button>
+              </div>
+              {p.numeroOperacion && (
+                <button
+                  type="button"
+                  onClick={() => copiarTexto(p.numeroOperacion!, `${p.id}-op-tbl`)}
+                  title="Copiar N° de operación"
+                  className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                >
+                  Op. {p.numeroOperacion}
+                  {copiadoKey === `${p.id}-op-tbl` && <Check className="size-3 text-chart-2" />}
+                </button>
+              )}
+            </div>
+          ) : (
+            <span className="text-sm text-muted-foreground">Sin cuenta</span>
+          )}
+        </td>
+
+        {/* Comprobante: un vínculo y solo la excepción (rendición abierta) */}
+        <td className="px-3 py-2">
           {p.comprobanteUrl || hayComprobantes ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              {p.comprobanteUrl && (
+            <div className="leading-snug">
+              {p.comprobanteUrl ? (
                 <a
                   href={`${API_ORIGIN}${p.comprobanteUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-foreground hover:bg-muted/80 transition-colors"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary transition-colors"
                   title={p.comprobanteNombre ?? 'Ver comprobante'}
                 >
-                  <FileText className="size-3 text-primary" />
+                  <FileText className="size-3.5 text-muted-foreground" />
                   {p.comprobanteUrl.endsWith('.pdf') ? 'PDF' : 'Foto'}
                 </a>
-              )}
-              {tiposDoc.length > 0 && (
-                <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary">
-                  {TIPO_DOC_LABEL[tiposDoc[0]] ?? tiposDoc[0]}
-                </span>
+              ) : (
+                <span className="text-sm">{TIPO_DOC_LABEL[tipoDoc ?? ''] ?? tipoDoc}</span>
               )}
               {hayComprobantes && (
                 <span
-                  className="font-mono text-[11px] text-muted-foreground"
+                  className="block text-xs text-muted-foreground"
                   title={p.comprobantes!.map((c) => c.numero).join(', ')}
                 >
-                  {p.comprobantes!.length === 1
-                    ? p.comprobantes![0].numero
-                    : `${p.comprobantes![0].numero} +${p.comprobantes!.length - 1}`}
+                  {TIPO_DOC_LABEL[tipoDoc ?? ''] ?? tipoDoc}
+                  {p.comprobantes!.length > 1 && ` · ${p.comprobantes!.length}`}
                 </span>
               )}
-              {hayComprobantes && (
-                <span
-                  className={cn(
-                    'inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium border',
-                    hayAbiertos
-                      ? 'bg-amber-500/10 text-amber-700 border-amber-500/20'
-                      : 'bg-emerald-500/10 text-emerald-800 border-emerald-500/20',
-                  )}
-                >
-                  {hayAbiertos ? 'Rendición abierta' : 'Rendición cerrada'}
-                </span>
+              {hayAbiertos && (
+                <span className="block text-xs font-medium text-amber-700">Rendición abierta</span>
               )}
             </div>
           ) : (
-            <span className="text-[11px] text-muted-foreground/50">Sin comprobante</span>
+            <span className="text-sm text-muted-foreground/60" title="Sin comprobante">
+              —<span className="sr-only">Sin comprobante</span>
+            </span>
           )}
         </td>
 
         {/* Monto */}
-        <td className="px-4 py-3.5 text-right">
+        <td className="whitespace-nowrap px-3 py-2 text-right">
           <span
             className={cn(
-              'font-bold tabular-nums text-sm',
-              esPagado ? 'text-foreground' : 'text-muted-foreground line-through',
+              'font-mono text-sm font-medium tabular-nums',
+              !esPagado && 'text-muted-foreground line-through',
             )}
           >
             {fmtMoney(Number(p.monto))}
           </span>
-        </td>
-
-        {/* Estado */}
-        <td className="px-4 py-3.5 text-center">
-          <span
-            className={cn(
-              'inline-flex items-center whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-medium border',
-              esPagado
-                ? 'bg-emerald-500/10 text-emerald-800 border-emerald-500/20'
-                : 'bg-muted text-muted-foreground border-border',
-            )}
-          >
-            {esPagado ? 'Pagado' : 'Cancelado'}
-          </span>
-        </td>
-
-        {/* Acciones */}
-        <td className="px-4 py-3.5 text-right">
-          <Link
-            href={`/pagos/${p.id}`}
-            className="inline-flex items-center justify-center size-7 rounded-md border border-border bg-white text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
-            title="Ver detalle"
-          >
-            <ChevronRight className="size-4" />
-          </Link>
         </td>
       </tr>
     )

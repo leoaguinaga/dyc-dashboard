@@ -114,7 +114,7 @@ export function TareaRow({ tarea, seguimiento = false }: TareaRowProps) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="font-medium text-foreground">{tarea.titulo}</span>
+          <span className="font-medium text-foreground">{tarea.concepto || tarea.titulo}</span>
           {!seguimiento && (
             <span
               className={cn(
@@ -134,7 +134,7 @@ export function TareaRow({ tarea, seguimiento = false }: TareaRowProps) {
           )}
         </span>
         <span className="mt-1 block text-sm text-muted-foreground">
-          {tarea.contexto}
+          {tarea.concepto ? tarea.contexto : <><span>{tarea.titulo}</span><span className="ml-2">{tarea.contexto}</span></>}
         </span>
       </span>
       <span className="flex shrink-0 items-center gap-2 pt-0.5 text-xs">

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { ConstanciaPagoDocument } from "@/components/pdf/ConstanciaPagoDocument";
+import { anexarAdjuntosPdf, cargarAdjuntos } from "@/lib/constancia-adjuntos";
 import type { Pago } from "@/types/api";
 
 export const runtime = "nodejs";
@@ -37,12 +38,20 @@ export async function GET(
       generadoEn: new Date().toISOString(),
     }) as unknown as Parameters<typeof renderToBuffer>[0],
   );
-  const referencia = (pago.numeroOperacion || pago.id.slice(-8)).replace(
+  const conAdjuntos = await anexarAdjuntosPdf(
+    buffer,
+    await cargarAdjuntos(pago.comprobantes ?? []),
+  );
+  const referencia = (
+    pago.codigoComprobante ||
+    pago.numeroOperacion ||
+    pago.id.slice(-8)
+  ).replace(
     /[^a-zA-Z0-9-_]/g,
     "-",
   );
 
-  return new Response(new Uint8Array(buffer), {
+  return new Response(new Uint8Array(conAdjuntos), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="constancia-pago-${referencia}.pdf"`,
