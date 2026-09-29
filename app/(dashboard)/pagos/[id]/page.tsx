@@ -332,7 +332,18 @@ export default async function PagoDetailPage({ params }: Props) {
 
           {/* Ficha 3: Documento Fuente y Auditoría */}
           <div className="rounded-xl border border-border bg-white p-5 space-y-3.5 shadow-xs">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {(oc?.concepto || pago.concepto) && (
+              <div className="-m-5 mb-0 rounded-t-xl border-b-2 border-primary bg-primary/5 px-5 py-3.5">
+                <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
+                  Concepto de la compra
+                </span>
+                <p className="mt-0.5 text-base font-bold text-foreground">
+                  {oc?.concepto ?? pago.concepto}
+                </p>
+              </div>
+            )}
+
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pt-0.5">
               Documento Fuente y Auditoría
             </h2>
 
