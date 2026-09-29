@@ -126,7 +126,7 @@ function AbrirTurnoCard({ proyectoId }: { proyectoId: string }) {
   const router = useRouter()
   const { data: session } = useSession()
   const role = session?.user?.role
-  const puedeRegistrarFechaPasada = role === 'administrador' || role === 'gerencia'
+  const puedeRegistrarFechaPasada = role === 'administrador' || role === 'gerencia' || role === 'admin_ti'
 
   const [configs, setConfigs] = useState<TurnoConfig[] | null>(null)
   const [turnoConfigId, setTurnoConfigId] = useState('')
@@ -760,7 +760,7 @@ function TurnoCerradoResumen({ proyectoId, turno }: { proyectoId: string; turno:
   const router = useRouter()
   const { data: session } = useSession()
   const role = session?.user?.role
-  const puedeReabrir = role === 'administrador' || role === 'gerencia'
+  const puedeReabrir = role === 'administrador' || role === 'gerencia' || role === 'admin_ti'
 
   const [confirmando, setConfirmando] = useState(false)
   const [motivo, setMotivo] = useState('')

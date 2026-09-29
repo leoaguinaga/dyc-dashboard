@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth/session";
 import { getBeneficiario, getConcepto } from "@/lib/pagos-utils";
 import { PagosPageHeader } from "./PagosPageHeader";
+import { TabBoton } from "@/components/ui/tab-boton";
 import { PagosTableClient } from "./PagosTableClient";
 import { PagosFijosPanel } from "./PagosFijosPanel";
 
@@ -281,77 +282,32 @@ export function PagosView({
       />
 
       {/* Selector de Pestañas */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5">
-          <button
-            onClick={() => setTab("pendientes")}
-            className={cn(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-[120ms]",
-              tab === "pendientes"
-                ? "bg-white shadow-xs text-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <span>Pendientes</span>
-            <span
-              className={cn(
-                "rounded-full px-1.5 py-0.2 text-xs font-semibold",
-                tab === "pendientes"
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted text-muted-foreground",
-              )}
-            >
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border">
+        <div role="tablist" aria-label="Secciones de pagos" className="flex gap-1">
+          <TabBoton activo={tab === "pendientes"} onClick={() => setTab("pendientes")}>
+            Pendientes
+            <span className="font-mono text-xs text-muted-foreground">
               {pagosPendientes.length}
             </span>
-          </button>
-
-          {/* <button
-            onClick={() => setTab("borradores")}
-            className={cn(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-[120ms]",
-              tab === "borradores"
-                ? "bg-white shadow-xs text-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <span>Por completar</span>
-            {borradoresCount > 0 && (
-              <span className="rounded-full bg-amber-500/15 px-1.5 py-0.2 text-xs font-semibold text-amber-700">
-                {borradoresCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setTab("pagados")}
-            className={cn(
-              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-[120ms]",
-              tab === "pagados"
-                ? "bg-white shadow-xs text-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            Pagados
-          </button> */}
+          </TabBoton>
 
           {puedeVerFijos && (
-            <button
-              onClick={() => setTab("fijos")}
-              className={cn(
-                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-[120ms]",
-                tab === "fijos"
-                  ? "bg-white shadow-xs text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
+            <TabBoton activo={tab === "fijos"} onClick={() => setTab("fijos")}>
               Pagos fijos
-            </button>
+            </TabBoton>
           )}
+
+          <Link
+            href="/pagos/historial"
+            className="relative -mb-px px-3 pb-2.5 pt-2 text-sm font-medium text-muted-foreground transition-colors duration-[120ms] hover:text-foreground"
+          >
+            Historial
+          </Link>
         </div>
 
         {/* Filtro de rango de días en pestaña Pagados */}
         {tab === "pagados" && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pb-2">
             <span className="text-xs text-muted-foreground">Ver historial:</span>
             <select
               value={rangoDias}

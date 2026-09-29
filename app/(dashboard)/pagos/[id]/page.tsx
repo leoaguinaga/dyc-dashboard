@@ -12,6 +12,7 @@ import {
   getConcepto,
 } from "@/lib/pagos-utils";
 import { CopyButton } from "./components/CopyButton";
+import { CodigoComprobanteEditor } from "./components/CodigoComprobanteEditor";
 import { ComprobantePagoSection } from "./components/ComprobantePagoSection";
 import { MarcarPagadoCard } from "./components/MarcarPagadoCard";
 
@@ -359,7 +360,7 @@ export default async function PagoDetailPage({ params }: Props) {
                     <Link
                       href={
                         esCompraSimple
-                          ? `/compras-simples`
+                          ? `/compras-simples/${oc.compraSimpleId ?? oc.id}`
                           : `/ordenes-compra/${oc.id}`
                       }
                       className="font-medium text-primary hover:underline inline-flex items-center gap-1 mt-0.5"
@@ -416,6 +417,13 @@ export default async function PagoDetailPage({ params }: Props) {
 
         {/* COLUMNA DERECHA: Acciones de Tesorería y Sustento */}
         <div className="space-y-5">
+          {pago.estado === "pagado" && (
+            <CodigoComprobanteEditor
+              pagoId={pago.id}
+              codigo={pago.codigoComprobante}
+            />
+          )}
+
           {/* Ficha 1: Comprobante de Pago */}
           <ComprobantePagoSection
             pagoId={pago.id}

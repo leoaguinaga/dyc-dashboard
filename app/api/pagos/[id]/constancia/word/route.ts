@@ -1,6 +1,13 @@
 import { cookies } from "next/headers";
 import { renderConstanciaPagoWord } from "@/components/word/ConstanciaPagoWordDocument";
+import {
+  adjuntosComoImagenes,
+  cargarAdjuntos,
+} from "@/lib/constancia-adjuntos";
 import type { Pago } from "@/types/api";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const API_URL = process.env.API_URL ?? "http://localhost:3333/api";
 
@@ -24,8 +31,15 @@ export async function GET(
       { status: 409 },
     );
 
-  const buffer = await renderConstanciaPagoWord(pago);
-  const referencia = (pago.numeroOperacion || pago.id.slice(-8)).replace(
+  const adjuntos = await adjuntosComoImagenes(
+    await cargarAdjuntos(pago.comprobantes ?? []),
+  );
+  const buffer = await renderConstanciaPagoWord(pago, adjuntos);
+  const referencia = (
+    pago.codigoComprobante ||
+    pago.numeroOperacion ||
+    pago.id.slice(-8)
+  ).replace(
     /[^a-zA-Z0-9-_]/g,
     "-",
   );

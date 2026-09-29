@@ -22,7 +22,7 @@ export async function OrdenesCompraTable() {
 
   if (result.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-white py-16 text-center space-y-2">
+      <div className="rounded-xl border border-border bg-card py-16 text-center space-y-2">
         <p className="text-sm font-medium text-muted-foreground">Aún no hay órdenes</p>
         <p className="text-xs text-muted-foreground">Las órdenes de compra y servicio se generan desde solicitudes aprobadas por gerencia.</p>
       </div>

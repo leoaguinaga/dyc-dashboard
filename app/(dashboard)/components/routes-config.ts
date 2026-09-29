@@ -79,7 +79,7 @@ export const NAV_GROUPS: NavGroup[] = [
         href: "/asistencia",
         label: "Asistencia",
         icon: UserCheck,
-        roles: ["administrador", "gerencia", "pdr"],
+        roles: ["administrador", "gerencia", "jefe_sig", "pdr"],
       },
     ],
   },

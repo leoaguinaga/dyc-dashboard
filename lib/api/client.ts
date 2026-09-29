@@ -3,6 +3,19 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3333
 // Backend origin without the /api suffix — for static assets (e.g. /uploads/...)
 export const API_ORIGIN = API_URL.replace(/\/api\/?$/, '');
 
+// Error de la API con el cuerpo de la respuesta, para casos en que el backend devuelve
+// datos útiles junto al mensaje (por ejemplo, el id de un registro que ya existe).
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public body: Record<string, unknown>,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -18,7 +31,7 @@ async function apiFetch<T>(
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(error.message ?? 'Error inesperado');
+    throw new ApiError(error.message ?? 'Error inesperado', res.status, error);
   }
 
   return res.json() as Promise<T>;

@@ -7,6 +7,7 @@ import {
   Footer,
   ImageRun,
   Packer,
+  PageOrientation,
   Paragraph,
   ShadingType,
   Table,
@@ -17,6 +18,7 @@ import {
 } from "docx";
 import type { Pago } from "@/types/api";
 import { getBeneficiario, getDestinoPago } from "@/lib/pagos-utils";
+import type { ImagenAdjunta } from "@/lib/constancia-adjuntos";
 
 const C = {
   navy: "1A3557",
@@ -136,11 +138,64 @@ function detailCell(title: string, rows: Array<[string, string]>) {
   });
 }
 
-export async function renderConstanciaPagoWord(pago: Pago) {
+// A4 en twips; 1 px de imagen = 15 twips. Margen mínimo para que la foto llene la hoja.
+const A4_TWIPS = { width: 11906, height: 16838 };
+const MARGEN_ADJUNTO = 500;
+
+/** Una hoja por adjunto, con la orientación de la imagen y ajustada al máximo espacio posible. */
+function seccionAdjunto(imagen: ImagenAdjunta) {
+  const horizontal = imagen.width > imagen.height;
+  const areaW = ((horizontal ? A4_TWIPS.height : A4_TWIPS.width) - MARGEN_ADJUNTO * 2) / 15;
+  // Se resta una línea de holgura: Word agrega el párrafo que contiene la imagen y, si no cabe, crea una hoja en blanco.
+  const areaH = ((horizontal ? A4_TWIPS.width : A4_TWIPS.height) - MARGEN_ADJUNTO * 2) / 15 - 24;
+  const escala = Math.min(areaW / imagen.width, areaH / imagen.height);
+
+  return {
+    properties: {
+      page: {
+        size: { ...A4_TWIPS, orientation: horizontal ? PageOrientation.LANDSCAPE : PageOrientation.PORTRAIT },
+        margin: {
+          top: MARGEN_ADJUNTO,
+          right: MARGEN_ADJUNTO,
+          bottom: MARGEN_ADJUNTO,
+          left: MARGEN_ADJUNTO,
+          footer: 150,
+          header: 150,
+        },
+      },
+    },
+    // Sin esto la hoja hereda el pie de la constancia.
+    footers: { default: new Footer({ children: [new Paragraph({ children: [] })] }) },
+    children: [
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 0, after: 0 },
+        children: [
+          new ImageRun({
+            type: "jpg",
+            data: imagen.data,
+            transformation: {
+              width: Math.floor(imagen.width * escala),
+              height: Math.floor(imagen.height * escala),
+            },
+          }),
+        ],
+      }),
+    ],
+  };
+}
+
+export async function renderConstanciaPagoWord(
+  pago: Pago,
+  adjuntos: ImagenAdjunta[] = [],
+) {
   const beneficiario = getBeneficiario(pago);
   const destino = getDestinoPago(pago);
   const proyecto = pago.proyecto ?? pago.ordenCompra?.proyecto;
-  const referencia = pago.numeroOperacion || pago.id.slice(-8).toUpperCase();
+  const referencia =
+    pago.codigoComprobante ||
+    pago.numeroOperacion ||
+    pago.id.slice(-8).toUpperCase();
   const concepto =
     pago.concepto ?? pago.ordenCompra?.concepto ?? "Pago registrado";
   const cuenta = destino.numero ?? pago.numeroCuenta;
@@ -218,7 +273,7 @@ export async function renderConstanciaPagoWord(pago: Pago) {
                         align: "right",
                         after: 35,
                       }),
-                      para(`Referencia: ${referencia}`, {
+                      para(`N° ${referencia}`, {
                         size: 15,
                         color: C.muted,
                         align: "right",
@@ -344,7 +399,7 @@ export async function renderConstanciaPagoWord(pago: Pago) {
               new TableRow({
                 children: [
                   detailCell("Información de la obligación", [
-                    ["N° de subcomprobante", pago.id.slice(-8).toUpperCase()],
+                    ["N° de comprobante", referencia],
                     ["Tipo de gasto", value(pago.categoria)],
                     ["Responsable", pago.registradoPor.name],
                     ["Proveedor", beneficiario],
@@ -492,6 +547,7 @@ export async function renderConstanciaPagoWord(pago: Pago) {
           }),
         ],
       },
+      ...adjuntos.map(seccionAdjunto),
     ],
   });
 

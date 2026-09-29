@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { api, API_ORIGIN } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
 import type { Comprobante, TipoDocumentoComprobante } from '@/types/api'
 
@@ -77,6 +78,7 @@ export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [porEliminar, setPorEliminar] = useState<Comprobante | null>(null)
 
   function mostrarExito(mensaje: string) {
     setSuccess(mensaje)
@@ -233,15 +235,15 @@ export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
   }
 
   async function handleEliminar(comprobanteId: string) {
-    if (!confirm('¿Estás seguro de quitar este documento?')) return
-
     setBusyId(comprobanteId)
     setError(null)
     try {
       await api.delete(`/pagos/${pagoId}/comprobantes/${comprobanteId}`)
+      setPorEliminar(null)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al eliminar el documento')
+      setPorEliminar(null)
     } finally {
       setBusyId(null)
     }
@@ -528,7 +530,7 @@ export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleEliminar(c.id)}
+                    onClick={() => setPorEliminar(c)}
                     disabled={busyId === c.id}
                     title="Eliminar documento"
                     className="h-8 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
@@ -664,6 +666,23 @@ export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={porEliminar !== null}
+        onOpenChange={(abierto) => !abierto && setPorEliminar(null)}
+        title="Quitar documento"
+        description={
+          porEliminar
+            ? `Se eliminará "${porEliminar.archivoNombre}" del sustento de este pago.`
+            : undefined
+        }
+        confirmLabel="Quitar"
+        destructive
+        loading={porEliminar !== null && busyId === porEliminar.id}
+        onConfirm={async () => {
+          if (porEliminar) await handleEliminar(porEliminar.id)
+        }}
+      />
 
       {error && (
         <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">

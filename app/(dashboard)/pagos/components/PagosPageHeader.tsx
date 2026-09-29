@@ -2,9 +2,8 @@
 
 import type { Proyecto } from '@/types/api'
 import { NuevoRecordatorioButton } from './NuevoRecordatorioButton'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { History, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 interface Props {
   proyectos: Proyecto[]
@@ -30,7 +29,7 @@ export function PagosPageHeader({
           <>
             <h1 className="text-2xl font-semibold tracking-tight">Pagos pendientes</h1>
             <p className="text-sm text-muted-foreground">
-              Control de obligaciones, pagos pendientes y programación financiera por proyecto.
+              Obligaciones por pagar, ordenadas por antigüedad.
             </p>
           </>
         ) : (
@@ -44,12 +43,6 @@ export function PagosPageHeader({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Link href="/pagos/historial">
-          <Button variant="outline">
-            <History className="size-4" />
-            Historial
-          </Button>
-        </Link>
         {tab !== 'fijos' && puedeCrearRecordatorio ? (
           <NuevoRecordatorioButton proyectos={proyectos} />
         ) : (
