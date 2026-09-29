@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import { Jimp, JimpMime } from "jimp";
 import { PDFDocument } from "pdf-lib";
 import type { Comprobante } from "@/types/api";
 
@@ -29,14 +29,15 @@ function esPdf(nombre: string, contentType: string) {
 }
 
 async function normalizarImagen(nombre: string, data: Buffer): Promise<ImagenAdjunta> {
-  // rotate() aplica la orientación EXIF (fotos de celular); flatten evita fondos negros en PNG/WEBP con alfa.
-  const { data: jpeg, info } = await sharp(data)
-    .rotate()
-    .resize({ width: MAX_LADO_PX, height: MAX_LADO_PX, fit: "inside", withoutEnlargement: true })
-    .flatten({ background: "#ffffff" })
-    .jpeg({ quality: 90 })
-    .toBuffer({ resolveWithObject: true });
-  return { tipo: "imagen", nombre, data: jpeg, width: info.width, height: info.height };
+  // Jimp aplica la orientación EXIF al leer (fotos de celular); el fondo blanco evita negros en PNG/WEBP con alfa.
+  const original = await Jimp.read(data);
+  if (Math.max(original.width, original.height) > MAX_LADO_PX) {
+    original.scaleToFit({ w: MAX_LADO_PX, h: MAX_LADO_PX });
+  }
+  const lienzo = new Jimp({ width: original.width, height: original.height, color: 0xffffffff });
+  lienzo.composite(original, 0, 0);
+  const jpeg = await lienzo.getBuffer(JimpMime.jpeg, { quality: 90 });
+  return { tipo: "imagen", nombre, data: jpeg, width: lienzo.width, height: lienzo.height };
 }
 
 /**
