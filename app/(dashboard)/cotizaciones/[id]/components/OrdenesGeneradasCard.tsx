@@ -3,6 +3,7 @@ import { ArrowRight, ExternalLink, FileDown, ShoppingCart, Calendar, CreditCard,
 import { cn, formatCurrency, formatDateOnly } from '@/lib/utils'
 import { ordenBasePath, ordenLabel } from '@/lib/ordenes'
 import type { SolicitudOrdenCompra, EstadoOrdenCompra } from '@/types/api'
+import { ocTotalConIgv } from '@/lib/ordenes'
 
 const ESTADO_LABEL: Record<EstadoOrdenCompra, string> = {
   borrador: 'Borrador',
@@ -27,7 +28,7 @@ interface Props {
 export function OrdenesGeneradasCard({ ordenes }: Props) {
   if (!ordenes || ordenes.length === 0) return null
 
-  const totalGeneral = ordenes.reduce((acc, o) => acc + (Number(o.montoTotal) || 0), 0)
+  const totalGeneral = ordenes.reduce((acc, o) => acc + ocTotalConIgv(o), 0)
 
   return (
     <div className="rounded-xl border border-border bg-white p-5 space-y-4 col-span-full">
@@ -95,7 +96,7 @@ export function OrdenesGeneradasCard({ ordenes }: Props) {
                   <div className="text-right">
                     <span className="text-xs text-muted-foreground block text-[11px]">Total orden</span>
                     <div className="text-base font-bold font-mono text-foreground leading-tight">
-                      {formatCurrency(orden.montoTotal)}
+                      {formatCurrency(ocTotalConIgv(orden))}
                     </div>
                     <span className="text-[10px] text-muted-foreground">
                       {orden.incluyeIgv ? 'Incluye IGV' : '+ IGV'}
@@ -227,7 +228,7 @@ export function OrdenesGeneradasCard({ ordenes }: Props) {
                           Subtotal {orden.numero}:
                         </td>
                         <td className="py-2 px-4 text-right font-mono font-semibold text-foreground whitespace-nowrap">
-                          {formatCurrency(orden.montoTotal)}
+                          {formatCurrency(ocTotalConIgv(orden))}
                         </td>
                       </tr>
                     </tfoot>

@@ -3,7 +3,7 @@ import { ShoppingCart } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import type { EstadoOrdenCompra, OrdenCompra } from '@/types/api'
 import { cn, formatCurrency } from '@/lib/utils'
-import { ordenBasePath } from '@/lib/ordenes'
+import { ordenBasePath, ocTotalConIgv } from '@/lib/ordenes'
 
 const ESTADO_LABEL: Record<EstadoOrdenCompra, string> = {
   borrador: 'Borrador',
@@ -74,7 +74,7 @@ export async function ProyectoOrdenesCompraSection({ proyectoId, initialOrdenes,
                   </td>
                   <td className="px-4 py-3 font-medium">{oc.proveedor?.razonSocial ?? oc.proveedorNombreLibre}</td>
                   <td className="px-4 py-3 text-right tabular-nums font-medium">
-                    {formatCurrency(oc.montoTotal)}
+                    {formatCurrency(ocTotalConIgv(oc))}
                   </td>
                   <td className="px-4 py-3">
                     <span className={cn('inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium', ESTADO_CLASS[oc.estado])}>

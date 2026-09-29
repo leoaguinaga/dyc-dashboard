@@ -12,6 +12,8 @@ function KpiCard({ label, value, sub }: { label: string; value: string | number;
   )
 }
 
+import { ocTotalConIgv } from '@/lib/ordenes'
+
 export async function OrdenesCompraKpis() {
   const ordenes = await serverFetch<OrdenCompra[]>('/ordenes-compra').catch(() => [] as OrdenCompra[])
 
@@ -19,7 +21,7 @@ export async function OrdenesCompraKpis() {
   const enTransito = ordenes.filter((o) => o.estado === 'recibida_parcial').length
   const montoTotal = ordenes
     .filter((o) => o.estado !== 'cancelada')
-    .reduce((sum, o) => sum + Number(o.montoTotal), 0)
+    .reduce((sum, o) => sum + ocTotalConIgv(o), 0)
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
