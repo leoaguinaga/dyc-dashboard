@@ -9,12 +9,14 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn, formatCurrency } from '@/lib/utils'
 import { UNIDAD_OPTIONS } from '@/lib/inventario'
+import { ocDesglose } from '@/lib/ordenes'
 import type { OrdenCompraItem, UnidadMedida } from '@/types/api'
 
 interface Props {
   ocId: string
   items: OrdenCompraItem[]
   montoTotal: string
+  incluyeIgv: boolean
   editable: boolean
 }
 
@@ -31,7 +33,7 @@ const emptyLinea = (): LineaItem => ({ codigo: '', descripcion: '', cantidad: ''
 const GRID_WITH_ACTIONS = 'sm:grid-cols-[70px_1fr_70px_100px_90px_90px_64px]'
 const GRID_SIN_ACTIONS = 'sm:grid-cols-[70px_1fr_70px_100px_90px_90px]'
 
-export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
+export function OcItemsTable({ ocId, items, montoTotal, incluyeIgv, editable }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
   const role = session?.user?.role
@@ -241,9 +243,26 @@ export function OcItemsTable({ ocId, items, montoTotal, editable }: Props) {
         )}
       </div>
 
-      <div className="border-t border-border bg-muted/20 px-4 py-3 flex items-center justify-between sm:justify-end sm:gap-4">
-        <span className="text-sm font-medium">Total</span>
-        <span className="tabular-nums font-bold">{formatCurrency(montoTotal)}</span>
+      <div className="border-t border-border bg-muted/20 px-4 py-3 space-y-1">
+        {(() => {
+          const d = ocDesglose({ montoTotal, incluyeIgv })
+          return (
+            <>
+              <div className="flex items-center justify-between sm:justify-end sm:gap-4 text-sm text-muted-foreground">
+                <span>Subtotal</span>
+                <span className="tabular-nums">{formatCurrency(d.subtotal)}</span>
+              </div>
+              <div className="flex items-center justify-between sm:justify-end sm:gap-4 text-sm text-muted-foreground">
+                <span>IGV (18%){incluyeIgv ? ' incluido' : ''}</span>
+                <span className="tabular-nums">{formatCurrency(d.igv)}</span>
+              </div>
+              <div className="flex items-center justify-between sm:justify-end sm:gap-4">
+                <span className="text-sm font-medium">Total</span>
+                <span className="tabular-nums font-bold">{formatCurrency(d.total)}</span>
+              </div>
+            </>
+          )
+        })()}
       </div>
 
       {error && (

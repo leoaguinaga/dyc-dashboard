@@ -9,6 +9,7 @@ import {
   getDestinoPago,
   getBeneficiario,
   getUrgencia,
+  getConcepto,
 } from "@/lib/pagos-utils";
 import { CopyButton } from "./components/CopyButton";
 import { ComprobantePagoSection } from "./components/ComprobantePagoSection";
@@ -41,6 +42,7 @@ export default async function PagoDetailPage({ params }: Props) {
   if (!pago) notFound();
 
   const beneficiario = getBeneficiario(pago);
+  const concepto = getConcepto(pago);
   const proyecto = pago.proyecto ?? pago.ordenCompra?.proyecto;
   const destino = getDestinoPago(pago);
   const urg = getUrgencia(pago.fechaProgramada);
@@ -88,7 +90,7 @@ export default async function PagoDetailPage({ params }: Props) {
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="space-y-1.5">
             <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
-              {pago.concepto ?? oc?.concepto ?? "Detalle del Pago"}
+              {concepto !== "Sin concepto" ? concepto : "Detalle del Pago"}
             </h1>
             <div className="flex items-center gap-2 flex-wrap">
               <span
@@ -332,13 +334,13 @@ export default async function PagoDetailPage({ params }: Props) {
 
           {/* Ficha 3: Documento Fuente y Auditoría */}
           <div className="rounded-xl border border-border bg-white p-5 space-y-3.5 shadow-xs">
-            {(oc?.concepto || pago.concepto) && (
-              <div className="-m-5 mb-0 rounded-t-xl border-b-2 border-primary bg-primary/5 px-5 py-3.5">
+            {concepto !== "Sin concepto" && (
+              <div className="-m-5 mb-3 rounded-t-xl border-b-2 border-primary bg-primary/5 px-5 py-2.5">
                 <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">
                   Concepto de la compra
                 </span>
                 <p className="mt-0.5 text-base font-bold text-foreground">
-                  {oc?.concepto ?? pago.concepto}
+                  {concepto}
                 </p>
               </div>
             )}

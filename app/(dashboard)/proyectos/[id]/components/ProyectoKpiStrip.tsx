@@ -1,6 +1,7 @@
 import { KpiCard } from '@/components/shared/KpiCard'
 import { formatCurrency, formatPercent } from '@/lib/utils'
 import type { Proyecto, OrdenCompra, Pago } from '@/types/api'
+import { ocTotalConIgv } from '@/lib/ordenes'
 
 interface Props {
   proyecto: Proyecto
@@ -23,7 +24,7 @@ export function ProyectoKpiStrip({ proyecto, ordenes, pagos }: Props) {
 
   // Compras
   const ordenesValidas = ordenes.filter((o) => o.estado !== 'cancelada')
-  const montoCompras = ordenesValidas.reduce((acc, o) => acc + Number(o.montoTotal || 0), 0)
+  const montoCompras = ordenesValidas.reduce((acc, o) => acc + ocTotalConIgv(o), 0)
 
   // Pagos
   const pagosPendientes = pagos.filter(

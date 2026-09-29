@@ -12,6 +12,7 @@ import { OcItemsTable } from './components/OcItemsTable'
 import { PagoPlanCard } from './components/PagoPlanCard'
 import type { EstadoOrdenCompra, OrdenCompra, TipoRequerimiento } from '@/types/api'
 import { cn, formatCurrency } from '@/lib/utils'
+import { ocTotalConIgv } from '@/lib/ordenes'
 
 const ESTADO_LABEL: Record<EstadoOrdenCompra, string> = {
   borrador: 'Borrador',
@@ -193,7 +194,7 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
               <div>
                 <dt className="text-xs text-muted-foreground mb-0.5">Monto total</dt>
                 <dd className="text-lg font-bold tabular-nums text-foreground">
-                  {formatCurrency(oc.montoTotal)}
+                  {formatCurrency(ocTotalConIgv(oc))}
                 </dd>
               </div>
 
@@ -269,6 +270,7 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
             ocId={oc.id}
             items={oc.items}
             montoTotal={oc.montoTotal}
+            incluyeIgv={oc.incluyeIgv}
             editable={oc.estado === 'borrador' || oc.estado === 'emitida'}
           />
 
