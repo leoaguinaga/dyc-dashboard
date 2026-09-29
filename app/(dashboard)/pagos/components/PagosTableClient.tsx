@@ -35,6 +35,7 @@ import {
   fmtFechaCorta,
   getDestinoPago,
   getBeneficiario,
+  getConcepto,
   getUrgencia,
   type InfoDestinoPago,
 } from '@/lib/pagos-utils'
@@ -136,7 +137,7 @@ export function PagosTableClient({
       const q = search.trim().toLowerCase()
       result = result.filter((p) => {
         const benef = getBeneficiario(p).toLowerCase()
-        const concepto = (p.concepto ?? p.ordenCompra?.concepto ?? '').toLowerCase()
+        const concepto = getConcepto(p).toLowerCase()
         const ocNum = (p.ordenCompra?.numero ?? '').toLowerCase()
         const proyNom = (p.proyecto?.nombre ?? p.ordenCompra?.proyecto?.nombre ?? '').toLowerCase()
         const proyCod = (p.proyecto?.codigo ?? p.ordenCompra?.proyecto?.codigo ?? '').toLowerCase()
@@ -241,7 +242,7 @@ export function PagosTableClient({
         const cTxt = destino.cci ? `CCI: ${destino.cci}` : ''
         destinoTxt = [bTxt, nTxt, cTxt].filter(Boolean).join(' ')
       }
-      const concepto = p.concepto ?? p.ordenCompra?.concepto ?? 'Pago'
+      const concepto = getConcepto(p)
 
       lineas.push(`${idx + 1}. ${benef} — ${fmtMoney(Number(p.monto))}`)
       lineas.push(`   Concepto: ${concepto}`)
@@ -724,7 +725,7 @@ export function PagosTableClient({
               href={`/pagos/${p.id}`}
               className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2 leading-tight"
             >
-              {p.concepto ?? p.ordenCompra?.concepto ?? 'Pago'}
+              {getConcepto(p)}
             </Link>
             <div className="flex items-center gap-1.5">{origenTag}</div>
           </div>

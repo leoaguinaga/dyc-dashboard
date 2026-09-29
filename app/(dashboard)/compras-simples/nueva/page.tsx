@@ -5,8 +5,12 @@ import { serverFetch } from '@/lib/api/server'
 import { CreateCompraSimpleForm } from './components/CreateCompraSimpleForm'
 import type { Proyecto, Proveedor, User } from '@/types/api'
 
-// Debe coincidir con ROLES_CREACION en compras-simples.service.ts
-const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador', 'admin_ti']
+// Debe coincidir con @Roles(...) en compras-simples.controller.ts
+const CON_ACCESO_CREACION = [
+  'supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr',
+  'ing_civil', 'ing_electrico', 'jefe_sig',
+  'logistica', 'gerencia', 'administrador', 'admin_ti',
+]
 
 export default async function NuevaCompraSimplePage() {
   const [proyectos, proveedores, user] = await Promise.all([

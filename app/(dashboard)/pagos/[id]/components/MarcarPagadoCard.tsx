@@ -8,23 +8,12 @@ import { Button } from '@/components/ui/button'
 import type { Pago } from '@/types/api'
 import { getDestinoPago } from '@/lib/pagos-utils'
 import { useSession } from '@/lib/auth/session'
+import { MetodoPagoSelect } from '../../components/MetodoPagoSelect'
 
 function hoyISO() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
-
-const METODOS_SUGERIDOS = [
-  'Yape',
-  'Plin',
-  'Transferencia BCP',
-  'Transferencia BBVA',
-  'Transferencia Interbank',
-  'Transferencia Scotiabank',
-  'Transferencia Banco de la Nación',
-  'Cheque',
-  'Efectivo',
-]
 
 export function MarcarPagadoCard({ pago }: { pago: Pago }) {
   const { data: session } = useSession()
@@ -33,13 +22,11 @@ export function MarcarPagadoCard({ pago }: { pago: Pago }) {
   const destino = getDestinoPago(pago)
 
   const metodoInicial = pago.metodoPago || (
-    destino.billetera === 'yape'
-      ? 'Yape'
-      : destino.billetera === 'plin'
-        ? 'Plin'
-        : destino.bancoNorm && destino.bancoNorm !== 'Sin banco'
-          ? `Transferencia ${destino.bancoNorm}`
-          : 'Transferencia BCP'
+    destino.billetera
+      ? 'Yape/Plin'
+      : destino.bancoNorm && destino.bancoNorm !== 'Sin banco'
+        ? `Transferencia ${destino.bancoNorm}`
+        : 'Transferencia BCP'
   )
 
   const [fechaPagoReal, setFechaPagoReal] = useState(hoyISO)
@@ -104,18 +91,11 @@ export function MarcarPagadoCard({ pago }: { pago: Pago }) {
 
         <div>
           <label className="mb-1 block text-xs font-medium text-foreground">Método de pago ejecutado</label>
-          <Input
+          <MetodoPagoSelect
             value={metodoPago}
-            onChange={(e) => setMetodoPago(e.target.value)}
-            list="metodos-sugeridos-card"
-            className="h-9 text-xs"
-            placeholder="Yape, Plin, Transferencia..."
+            onChange={setMetodoPago}
+            bancoSugerido={destino.bancoNorm !== 'Sin banco' ? destino.bancoNorm : undefined}
           />
-          <datalist id="metodos-sugeridos-card">
-            {METODOS_SUGERIDOS.map((m) => (
-              <option key={m} value={m} />
-            ))}
-          </datalist>
         </div>
 
         <div className="sm:col-span-2">

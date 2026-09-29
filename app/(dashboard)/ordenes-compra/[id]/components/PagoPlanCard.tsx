@@ -39,6 +39,7 @@ const ESTADO_CLASS: Record<Pago['estadoEfectivo'], string> = {
 }
 
 const fmtDate = formatDateOnly
+const IGV_RATE = 0.18
 
 // Fecha va a ancho fijo (su contenido es texto corto, no un control que
 // llene la celda); el espacio flexible se deja al final, en Estado, que es
@@ -70,13 +71,16 @@ export function PagoPlanCard({ oc, pagos: initialPagos, editable = true }: Props
     .filter((p) => p.estado === 'pagado')
     .reduce((s, p) => s + Number(p.porcentaje), 0)
 
-  const montoTotal = Number(oc.montoTotal)
+  // El plan de pagos se reparte sobre el monto final (con IGV si no viene
+  // incluido en los precios de línea ya cargados), igual que al guardar en
+  // el backend — nunca sobre el subtotal de ítems.
+  const montoConIgv = oc.incluyeIgv ? Number(oc.montoTotal) : Number(oc.montoTotal) * (1 + IGV_RATE)
   const tieneDescuentoFiscal = Boolean(Number(oc.detraccionPorcentaje) > 0 || Number(oc.retencionPorcentaje) > 0)
   const pctFiscal = Number(oc.detraccionPorcentaje) > 0 ? Number(oc.detraccionPorcentaje) : Number(oc.retencionPorcentaje)
   const labelFiscal = Number(oc.detraccionPorcentaje) > 0 ? 'Detracción' : 'Retención'
 
   function montoDe(row: EditRow) {
-    return (montoTotal * (parseFloat(row.porcentaje) || 0)) / 100
+    return (montoConIgv * (parseFloat(row.porcentaje) || 0)) / 100
   }
   function detraccionDe(row: EditRow) {
     return tieneDescuentoFiscal ? (montoDe(row) * pctFiscal) / 100 : 0

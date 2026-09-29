@@ -70,7 +70,7 @@ export function RequerimientoRecepcion({ requerimiento: r }: Props) {
   }
 
   async function confirmar() {
-    if (!fotoUrl) {
+    if (!fotoUrl && role !== 'admin_ti') {
       setError('Debes adjuntar una foto de la recepción')
       return
     }
@@ -91,6 +91,7 @@ export function RequerimientoRecepcion({ requerimiento: r }: Props) {
       <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Confirmar recepción</h2>
       <p className="text-sm text-muted-foreground">
         La compra de este requerimiento ya fue recibida. Subí una foto y dejá tus comentarios para cerrar el requerimiento.
+        {role === 'admin_ti' && ' Como admin_ti, la foto es opcional para ti.'}
       </p>
 
       {fotoUrl ? (
@@ -118,7 +119,7 @@ export function RequerimientoRecepcion({ requerimiento: r }: Props) {
         </p>
       )}
 
-      <Button className="w-full" disabled={saving || uploading || !fotoUrl} onClick={confirmar}>
+      <Button className="w-full" disabled={saving || uploading || (!fotoUrl && role !== 'admin_ti')} onClick={confirmar}>
         {saving ? 'Confirmando…' : 'Confirmar recepción'}
       </Button>
     </div>

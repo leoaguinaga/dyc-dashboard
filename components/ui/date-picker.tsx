@@ -17,6 +17,7 @@ interface DatePickerProps {
   onValueChange?: (value: string) => void;
   placeholder?: string;
   min?: string;
+  max?: string;
   className?: string;
   "aria-invalid"?: boolean;
 }
@@ -26,6 +27,7 @@ export function DatePicker({
   onValueChange,
   placeholder = "Seleccionar fecha",
   min,
+  max,
   className,
   "aria-invalid": ariaInvalid,
 }: DatePickerProps) {
@@ -61,7 +63,10 @@ export function DatePicker({
           onSelect={handleSelect}
           locale={es}
           captionLayout="dropdown"
-          disabled={min ? { before: parseISO(min) } : undefined}
+          disabled={[
+            ...(min ? [{ before: parseISO(min) }] : []),
+            ...(max ? [{ after: parseISO(max) }] : []),
+          ]}
         />
       </PopoverContent>
     </Popover>
