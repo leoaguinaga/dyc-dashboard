@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { TimePicker } from '@/components/ui/time-picker'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -123,11 +124,19 @@ export function AsistenciaTurnoView({ proyecto, turnoInicial }: Props) {
 
 function AbrirTurnoCard({ proyectoId }: { proyectoId: string }) {
   const router = useRouter()
+  const { data: session } = useSession()
+  const role = session?.user?.role
+  const puedeRegistrarFechaPasada = role === 'administrador' || role === 'gerencia'
+
   const [configs, setConfigs] = useState<TurnoConfig[] | null>(null)
   const [turnoConfigId, setTurnoConfigId] = useState('')
   const [loadingConfigs, setLoadingConfigs] = useState(true)
   const [abriendo, setAbriendo] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [fechaPasadaAbierta, setFechaPasadaAbierta] = useState(false)
+  const [fecha, setFecha] = useState('')
+  const [motivo, setMotivo] = useState('')
 
   useEffect(() => {
     let cancelado = false
@@ -158,6 +167,32 @@ function AbrirTurnoCard({ proyectoId }: { proyectoId: string }) {
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al abrir el turno')
+      setAbriendo(false)
+    }
+  }
+
+  async function abrirTurnoFechaPasada() {
+    if (!fecha) {
+      setError('Selecciona una fecha')
+      return
+    }
+    if (motivo.trim().length < 5) {
+      setError('Escribe un motivo (mínimo 5 caracteres)')
+      return
+    }
+    setAbriendo(true)
+    setError(null)
+    try {
+      await api.post(`/asistencias/proyectos/${proyectoId}/turnos`, {
+        turnoConfigId,
+        fecha,
+        motivo: motivo.trim(),
+      })
+      setFechaPasadaAbierta(false)
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al registrar el turno')
+    } finally {
       setAbriendo(false)
     }
   }
@@ -200,7 +235,54 @@ function AbrirTurnoCard({ proyectoId }: { proyectoId: string }) {
       <Button onClick={abrirTurno} disabled={abriendo || !turnoConfigId}>
         {abriendo ? 'Abriendo...' : 'Abrir turno'}
       </Button>
+      {puedeRegistrarFechaPasada && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setFechaPasadaAbierta(true)}
+          disabled={!turnoConfigId}
+          className="gap-1.5"
+        >
+          <ClockIcon className="size-3.5" />
+          Registrar asistencia de una fecha pasada
+        </Button>
+      )}
       {error && <p className="text-sm text-destructive">{error}</p>}
+
+      <Dialog open={fechaPasadaAbierta} onOpenChange={(open) => !open && setFechaPasadaAbierta(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Registrar asistencia de una fecha pasada</DialogTitle>
+            <DialogDescription>
+              Se creará un turno para la fecha indicada. Indica el motivo — queda registrado en la auditoría.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <DatePicker
+              value={fecha}
+              onValueChange={setFecha}
+              max={new Date().toISOString().slice(0, 10)}
+              placeholder="Selecciona la fecha..."
+            />
+            <Textarea
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              placeholder="Motivo del registro tardío..."
+              className="min-h-[80px]"
+            />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFechaPasadaAbierta(false)} disabled={abriendo}>
+              Cancelar
+            </Button>
+            <Button onClick={abrirTurnoFechaPasada} disabled={abriendo}>
+              {abriendo ? 'Registrando...' : 'Registrar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

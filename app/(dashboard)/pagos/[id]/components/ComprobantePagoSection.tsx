@@ -11,49 +11,47 @@ import {
   CheckCircle2,
   Lock,
   LockOpen,
-  Truck,
   Receipt,
-  FileSpreadsheet,
   Building2,
+  Plus,
 } from 'lucide-react'
 import { api, API_ORIGIN } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import type { Comprobante, TipoDocumentoComprobante } from '@/types/api'
 
 const ARCHIVOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
 
-const TIPOS_DOCUMENTO: { value: TipoDocumentoComprobante; label: string }[] = [
-  { value: 'factura', label: 'Factura' },
-  { value: 'boleta', label: 'Boleta de venta' },
-  { value: 'guia_remision', label: 'Guía de remisión' },
-  { value: 'recibo', label: 'Recibo por honorarios' },
-  { value: 'nota_credito', label: 'Nota de crédito' },
-  { value: 'nota_debito', label: 'Nota de débito' },
-  { value: 'voucher_deposito', label: 'Foto de transferencia / voucher' },
-  { value: 'cotizacion_propia', label: 'Nuestra cotización' },
-  { value: 'cotizacion_proveedor', label: 'Cotización del proveedor' },
-  { value: 'otro', label: 'Otro documento' },
-]
+const TIPO_LABEL: Record<TipoDocumentoComprobante, string> = {
+  factura: 'Factura',
+  boleta: 'Boleta de venta',
+  guia_remision: 'Guía de remisión',
+  recibo: 'Recibo por honorarios',
+  nota_credito: 'Nota de crédito',
+  nota_debito: 'Nota de débito',
+  voucher_deposito: 'Foto de la transferencia',
+  cotizacion_propia: 'Nuestra cotización',
+  cotizacion_proveedor: 'Cotización del proveedor',
+  otro: 'Otro documento',
+}
 
-const TIPO_LABEL: Record<TipoDocumentoComprobante, string> = Object.fromEntries(
-  TIPOS_DOCUMENTO.map((t) => [t.value, t.label]),
-) as Record<TipoDocumentoComprobante, string>
-
-/** Slots rápidos: documentos opcionales frecuentes que no requieren N° de comprobante ni importe. */
-const SLOTS_RAPIDOS: { tipo: TipoDocumentoComprobante; label: string; icon: typeof Truck }[] = [
-  { tipo: 'guia_remision', label: 'Guía de remisión', icon: Truck },
+/** Slots obligatorios: se piden siempre para sustentar el pago. */
+const SLOTS_OBLIGATORIOS: { tipo: TipoDocumentoComprobante; label: string; icon: typeof Receipt }[] = [
   { tipo: 'voucher_deposito', label: 'Foto de la transferencia', icon: Receipt },
-  { tipo: 'cotizacion_propia', label: 'Nuestra cotización', icon: FileSpreadsheet },
   { tipo: 'cotizacion_proveedor', label: 'Cotización del proveedor', icon: Building2 },
 ]
+
+interface FilaDocumento {
+  id: string
+  nombre: string
+  descripcion: string
+  monto: string
+  file: File | null
+}
+
+function nuevaFila(): FilaDocumento {
+  return { id: crypto.randomUUID(), nombre: '', descripcion: '', monto: '', file: null }
+}
 
 interface Props {
   pagoId: string
@@ -62,76 +60,92 @@ interface Props {
 
 export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
   const router = useRouter()
-  const [tipoDocumento, setTipoDocumento] = useState<TipoDocumentoComprobante>('factura')
-  const [numero, setNumero] = useState('')
-  const [importe, setImporte] = useState('')
-  const [uploading, setUploading] = useState(false)
+
+  // Factura: obligatoria, con N° de comprobante e importe.
+  const [facturaNumero, setFacturaNumero] = useState('')
+  const [facturaImporte, setFacturaImporte] = useState('')
+  const [facturaFile, setFacturaFile] = useState<File | null>(null)
+  const [facturaUploading, setFacturaUploading] = useState(false)
+
+  // Foto de la transferencia y Cotización del proveedor: subida simple.
+  const [busySlot, setBusySlot] = useState<TipoDocumentoComprobante | null>(null)
+
+  // Documentos adicionales: nombre + descripción + monto opcional + archivo.
+  const [filas, setFilas] = useState<FilaDocumento[]>([])
+  const [guardandoFilas, setGuardandoFilas] = useState(false)
+
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [busySlot, setBusySlot] = useState<TipoDocumentoComprobante | null>(null)
+
+  function mostrarExito(mensaje: string) {
+    setSuccess(mensaje)
+    setTimeout(() => setSuccess(null), 3000)
+  }
+
+  function validarArchivo(file: File) {
+    if (!ARCHIVOS_PERMITIDOS.includes(file.type)) {
+      setError('Formato no permitido. Usa JPG, PNG, WEBP o PDF.')
+      return false
+    }
+    return true
+  }
 
   async function subirDocumento(input: {
     file: File
     tipoDocumento: TipoDocumentoComprobante
     numero: string
     importe?: number
+    detalleGasto?: string
   }) {
     const formData = new FormData()
     formData.append('archivo', input.file)
     formData.append('numero', input.numero)
     formData.append('tipoDocumento', input.tipoDocumento)
     if (input.importe !== undefined) formData.append('importe', String(input.importe))
+    if (input.detalleGasto) formData.append('detalleGasto', input.detalleGasto)
     await api.upload(`/pagos/${pagoId}/comprobantes`, formData)
-    router.refresh()
   }
 
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFacturaFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ''
-    if (!file) return
-
-    if (!ARCHIVOS_PERMITIDOS.includes(file.type)) {
-      setError('Formato no permitido. Usa JPG, PNG, WEBP o PDF.')
-      return
-    }
+    if (!file || !validarArchivo(file)) return
     setError(null)
-    setPendingFile(file)
+    setFacturaFile(file)
   }
 
-  async function handleSubir() {
-    if (!pendingFile) return
-    if (!numero.trim()) {
-      setError('Ingresa el N° de comprobante o documento.')
+  async function handleGuardarFactura() {
+    if (!facturaFile) return
+    if (!facturaNumero.trim()) {
+      setError('Ingresa el N° de comprobante de la factura.')
       return
     }
-    const importeNum = Number(importe)
-    if (!importe || Number.isNaN(importeNum) || importeNum <= 0) {
-      setError('Ingresa el importe del documento.')
+    const importeNum = Number(facturaImporte)
+    if (!facturaImporte || Number.isNaN(importeNum) || importeNum <= 0) {
+      setError('Ingresa el importe de la factura.')
       return
     }
 
-    setUploading(true)
+    setFacturaUploading(true)
     setError(null)
     setSuccess(null)
-
     try {
       await subirDocumento({
-        file: pendingFile,
-        tipoDocumento,
-        numero: numero.trim(),
+        file: facturaFile,
+        tipoDocumento: 'factura',
+        numero: facturaNumero.trim(),
         importe: importeNum,
       })
-      setSuccess('Documento guardado con éxito.')
-      setTimeout(() => setSuccess(null), 3000)
-      setPendingFile(null)
-      setNumero('')
-      setImporte('')
+      mostrarExito('Documento guardado con éxito.')
+      setFacturaFile(null)
+      setFacturaNumero('')
+      setFacturaImporte('')
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al subir el documento')
     } finally {
-      setUploading(false)
+      setFacturaUploading(false)
     }
   }
 
@@ -141,24 +155,80 @@ export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
   ) {
     const file = e.target.files?.[0]
     e.target.value = ''
-    if (!file) return
-
-    if (!ARCHIVOS_PERMITIDOS.includes(file.type)) {
-      setError('Formato no permitido. Usa JPG, PNG, WEBP o PDF.')
-      return
-    }
+    if (!file || !validarArchivo(file)) return
 
     setBusySlot(tipo)
     setError(null)
     setSuccess(null)
     try {
       await subirDocumento({ file, tipoDocumento: tipo, numero: TIPO_LABEL[tipo] })
-      setSuccess('Documento guardado con éxito.')
-      setTimeout(() => setSuccess(null), 3000)
+      mostrarExito('Documento guardado con éxito.')
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al subir el documento')
     } finally {
       setBusySlot(null)
+    }
+  }
+
+  function agregarFila() {
+    setFilas((prev) => [...prev, nuevaFila()])
+  }
+
+  function actualizarFila(id: string, patch: Partial<FilaDocumento>) {
+    setFilas((prev) => prev.map((f) => (f.id === id ? { ...f, ...patch } : f)))
+  }
+
+  function quitarFila(id: string) {
+    setFilas((prev) => prev.filter((f) => f.id !== id))
+  }
+
+  function handleFilaFileSelect(id: string, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !validarArchivo(file)) return
+    setError(null)
+    actualizarFila(id, { file })
+  }
+
+  async function handleGuardarFilas() {
+    if (filas.length === 0) return
+
+    for (const fila of filas) {
+      if (!fila.nombre.trim()) {
+        setError('Cada documento necesita un nombre.')
+        return
+      }
+      if (!fila.file) {
+        setError(`Adjunta un archivo para "${fila.nombre.trim()}".`)
+        return
+      }
+      if (fila.monto && Number.isNaN(Number(fila.monto))) {
+        setError(`El monto de "${fila.nombre.trim()}" no es válido.`)
+        return
+      }
+    }
+
+    setGuardandoFilas(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      for (const fila of filas) {
+        await subirDocumento({
+          file: fila.file!,
+          tipoDocumento: 'otro',
+          numero: fila.nombre.trim(),
+          importe: fila.monto ? Number(fila.monto) : undefined,
+          detalleGasto: fila.descripcion.trim() || undefined,
+        })
+      }
+      mostrarExito(filas.length > 1 ? 'Documentos guardados con éxito.' : 'Documento guardado con éxito.')
+      setFilas([])
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al subir los documentos')
+    } finally {
+      setGuardandoFilas(false)
     }
   }
 
@@ -192,6 +262,8 @@ export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
     }
   }
 
+  const facturaAdjuntada = comprobantes.some((c) => c.tipoDocumento === 'factura')
+
   return (
     <div className="rounded-xl border border-border bg-white p-5 space-y-4 shadow-xs">
       <div>
@@ -199,51 +271,173 @@ export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
           Sustento / Rendición de documentos
         </h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Adjunta cada comprobante (factura, boleta, guía de remisión, etc.) por separado.
+          Adjunta los 3 documentos obligatorios; agrega cualquier otro documento de sustento aparte.
         </p>
       </div>
 
-      {/* Slots rápidos: documentos opcionales frecuentes */}
-      <div className="grid grid-cols-2 gap-2">
-        {SLOTS_RAPIDOS.map(({ tipo, label, icon: Icon }) => {
-          const existentes = comprobantes.filter((c) => c.tipoDocumento === tipo)
-          const ultimo = existentes[existentes.length - 1]
-          const cargando = busySlot === tipo
+      {/* Documentos obligatorios */}
+      <div className="space-y-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Documentos obligatorios
+        </p>
 
-          return (
-            <div
-              key={tipo}
-              className="rounded-lg border border-border bg-muted/10 p-2.5 space-y-1.5"
+        {/* Factura: requiere N° de comprobante e importe */}
+        <div className="rounded-lg border border-border bg-muted/10 p-3 space-y-2">
+          <div className="flex items-center justify-between gap-1.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+              <FileText className="size-3.5 shrink-0" />
+              <span>Factura</span>
+            </div>
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium',
+                facturaAdjuntada ? 'bg-emerald-500/10 text-emerald-700' : 'bg-amber-500/10 text-amber-700',
+              )}
             >
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-                <Icon className="size-3.5 shrink-0" />
-                <span className="truncate">{label}</span>
-              </div>
+              {facturaAdjuntada ? 'Adjuntada' : 'Pendiente'}
+            </span>
+          </div>
 
-              {ultimo ? (
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-foreground block">N° de comprobante</label>
+              <input
+                type="text"
+                value={facturaNumero}
+                onChange={(e) => setFacturaNumero(e.target.value)}
+                placeholder="Ej. FPP1-002744"
+                className="h-8 w-full rounded-lg border border-border bg-white px-3 text-xs placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-foreground block">Importe (S/)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={facturaImporte}
+                onChange={(e) => setFacturaImporte(e.target.value)}
+                placeholder="0.00"
+                className="h-8 w-full rounded-lg border border-border bg-white px-3 text-xs placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
+              />
+            </div>
+          </div>
+
+          {facturaFile ? (
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-white p-2.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="size-4 text-primary shrink-0" />
+                <span className="truncate text-xs font-medium text-foreground">{facturaFile.name}</span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setFacturaFile(null)}
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  Quitar
+                </button>
+                <Button
+                  size="sm"
+                  onClick={handleGuardarFactura}
+                  disabled={facturaUploading}
+                  className="h-7 gap-1.5 text-xs"
+                >
+                  {facturaUploading ? (
+                    <>
+                      <RefreshCw className="size-3.5 animate-spin" />
+                      Subiendo...
+                    </>
+                  ) : (
+                    'Guardar documento'
+                  )}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <label className="flex items-center justify-center gap-1.5 rounded-md border border-dashed border-border bg-white py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer">
+              <Upload className="size-3.5" />
+              Subir archivo
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                className="hidden"
+                onChange={handleFacturaFileSelect}
+              />
+            </label>
+          )}
+        </div>
+
+        {/* Foto de la transferencia / Cotización del proveedor: subida simple */}
+        <div className="grid grid-cols-2 gap-2">
+          {SLOTS_OBLIGATORIOS.map(({ tipo, label, icon: Icon }) => {
+            const existentes = comprobantes.filter((c) => c.tipoDocumento === tipo)
+            const ultimo = existentes[existentes.length - 1]
+            const cargando = busySlot === tipo
+
+            return (
+              <div
+                key={tipo}
+                className="rounded-lg border border-border bg-muted/10 p-2.5 space-y-1.5"
+              >
                 <div className="flex items-center justify-between gap-1.5">
-                  <a
-                    href={`${API_ORIGIN}${ultimo.archivoUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline truncate min-w-0"
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground min-w-0">
+                    <Icon className="size-3.5 shrink-0" />
+                    <span className="truncate">{label}</span>
+                  </div>
+                  <span
+                    className={cn(
+                      'shrink-0 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium',
+                      ultimo ? 'bg-emerald-500/10 text-emerald-700' : 'bg-amber-500/10 text-amber-700',
+                    )}
                   >
-                    <FileText className="size-3.5 shrink-0" />
-                    <span className="truncate">Ver documento</span>
-                  </a>
-                  <label className="shrink-0 cursor-pointer">
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 rounded-md border border-border bg-white px-1.5 py-1 text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors',
-                        cargando && 'opacity-50 pointer-events-none',
-                      )}
+                    {ultimo ? 'Adjuntado' : 'Pendiente'}
+                  </span>
+                </div>
+
+                {ultimo ? (
+                  <div className="flex items-center justify-between gap-1.5">
+                    <a
+                      href={`${API_ORIGIN}${ultimo.archivoUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline truncate min-w-0"
                     >
-                      {cargando ? (
-                        <RefreshCw className="size-3 animate-spin" />
-                      ) : (
-                        'Reemplazar'
-                      )}
-                    </span>
+                      <FileText className="size-3.5 shrink-0" />
+                      <span className="truncate">Ver documento</span>
+                    </a>
+                    <label className="shrink-0 cursor-pointer">
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1 rounded-md border border-border bg-white px-1.5 py-1 text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors',
+                          cargando && 'opacity-50 pointer-events-none',
+                        )}
+                      >
+                        {cargando ? (
+                          <RefreshCw className="size-3 animate-spin" />
+                        ) : (
+                          'Reemplazar'
+                        )}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,application/pdf"
+                        className="hidden"
+                        disabled={cargando}
+                        onChange={(e) => handleSlotFileSelect(e, tipo)}
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <label className="flex items-center justify-center gap-1.5 rounded-md border border-dashed border-border bg-white py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer">
+                    {cargando ? (
+                      <RefreshCw className="size-3.5 animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="size-3.5" />
+                        Subir
+                      </>
+                    )}
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -252,29 +446,11 @@ export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
                       onChange={(e) => handleSlotFileSelect(e, tipo)}
                     />
                   </label>
-                </div>
-              ) : (
-                <label className="flex items-center justify-center gap-1.5 rounded-md border border-dashed border-border bg-white py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer">
-                  {cargando ? (
-                    <RefreshCw className="size-3.5 animate-spin" />
-                  ) : (
-                    <>
-                      <Upload className="size-3.5" />
-                      Subir
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,application/pdf"
-                    className="hidden"
-                    disabled={cargando}
-                    onChange={(e) => handleSlotFileSelect(e, tipo)}
-                  />
-                </label>
-              )}
-            </div>
-          )
-        })}
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       {/* Lista de documentos ya adjuntos */}
@@ -325,6 +501,7 @@ export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
                     <span className="block truncate text-xs text-muted-foreground mt-0.5">
                       {c.archivoNombre}
                       {Number(c.importe) > 0 ? ` · S/ ${Number(c.importe).toFixed(2)}` : ''}
+                      {c.detalleGasto ? ` · ${c.detalleGasto}` : ''}
                     </span>
                   </div>
                 </div>
@@ -365,101 +542,127 @@ export function ComprobantePagoSection({ pagoId, comprobantes }: Props) {
         </div>
       )}
 
-      {/* Formulario de nuevo documento (factura, boleta, etc. con N° e importe) */}
-      <div className="rounded-xl border-2 border-dashed border-border p-4 space-y-3">
-        <div className="grid gap-2 sm:grid-cols-2">
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-foreground block">Tipo de documento</label>
-            <Select
-              value={tipoDocumento}
-              onValueChange={(v) => setTipoDocumento(v as TipoDocumentoComprobante)}
-            >
-              <SelectTrigger className="w-full h-8 text-xs">
-                <SelectValue className="normal-case" />
-              </SelectTrigger>
-              <SelectContent>
-                {TIPOS_DOCUMENTO.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-foreground block">N° de comprobante</label>
-            <input
-              type="text"
-              value={numero}
-              onChange={(e) => setNumero(e.target.value)}
-              placeholder="Ej. 261777"
-              className="h-8 w-full rounded-lg border border-border bg-white px-3 text-xs placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
-            />
-          </div>
-
-          <div className="space-y-1 sm:col-span-2">
-            <label className="text-xs font-medium text-foreground block">Importe (S/)</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={importe}
-              onChange={(e) => setImporte(e.target.value)}
-              placeholder="0.00"
-              className="h-8 w-full rounded-lg border border-border bg-white px-3 text-xs placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
-            />
-          </div>
+      {/* Documentos adicionales: nombre + descripción + monto opcional + archivo */}
+      <div className="space-y-2 pt-1 border-t border-border">
+        <div className="pt-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Documentos adicionales
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Guía de remisión, cotización propia u otro documento de sustento. Puedes agregar varios antes de guardar.
+          </p>
         </div>
 
-        {pendingFile ? (
-          <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/20 p-2.5">
-            <div className="flex items-center gap-2 min-w-0">
-              <FileText className="size-4 text-primary shrink-0" />
-              <span className="truncate text-xs font-medium text-foreground">{pendingFile.name}</span>
+        {filas.map((fila) => (
+          <div key={fila.id} className="rounded-xl border-2 border-dashed border-border p-3 space-y-2">
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-foreground block">Nombre</label>
+                <input
+                  type="text"
+                  value={fila.nombre}
+                  onChange={(e) => actualizarFila(fila.id, { nombre: e.target.value })}
+                  placeholder="Ej. Guía de remisión"
+                  className="h-8 w-full rounded-lg border border-border bg-white px-3 text-xs placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-foreground block">
+                  Monto (S/) <span className="text-muted-foreground/60 font-normal">opcional</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={fila.monto}
+                  onChange={(e) => actualizarFila(fila.id, { monto: e.target.value })}
+                  placeholder="0.00"
+                  className="h-8 w-full rounded-lg border border-border bg-white px-3 text-xs placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
+                />
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <label className="text-xs font-medium text-foreground block">
+                  Descripción <span className="text-muted-foreground/60 font-normal">opcional</span>
+                </label>
+                <input
+                  type="text"
+                  value={fila.descripcion}
+                  onChange={(e) => actualizarFila(fila.id, { descripcion: e.target.value })}
+                  placeholder="Detalle del documento"
+                  className="h-8 w-full rounded-lg border border-border bg-white px-3 text-xs placeholder:text-muted-foreground/50 outline-none focus:border-ring focus:ring-3 focus:ring-ring/20 transition-[border-color,box-shadow] duration-[120ms]"
+                />
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
+
+            {fila.file ? (
+              <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/20 p-2.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="size-4 text-primary shrink-0" />
+                  <span className="truncate text-xs font-medium text-foreground">{fila.file.name}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => actualizarFila(fila.id, { file: null })}
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                >
+                  Quitar
+                </button>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center gap-1.5 rounded-md border border-dashed border-border bg-white py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer">
+                <Upload className="size-3.5" />
+                Subir archivo
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  className="hidden"
+                  onChange={(e) => handleFilaFileSelect(fila.id, e)}
+                />
+              </label>
+            )}
+
+            <div className="flex justify-end">
               <button
                 type="button"
-                onClick={() => setPendingFile(null)}
-                className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                onClick={() => quitarFila(fila.id)}
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
               >
-                Quitar
+                <Trash2 className="size-3.5" />
+                Quitar documento
               </button>
-              <Button
-                size="sm"
-                onClick={handleSubir}
-                disabled={uploading}
-                className="h-7 gap-1.5 text-xs"
-              >
-                {uploading ? (
-                  <>
-                    <RefreshCw className="size-3.5 animate-spin" />
-                    Subiendo...
-                  </>
-                ) : (
-                  'Guardar documento'
-                )}
-              </Button>
             </div>
           </div>
-        ) : (
-          <label className="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/10 p-4 text-center cursor-pointer hover:bg-muted/30 hover:border-primary/50 transition-colors">
-            <Upload className="size-4 text-muted-foreground" />
-            <span className="text-xs font-medium text-foreground">
-              Haz clic o arrastra un archivo aquí
-            </span>
-            <span className="text-[11px] text-muted-foreground">
-              JPG, PNG, WEBP o PDF (hasta 10 MB)
-            </span>
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-          </label>
-        )}
+        ))}
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={agregarFila}
+            className="h-8 gap-1.5 text-xs"
+          >
+            <Plus className="size-3.5" />
+            Agregar documento
+          </Button>
+          {filas.length > 0 && (
+            <Button
+              size="sm"
+              onClick={handleGuardarFilas}
+              disabled={guardandoFilas}
+              className="h-8 gap-1.5 text-xs"
+            >
+              {guardandoFilas ? (
+                <>
+                  <RefreshCw className="size-3.5 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                `Guardar${filas.length > 1 ? ` (${filas.length})` : ''}`
+              )}
+            </Button>
+          )}
+        </div>
       </div>
 
       {error && (

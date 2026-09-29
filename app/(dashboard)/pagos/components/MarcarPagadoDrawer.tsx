@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/sheet'
 import type { Pago } from '@/types/api'
 import { getDestinoPago } from '@/lib/pagos-utils'
+import { MetodoPagoSelect } from './MetodoPagoSelect'
 
 function hoyISO() {
   const d = new Date()
@@ -26,18 +27,6 @@ function fmtMoney(n: number) {
 }
 
 const ARCHIVOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
-
-const METODOS_SUGERIDOS = [
-  'Yape',
-  'Plin',
-  'Transferencia BCP',
-  'Transferencia BBVA',
-  'Transferencia Interbank',
-  'Transferencia Scotiabank',
-  'Transferencia Banco de la Nación',
-  'Cheque',
-  'Efectivo',
-]
 
 interface Props {
   pago: Pago | null
@@ -67,16 +56,14 @@ export function MarcarPagadoDrawer({
       setFechaPagoReal(hoyISO())
       const destino = getDestinoPago(pago)
 
-      if (destino.billetera === 'yape') {
-        setMetodoPago('Yape')
-      } else if (destino.billetera === 'plin') {
-        setMetodoPago('Plin')
+      if (destino.billetera) {
+        setMetodoPago('Yape/Plin')
       } else if (pago.metodoPago) {
         setMetodoPago(pago.metodoPago)
       } else if (destino.bancoNorm && destino.bancoNorm !== 'Sin banco') {
         setMetodoPago(`Transferencia ${destino.bancoNorm}`)
       } else {
-        setMetodoPago('Transferencia')
+        setMetodoPago('Transferencia BCP')
       }
 
       setNumeroOperacion('')
@@ -245,19 +232,11 @@ export function MarcarPagadoDrawer({
                 <CreditCard className="size-3.5 text-muted-foreground" />
                 Método de pago ejecutado
               </label>
-              <Input
+              <MetodoPagoSelect
                 value={metodoPago}
-                onChange={(e) => setMetodoPago(e.target.value)}
-                list="metodos-sugeridos"
-                placeholder="Ej. Yape, Plin, Transferencia BCP, Cheque, Efectivo..."
-                className="h-9 text-sm"
-                required
+                onChange={setMetodoPago}
+                bancoSugerido={destino.bancoNorm !== 'Sin banco' ? destino.bancoNorm : undefined}
               />
-              <datalist id="metodos-sugeridos">
-                {METODOS_SUGERIDOS.map((m) => (
-                  <option key={m} value={m} />
-                ))}
-              </datalist>
             </div>
 
             <div>
