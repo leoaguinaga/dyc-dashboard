@@ -1,15 +1,20 @@
 import Link from 'next/link'
-import { FileText, Plus, ShieldAlert } from 'lucide-react'
+import { CheckCircle2, FileText, Plus, ShieldAlert } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { CotizacionesView } from './CotizacionesView'
-import type { SolicitudCotizacion } from '@/types/api'
+import type { SolicitudCotizacion, User } from '@/types/api'
 
 export async function CotizacionesTable() {
-  const result = await serverFetch<SolicitudCotizacion[]>('/solicitudes-cotizacion').catch(
-    (e: Error) => e,
-  )
+  const [result, user] = await Promise.all([
+    serverFetch<SolicitudCotizacion[]>('/solicitudes-cotizacion?alcance=rol').catch(
+      (e: Error) => e,
+    ),
+    serverFetch<User>('/users/me').catch(() => null),
+  ])
+  // Gerencia solo ve lo que espera su aprobación de compra.
+  const soloAprobacionGerencia = user?.role === 'gerencia'
 
   if (result instanceof Error) {
     const is403 = result.message.includes('403')
@@ -23,6 +28,18 @@ export async function CotizacionesTable() {
           {is403
             ? 'No tienes acceso a este módulo.'
             : 'No se pudieron cargar las solicitudes. Intenta de nuevo.'}
+        </p>
+      </div>
+    )
+  }
+
+  if (result.length === 0 && soloAprobacionGerencia) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
+        <CheckCircle2 className="size-10 text-muted-foreground/40" />
+        <p className="mt-3 text-sm font-medium">No hay compras por aprobar</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Cuando una cotización espere tu aprobación, aparecerá aquí.
         </p>
       </div>
     )
@@ -44,5 +61,5 @@ export async function CotizacionesTable() {
     )
   }
 
-  return <CotizacionesView solicitudes={result} />
+  return <CotizacionesView solicitudes={result} soloAprobacionGerencia={soloAprobacionGerencia} />
 }

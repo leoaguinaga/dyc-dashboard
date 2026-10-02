@@ -69,7 +69,7 @@ export function RequerimientosHistorialTable({ initial }: Props) {
     setLoadingMore(true)
     try {
       const next = await api.get<Requerimiento[]>(
-        `/requerimientos/historial?limit=${PAGE_SIZE}&offset=${offset}`,
+        `/requerimientos/historial?limit=${PAGE_SIZE}&offset=${offset}&alcance=rol`,
       )
       setItems((prev) => [...prev, ...next])
       setOffset((prev) => prev + next.length)

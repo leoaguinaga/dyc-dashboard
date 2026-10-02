@@ -69,7 +69,7 @@ export function CotizacionesHistorialTable({ initial }: Props) {
     setLoadingMore(true)
     try {
       const next = await api.get<SolicitudCotizacion[]>(
-        `/solicitudes-cotizacion/historial?limit=${PAGE_SIZE}&offset=${offset}`,
+        `/solicitudes-cotizacion/historial?limit=${PAGE_SIZE}&offset=${offset}&alcance=rol`,
       )
       setItems((prev) => [...prev, ...next])
       setOffset((prev) => prev + next.length)

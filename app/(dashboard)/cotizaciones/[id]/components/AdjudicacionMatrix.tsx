@@ -5,11 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { Check, Download, ShoppingCart, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ordenBasePath } from '@/lib/ordenes'
-import type { SolicitudItem, Cotizacion, EstadoSolicitud, OrdenCompra, TipoOrdenCompra } from '@/types/api'
+import type { SolicitudItem, Cotizacion, EstadoSolicitud, OrdenCompra } from '@/types/api'
 
 interface Props {
   solicitudId: string
@@ -36,7 +34,6 @@ const IGV_RATE = 0.18
 export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, estado, ordenesExistentes }: Props) {
   const { data: session } = useSession()
   const router = useRouter()
-  const [tipo, setTipo] = useState<TipoOrdenCompra>('compra')
 
   const role = session?.user?.role
   const canAct = role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia'
@@ -104,7 +101,6 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
   // no deben impedir comprar los que sí fueron adjudicados.
   const puedeSeleccionar = canAct && (estado === 'cotizada' || estado === 'aprobada_gerencia')
   const puedeEditarAdjudicacion = puedeSeleccionar && !tieneAdjudicacion
-  const canGenerar = canAct && estado === 'aprobada_gerencia' && ordenesExistentes.length === 0 && tieneAdjudicacion
 
   // ── actions ──────────────────────────────────────────────────────────────
   async function adjudicar() {
@@ -120,22 +116,6 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Error al adjudicar')
     } finally {
-      setSubmitting(false)
-    }
-  }
-
-  async function generarOcs() {
-    setSubmitting(true)
-    setErr(null)
-    try {
-      const ordenes = await api.post<Pick<OrdenCompra, 'id'>[]>('/ordenes-compra', { solicitudId, tipo })
-      if (ordenes.length === 1) {
-        router.push(`${ordenBasePath(tipo)}/${ordenes[0].id}`)
-      } else {
-        router.refresh()
-      }
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Error al generar órdenes')
       setSubmitting(false)
     }
   }
@@ -157,24 +137,7 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
           <Download className="size-3.5" />
           Exportar
         </a>
-        {canGenerar ? (
-          <div className="flex items-center gap-2">
-            <Select value={tipo} onValueChange={(v) => setTipo(v as TipoOrdenCompra)}>
-              <SelectTrigger className="w-44">
-                {tipo === 'servicio' ? 'Orden de Servicio' : 'Orden de Compra'}
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="compra">Orden de Compra</SelectItem>
-                <SelectItem value="servicio">Orden de Servicio</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={generarOcs} disabled={submitting} size="sm" className="gap-2">
-              <ShoppingCart className="size-4" />
-              {submitting ? 'Generando…' : summary.size === 1 ? 'Generar orden' : `Generar ${summary.size} órdenes`}
-            </Button>
-            {err && <p className="text-xs text-destructive">{err}</p>}
-          </div>
-        ) : puedeSeleccionar ? (
+        {puedeSeleccionar ? (
           <div className="flex items-center gap-3">
             <p className="text-xs text-muted-foreground">
               {selectedCount > 0

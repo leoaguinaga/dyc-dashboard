@@ -15,14 +15,25 @@ const COLUMNS = (Object.keys(ESTADO_LABEL) as EstadoSolicitud[]).map((key) => ({
   colorClass: ESTADO_CLASS[key],
 }))
 
+// Gerencia solo trabaja la aprobación de compras: no necesita las demás
+// columnas del flujo.
+const COLUMNS_GERENCIA = COLUMNS.filter((column) => column.key === 'aprobada_solicitante')
+
 interface Props {
   solicitudes: SolicitudCotizacion[]
   emptyMessage?: string
   activeTipo?: TipoRequerimiento | null
   onTipoClick?: (tipo: TipoRequerimiento) => void
+  soloAprobacionGerencia?: boolean
 }
 
-export function CotizacionesKanban({ solicitudes, emptyMessage, activeTipo, onTipoClick }: Props) {
+export function CotizacionesKanban({
+  solicitudes,
+  emptyMessage,
+  activeTipo,
+  onTipoClick,
+  soloAprobacionGerencia = false,
+}: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const handleScrollLeft = () => {
@@ -44,7 +55,7 @@ export function CotizacionesKanban({ solicitudes, emptyMessage, activeTipo, onTi
       <KanbanBoard
         scrollRef={scrollRef}
         items={solicitudes}
-        columns={COLUMNS}
+        columns={soloAprobacionGerencia ? COLUMNS_GERENCIA : COLUMNS}
         getStatus={(s) => s.estado}
         getId={(s) => s.id}
         emptyMessage={emptyMessage ?? 'No hay solicitudes con los filtros seleccionados'}
