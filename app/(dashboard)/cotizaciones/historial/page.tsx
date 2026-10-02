@@ -6,7 +6,7 @@ import type { SolicitudCotizacion } from '@/types/api'
 
 export default async function CotizacionesHistorialPage() {
   const result = await serverFetch<SolicitudCotizacion[]>(
-    '/solicitudes-cotizacion/historial?limit=30',
+    '/solicitudes-cotizacion/historial?limit=30&alcance=rol',
   ).catch((e: Error) => e)
 
   return (

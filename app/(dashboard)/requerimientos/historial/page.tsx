@@ -5,7 +5,7 @@ import { RequerimientosHistorialTable } from './components/RequerimientosHistori
 import type { Requerimiento } from '@/types/api'
 
 export default async function RequerimientosHistorialPage() {
-  const result = await serverFetch<Requerimiento[]>('/requerimientos/historial?limit=30').catch(
+  const result = await serverFetch<Requerimiento[]>('/requerimientos/historial?limit=30&alcance=rol').catch(
     (e: Error) => e,
   )
 

@@ -9,6 +9,7 @@ import { AdjudicacionMatrix } from './components/AdjudicacionMatrix'
 import { SolicitudActions } from './components/SolicitudActions'
 import { MaterialesSolicitadosCard } from './components/MaterialesSolicitadosCard'
 import { OrdenesGeneradasCard } from './components/OrdenesGeneradasCard'
+import { GenerarOcButton } from './components/GenerarOcButton'
 import type { SolicitudCotizacion, Proveedor, EstadoSolicitud, OrdenCompra, User } from '@/types/api'
 
 interface Props {
@@ -67,6 +68,12 @@ export default async function SolicitudDetailPage({ params }: Props) {
   const mostrarMatrix = receivedCotizaciones.length > 0 &&
     ['cotizada', 'seleccionada', 'aprobada_solicitante', 'aprobada_gerencia', 'orden_generada'].includes(s.estado)
   const ordenesExistentes = (s.ordenes ?? []) as Pick<OrdenCompra, 'id' | 'numero'>[]
+  const tieneAdjudicacion = s.cotizaciones.some((cot) =>
+    cot.items.some((item) =>
+      item.seleccionado && item.solicitudItemId && s.items.some((itemSolicitud) => itemSolicitud.id === item.solicitudItemId),
+    ),
+  )
+  const puedeEmitirOrden = s.estado === 'aprobada_gerencia' && ordenesExistentes.length === 0 && tieneAdjudicacion
 
   return (
     <div className="space-y-6">
@@ -86,7 +93,8 @@ export default async function SolicitudDetailPage({ params }: Props) {
               {ESTADO_LABEL[s.estado]}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {puedeEmitirOrden && <GenerarOcButton solicitudId={s.id} />}
             <SolicitudActions solicitud={{ id: s.id, estado: s.estado }} />
           </div>
         </div>

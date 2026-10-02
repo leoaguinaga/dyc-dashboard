@@ -149,6 +149,12 @@ const KANBAN_COLUMNS: Array<{
     },
   ];
 
+// Gerencia solo trabaja la aprobación de compras: no necesita las demás
+// columnas del flujo.
+const KANBAN_COLUMNS_GERENCIA = KANBAN_COLUMNS.filter(
+  (column) => column.key === "aprobacion_gerencia",
+);
+
 type SolicitudKanban = SolicitudResumen & {
   columnaKanban: ColumnaKanbanSolicitud;
 };
@@ -308,11 +314,13 @@ function SolicitudesKanban({
   emptyMessage,
   activeTipo,
   onTipoClick,
+  soloAprobacionGerencia,
 }: {
   solicitudes: SolicitudResumen[];
   emptyMessage: string;
   activeTipo?: TipoRequerimiento | null;
   onTipoClick?: (tipo: TipoRequerimiento) => void;
+  soloAprobacionGerencia: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const operativas = solicitudes.filter(esSolicitudKanban);
@@ -336,7 +344,9 @@ function SolicitudesKanban({
       <KanbanBoard
         scrollRef={scrollRef}
         items={operativas}
-        columns={KANBAN_COLUMNS}
+        columns={
+          soloAprobacionGerencia ? KANBAN_COLUMNS_GERENCIA : KANBAN_COLUMNS
+        }
         getStatus={(solicitud) => solicitud.columnaKanban}
         getId={(solicitud) => solicitud.id}
         emptyMessage={kanbanEmptyMessage}
@@ -403,12 +413,14 @@ interface Props {
   solicitudes: SolicitudResumen[];
   puedeCrearPrecotizado: boolean;
   abrirNuevaSolicitud?: boolean;
+  soloAprobacionGerencia?: boolean;
 }
 
 export function SolicitudesView({
   solicitudes,
   puedeCrearPrecotizado,
   abrirNuevaSolicitud = false,
+  soloAprobacionGerencia = false,
 }: Props) {
   const [view, setView] = useState<View>("kanban");
   const [origen, setOrigen] = useState<OrigenFiltro>("todos");
@@ -460,8 +472,9 @@ export function SolicitudesView({
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Solicitudes</h1>
           <p className="text-sm text-muted-foreground">
-            Requerimientos para cotizar y compras precotizadas en una sola
-            vista.
+            {soloAprobacionGerencia
+              ? "Compras que esperan tu aprobación."
+              : "Requerimientos para cotizar y compras precotizadas en una sola vista."}
           </p>
         </div>
         <div className="flex flex-wrap gap-3 items-center">
@@ -571,6 +584,7 @@ export function SolicitudesView({
             onTipoClick={(t) =>
               setTipo((prev) => (prev === t ? "todos" : t))
             }
+            soloAprobacionGerencia={soloAprobacionGerencia}
           />
         </TabsPanel>
 

@@ -7,7 +7,7 @@ import { RequerimientosView } from './RequerimientosView'
 import type { Requerimiento } from '@/types/api'
 
 export async function RequerimientosTable() {
-  const result = await serverFetch<Requerimiento[]>('/requerimientos').catch((e: Error) => e)
+  const result = await serverFetch<Requerimiento[]>('/requerimientos?alcance=rol').catch((e: Error) => e)
 
   if (result instanceof Error) {
     return (

@@ -13,6 +13,7 @@ import { useSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 import { hoyLimaISO } from '@/lib/date/fecha-lima'
 import { UNIDAD_LABELS } from '@/lib/inventario'
+import { tipoEfectivo, tiposCreablesPorRol } from '@/lib/requerimientos'
 import type { Proyecto, Role, TipoRequerimiento, UnidadMedida } from '@/types/api'
 import { EspecificacionModal, type EspecificacionData } from './EspecificacionModal'
 
@@ -36,7 +37,7 @@ const DRAFT_KEY = 'requerimientos-nuevo-draft'
 interface Draft {
   nombre: string
   proyectoId: string
-  tipo: TipoRequerimiento
+  tipo: TipoRequerimiento | null
   urgente: boolean
   nota: string
   fechaEntregaRequerida: string
@@ -75,29 +76,13 @@ const TIPO_LABELS: Record<TipoRequerimiento, string> = {
   administrativo: 'Req. Administrativo',
 }
 
-// Which tipos each role is allowed to create (must match backend ROLE_TIPOS)
-const ROLE_TIPOS: Partial<Record<Role, TipoRequerimiento[]>> = {
-  supervisor: ['civil', 'electrico', 'seguridad', 'administrativo'],
-  supervisor_civil: ['civil', 'electrico', 'seguridad', 'administrativo'],
-  supervisor_electrico: ['civil', 'electrico', 'seguridad', 'administrativo'],
-  pdr: ['civil', 'electrico', 'seguridad', 'administrativo'],
-  ing_civil: ['civil'],
-  ing_electrico: ['electrico'],
-  jefe_sig: ['seguridad'],
-  logistica: ['civil', 'electrico', 'seguridad', 'administrativo'],
-  administrador: ['civil', 'electrico', 'seguridad', 'administrativo'],
-  admin_ti: ['civil', 'electrico', 'seguridad', 'administrativo'],
-}
-
 export function CreateRequerimientoForm({ proyectos }: Props) {
   const { data: session } = useSession()
   const role = (session?.user as { role?: Role } | undefined)?.role
-  const allowedTipos = (role ? ROLE_TIPOS[role] : undefined) ?? []
+  const allowedTipos = tiposCreablesPorRol(role)
 
-  // If role only allows one tipo, pre-select it
-  const [tipo, setTipo] = useState<TipoRequerimiento>(
-    allowedTipos.length === 1 ? allowedTipos[0] : 'civil',
-  )
+  const [tipoElegido, setTipoElegido] = useState<TipoRequerimiento | null>(null)
+  const tipo = tipoEfectivo(tipoElegido, allowedTipos)
   const router = useRouter()
   const [nombre, setNombre] = useState('')
   const [proyectoId, setProyectoId] = useState('')
@@ -117,7 +102,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
     if (draft) {
       if (draft.nombre) setNombre(draft.nombre)
       if (draft.proyectoId) setProyectoId(draft.proyectoId)
-      if (draft.tipo) setTipo(draft.tipo)
+      if (draft.tipo) setTipoElegido(draft.tipo)
       if (draft.urgente !== undefined) setUrgente(draft.urgente)
       if (draft.nota) setNota(draft.nota)
       if (draft.fechaEntregaRequerida) setFechaEntregaRequerida(draft.fechaEntregaRequerida)
@@ -167,7 +152,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
     clearDraft()
     setNombre('')
     setProyectoId('')
-    setTipo(allowedTipos.length === 1 ? allowedTipos[0] : 'civil')
+    setTipoElegido(null)
     setUrgente(false)
     setNota('')
     setFechaEntregaRequerida('')
@@ -300,10 +285,10 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
               {allowedTipos.length <= 1 ? (
                 // Role is fixed to one tipo — show as read-only badge
                 <div className="flex h-9 items-center rounded-lg border border-border bg-muted/50 px-3 text-sm text-muted-foreground">
-                  {TIPO_LABELS[tipo]}
+                  {tipo ? TIPO_LABELS[tipo] : '—'}
                 </div>
               ) : (
-                <Select value={tipo} onValueChange={(v) => setTipo(v as TipoRequerimiento)}>
+                <Select value={tipo} onValueChange={(v) => setTipoElegido(v as TipoRequerimiento)}>
                   <SelectTrigger className={cn('w-full', errors.tipo && 'border-destructive')}>
                     <SelectValue>
                       {(value: TipoRequerimiento | null) => (value ? TIPO_LABELS[value] : '')}

@@ -17,9 +17,10 @@ type View = 'kanban' | 'tabla'
 
 interface Props {
   solicitudes: SolicitudCotizacion[]
+  soloAprobacionGerencia?: boolean
 }
 
-export function CotizacionesView({ solicitudes }: Props) {
+export function CotizacionesView({ solicitudes, soloAprobacionGerencia = false }: Props) {
   const [view, setView] = useState<View>('kanban')
   const [search, setSearch] = useState('')
   const [estado, setEstado] = useState<EstadoFilter>('todos')
@@ -137,6 +138,7 @@ export function CotizacionesView({ solicitudes }: Props) {
           emptyMessage={emptyMessage}
           activeTipo={tipo === 'todos' ? null : tipo}
           onTipoClick={(t) => setTipo((prev) => (prev === t ? 'todos' : t))}
+          soloAprobacionGerencia={soloAprobacionGerencia}
         />
       </TabsPanel>
       <TabsPanel value="tabla">

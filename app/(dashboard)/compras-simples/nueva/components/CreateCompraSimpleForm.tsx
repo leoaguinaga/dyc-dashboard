@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 import { UNIDAD_OPTIONS } from '@/lib/inventario'
+import { tipoEfectivo, tiposCreablesPorRol } from '@/lib/requerimientos'
 import type { DestinoPago, MetodoPagoTrabajador, Proyecto, Proveedor, Trabajador, TipoRequerimiento, User } from '@/types/api'
 
 type MiTrabajador = Pick<Trabajador, 'id' | 'nombre' | 'banco' | 'numeroCuenta'>
@@ -67,7 +68,7 @@ const DRAFT_KEY = 'compras-simples-nueva-draft'
 
 interface Draft {
   nombre: string
-  tipo: TipoRequerimiento
+  tipo: TipoRequerimiento | null
   esRendicion: boolean
   proyectoId: string
   nota: string
@@ -97,19 +98,18 @@ const TIPO_LABELS: Record<TipoRequerimiento, string> = {
   administrativo: 'Administrativo',
 }
 
-const TIPOS_DISPONIBLES: TipoRequerimiento[] = ['civil', 'electrico', 'seguridad', 'administrativo']
-
 function fmtMoney(v: number) {
   return `S/ ${v.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
   const { data: session } = useSession()
-  const allowedTipos = TIPOS_DISPONIBLES
+  const allowedTipos = tiposCreablesPorRol(session?.user?.role)
 
   const router = useRouter()
   const [nombre, setNombre] = useState('')
-  const [tipo, setTipo] = useState<TipoRequerimiento>('civil')
+  const [tipoElegido, setTipoElegido] = useState<TipoRequerimiento | null>(null)
+  const tipo = tipoEfectivo(tipoElegido, allowedTipos)
   const [esRendicion, setEsRendicion] = useState(false)
   const [comprobante, setComprobante] = useState<File | null>(null)
   const [fotoProducto, setFotoProducto] = useState<File | null>(null)
@@ -130,7 +130,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
     const draft = loadDraft()
     if (draft) {
       setNombre(draft.nombre)
-      setTipo(draft.tipo)
+      setTipoElegido(draft.tipo)
       setEsRendicion(draft.esRendicion)
       setProyectoId(draft.proyectoId)
       setNota(draft.nota)
@@ -150,7 +150,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
   function discardDraft() {
     clearDraft()
     setNombre('')
-    setTipo('civil')
+    setTipoElegido(null)
     setEsRendicion(false)
     setProyectoId('')
     setNota('')
@@ -199,6 +199,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
     const next: Record<string, string> = {}
     if (!nombre.trim()) next.nombre = 'Ingresa un nombre'
     if (!proyectoId) next.proyectoId = 'Selecciona un proyecto'
+    if (!tipo) next.tipo = 'Tu rol no puede crear este tipo de compra'
     grupos.forEach((g, gi) => {
       if (!g.sinProveedor && !g.proveedorId) next[`g${gi}_proveedor`] = 'Selecciona un proveedor o marca "sin proveedor registrado"'
       if (g.sinProveedor && !g.proveedorNombreLibre.trim()) next[`g${gi}_proveedor`] = 'Ingresa la razón social'
@@ -360,18 +361,25 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
             <label className={labelCn}>
               Tipo <span className="text-destructive">*</span>
             </label>
-            <Select value={tipo} onValueChange={(v) => setTipo(v as TipoRequerimiento)}>
-              <SelectTrigger className="w-full">
-                <SelectValue>
-                  {(value: TipoRequerimiento | null) => (value ? TIPO_LABELS[value] : '')}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {allowedTipos.map((t) => (
-                  <SelectItem key={t} value={t}>{TIPO_LABELS[t]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {allowedTipos.length <= 1 ? (
+              // El rol solo puede crear un tipo — se muestra fijo
+              <div className="flex h-9 items-center rounded-lg border border-border bg-muted/50 px-3 text-sm text-muted-foreground">
+                {tipo ? TIPO_LABELS[tipo] : '—'}
+              </div>
+            ) : (
+              <Select value={tipo} onValueChange={(v) => setTipoElegido(v as TipoRequerimiento)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue>
+                    {(value: TipoRequerimiento | null) => (value ? TIPO_LABELS[value] : '')}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {allowedTipos.map((t) => (
+                    <SelectItem key={t} value={t}>{TIPO_LABELS[t]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div>

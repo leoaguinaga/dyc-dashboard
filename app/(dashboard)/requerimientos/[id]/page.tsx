@@ -222,6 +222,26 @@ export default async function RequerimientoDetailPage({ params }: Props) {
             </div>
           )}
 
+          {/* El solicitante conserva el seguimiento de la compra, pero el acceso a la OC
+              queda reservado a los mismos roles que pueden abrir la cotización. */}
+          {puedeVerSolicitud && (r.solicitudes ?? []).some((s) => s.ordenes.length > 0) && (
+            <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-3">
+              <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Órdenes de compra</h2>
+              <div className="space-y-2">
+                {(r.solicitudes ?? []).flatMap((s) => s.ordenes).map((oc) => (
+                  <Link
+                    key={oc.id}
+                    href={`/ordenes-compra/${oc.id}`}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-white px-3 py-2 text-sm transition-colors duration-[120ms] hover:bg-muted/40"
+                  >
+                    <span className="font-mono text-xs font-medium">{oc.numero}</span>
+                    <span className="text-xs text-muted-foreground capitalize">{oc.estado.replaceAll('_', ' ')}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Historial: colapsado por defecto, es lo menos urgente */}
           {r.historial && r.historial.length > 0 && (
             <details className="group rounded-xl border border-border bg-muted/20 p-5">

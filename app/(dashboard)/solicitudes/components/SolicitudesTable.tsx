@@ -1,4 +1,4 @@
-import { ClipboardList } from "lucide-react";
+import { CheckCircle2, ClipboardList } from "lucide-react";
 import { serverFetch } from "@/lib/api/server";
 import type { SolicitudesResponse, User } from "@/types/api";
 import { NuevaSolicitudSheet } from "./NuevaSolicitudSheet";
@@ -11,11 +11,13 @@ interface Props {
 export async function SolicitudesTable({ abrirNuevaSolicitud = false }: Props) {
   const [result, user] = await Promise.all([
     serverFetch<SolicitudesResponse>(
-      "/solicitudes?vista=activas&limit=100",
+      "/solicitudes?vista=activas&limit=100&alcance=rol",
     ).catch((error: Error) => error),
     serverFetch<User>("/users/me").catch(() => null),
   ]);
   const puedeCrearPrecotizado = !!user?.role;
+  // Gerencia solo ve lo que espera su aprobación de compra.
+  const soloAprobacionGerencia = user?.role === "gerencia";
 
   if (result instanceof Error) {
     return (
@@ -27,6 +29,18 @@ export async function SolicitudesTable({ abrirNuevaSolicitud = false }: Props) {
         <p className="mt-1 max-w-md text-sm text-muted-foreground">
           Vuelve a intentarlo. Tus requerimientos y compras siguen disponibles
           en sus módulos actuales.
+        </p>
+      </div>
+    );
+  }
+
+  if (result.data.length === 0 && soloAprobacionGerencia) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
+        <CheckCircle2 className="size-10 text-muted-foreground/40" />
+        <p className="mt-3 text-sm font-medium">No hay compras por aprobar</p>
+        <p className="mt-1 max-w-md text-sm text-muted-foreground">
+          Cuando una cotización espere tu aprobación, aparecerá aquí.
         </p>
       </div>
     );
@@ -56,6 +70,7 @@ export async function SolicitudesTable({ abrirNuevaSolicitud = false }: Props) {
       solicitudes={result.data}
       puedeCrearPrecotizado={puedeCrearPrecotizado}
       abrirNuevaSolicitud={abrirNuevaSolicitud}
+      soloAprobacionGerencia={soloAprobacionGerencia}
     />
   );
 }

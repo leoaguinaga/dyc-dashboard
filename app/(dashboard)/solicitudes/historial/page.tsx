@@ -8,7 +8,7 @@ interface Props {
 
 function cargar(origen: "macro" | "precotizado") {
   return serverFetch<SolicitudesResponse>(
-    `/solicitudes?vista=historial&origen=${origen}&limit=100`,
+    `/solicitudes?vista=historial&origen=${origen}&limit=100&alcance=rol`,
   )
     .then((res): SolicitudResumen[] => res.data)
     .catch(() => null);

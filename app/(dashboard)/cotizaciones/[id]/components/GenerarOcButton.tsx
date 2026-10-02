@@ -28,8 +28,12 @@ export function GenerarOcButton({ solicitudId }: Props) {
     setLoading(true)
     setError(null)
     try {
-      const oc = await api.post<{ id: string }>('/ordenes-compra', { solicitudId, tipo })
-      router.push(`${ordenBasePath(tipo)}/${oc.id}`)
+      const ordenes = await api.post<{ id: string }[]>('/ordenes-compra', { solicitudId, tipo })
+      if (ordenes.length === 1) {
+        router.push(`${ordenBasePath(tipo)}/${ordenes[0].id}`)
+      } else {
+        router.refresh()
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al generar la orden')
       setLoading(false)
@@ -50,7 +54,7 @@ export function GenerarOcButton({ solicitudId }: Props) {
         </Select>
         <Button onClick={generar} disabled={loading} className="gap-2">
           <ShoppingCart className="size-4" />
-          {loading ? 'Generando…' : 'Generar orden'}
+          {loading ? 'Emitiendo…' : 'Emitir OC'}
         </Button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
