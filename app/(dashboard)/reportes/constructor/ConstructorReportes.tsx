@@ -11,6 +11,7 @@ import { AgruparYMetricasForm, type MetricaState } from './AgruparYMetricasForm'
 import { ResultadosTable } from './ResultadosTable'
 import { ResultadosChart } from './ResultadosChart'
 import { ExportButton } from './ExportButton'
+import { ReportesGuardadosBar } from './ReportesGuardadosBar'
 
 export function ConstructorReportes() {
   const [entidades, setEntidades] = useState<EntidadesResponse['entidades']>({})
@@ -59,8 +60,16 @@ export function ConstructorReportes() {
     }
   }
 
-  async function ejecutar() {
-    const query = construirQuery()
+  function cargarGuardado(query: QueryReporteDinamico) {
+    setEntidad(query.entidad)
+    setFiltros((query.filtros ?? []).map((f) => ({ ...f, id: crypto.randomUUID() })))
+    setAgruparPor(query.agruparPor ?? [])
+    setMetricas((query.metricas ?? []).map((m) => ({ ...m, id: crypto.randomUUID() })))
+    setResultado(undefined)
+    void ejecutar(query)
+  }
+
+  async function ejecutar(query = construirQuery()) {
     if (!query) return
     setEjecutando(true)
     setError(undefined)
@@ -81,6 +90,8 @@ export function ConstructorReportes() {
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-border bg-card p-5 space-y-5">
+        <ReportesGuardadosBar query={construirQuery()} onCargar={cargarGuardado} />
+
         <EntidadPicker entidades={entidades} value={entidad} onValueChange={cambiarEntidad} />
 
         {meta && (
@@ -97,7 +108,7 @@ export function ConstructorReportes() {
         )}
 
         <div className="flex items-center gap-2">
-          <Button type="button" onClick={ejecutar} disabled={!entidad || ejecutando}>
+          <Button type="button" onClick={() => void ejecutar()} disabled={!entidad || ejecutando}>
             {ejecutando ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />}
             Ejecutar reporte
           </Button>

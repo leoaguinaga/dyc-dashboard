@@ -105,3 +105,14 @@ export const ENDPOINT_POR_ENTIDAD_RELACION: Record<string, { endpoint: string; l
   solicitudCotizacion: { endpoint: '/solicitudes-cotizacion', labelField: 'codigo' },
   ordenCompra: { endpoint: '/ordenes-compra', labelField: 'numero' },
 }
+
+export interface ReporteGuardado {
+  id: string
+  nombre: string
+  descripcion: string | null
+  query: QueryReporteDinamico
+  compartido: boolean
+  creadoPorId: string
+  creadoPor: { id: string; name: string }
+  actualizadoEn: string
+}
