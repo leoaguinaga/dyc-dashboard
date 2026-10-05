@@ -27,6 +27,7 @@ type FormState = {
   horaFin: string
   toleranciaMinutos: string
   toleranciaSalidaMinutos: string
+  topeCierreHoras: string
 }
 
 const FORM_VACIO: FormState = {
@@ -35,6 +36,7 @@ const FORM_VACIO: FormState = {
   horaFin: '',
   toleranciaMinutos: '10',
   toleranciaSalidaMinutos: '60',
+  topeCierreHoras: '4',
 }
 
 function aFormState(c: TurnoConfig): FormState {
@@ -44,6 +46,7 @@ function aFormState(c: TurnoConfig): FormState {
     horaFin: c.horaFin,
     toleranciaMinutos: String(c.toleranciaMinutos),
     toleranciaSalidaMinutos: String(c.toleranciaSalidaMinutos),
+    topeCierreHoras: String(c.topeCierreHoras),
   }
 }
 
@@ -85,6 +88,11 @@ export function TurnoConfigListEditor({ proyectoId, initial }: Props) {
       setError('Hora de inicio y fin son requeridas')
       return
     }
+    const tope = Number(form.topeCierreHoras)
+    if (!Number.isInteger(tope) || tope < 1 || tope > 24) {
+      setError('El cierre automático debe estar entre 1 y 24 horas')
+      return
+    }
 
     setGuardando(true)
     setError(null)
@@ -94,6 +102,7 @@ export function TurnoConfigListEditor({ proyectoId, initial }: Props) {
       horaFin: form.horaFin,
       toleranciaMinutos: Number(form.toleranciaMinutos) || 0,
       toleranciaSalidaMinutos: Number(form.toleranciaSalidaMinutos) || 0,
+      topeCierreHoras: tope,
     }
 
     try {
@@ -153,7 +162,7 @@ export function TurnoConfigListEditor({ proyectoId, initial }: Props) {
                 </p>
                 <p className="text-xs text-muted-foreground tabular-nums">
                   {c.horaInicio}–{c.horaFin}
-                  {c.cruzaMedianoche && ' (cruza medianoche)'} · tolerancia entrada {c.toleranciaMinutos}min · tolerancia salida {c.toleranciaSalidaMinutos}min
+                  {c.cruzaMedianoche && ' (cruza medianoche)'} · tolerancia entrada {c.toleranciaMinutos}min · tolerancia salida {c.toleranciaSalidaMinutos}min · cierre automático {c.topeCierreHoras}h después del fin
                 </p>
               </div>
               <div className="flex items-center gap-1.5">
@@ -221,6 +230,20 @@ export function TurnoConfigListEditor({ proyectoId, initial }: Props) {
                   onChange={(e) => set('toleranciaSalidaMinutos', e.target.value)}
                 />
               </div>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium">Cierre automático (horas después del fin)</label>
+              <Input
+                type="number"
+                min={1}
+                max={24}
+                step={1}
+                value={form.topeCierreHoras}
+                onChange={(e) => set('topeCierreHoras', e.target.value)}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Si nadie cierra la jornada, el sistema la cierra pasado este plazo y la marca para revisión.
+              </p>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>

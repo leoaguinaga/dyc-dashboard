@@ -103,7 +103,7 @@ export function AsistenciaHomeView({ proyectos }: Props) {
         {verHistorial && pendientes.sinCerrar > 0 && pendientes.masAntigua && (
           <AvisoPendiente
             texto={pendientes.sinCerrar === 1 ? '1 jornada de un día anterior sigue abierta.' : `${pendientes.sinCerrar} jornadas de días anteriores siguen abiertas.`}
-            detalle={`La más antigua es del ${formatFecha(pendientes.masAntigua).slice(0, 5)}, hace ${diasAtras(pendientes.masAntigua, hoyLimaISO())} días. El sistema las cierra solo al pasar 4 horas de la hora fin del horario.`}
+            detalle={`La más antigua es del ${formatFecha(pendientes.masAntigua).slice(0, 5)}, hace ${diasAtras(pendientes.masAntigua, hoyLimaISO())} días. El sistema las cierra solo cuando vence el plazo de cierre automático de su horario.`}
             accion="Ver jornadas sin cerrar"
             onClick={() => verHistorialFiltrado('sin_cerrar')}
           />

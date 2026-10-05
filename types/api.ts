@@ -412,6 +412,7 @@ export interface TurnoConfig {
   cruzaMedianoche: boolean;
   toleranciaMinutos: number;
   toleranciaSalidaMinutos: number;
+  topeCierreHoras: number;
   activo: boolean;
 }
 
@@ -570,6 +571,7 @@ export interface JornadaDetalle {
   proyectoNombre: string;
   proyectoCodigo?: string;
   turnoNombre: string;
+  topeCierreHoras: number;
   abiertoPor?: Pick<User, "id" | "name">;
   cerradoPor?: Pick<User, "id" | "name">;
   corregidoPor?: Pick<User, "id" | "name">;
