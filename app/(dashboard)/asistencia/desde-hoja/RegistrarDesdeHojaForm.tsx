@@ -287,10 +287,21 @@ export function RegistrarDesdeHojaForm({ obras }: Props) {
             </div>
             <div className="space-y-1.5">
               <label htmlFor="hoja-foto" className="text-sm font-medium">Foto de la hoja <span className="font-normal text-muted-foreground">(opcional)</span></label>
+              <p className="text-xs text-muted-foreground">Subir archivo</p>
               <input
                 id="hoja-foto"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => setFoto(e.target.files?.[0] ?? null)}
+                className="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-white file:px-2.5 file:py-1 file:text-sm file:font-medium"
+              />
+              {/* capture abre la cámara en celulares/tablets; en escritorio abre el selector de archivos */}
+              <p className="pt-1 text-xs text-muted-foreground">O tomar la foto con la cámara</p>
+              <input
+                id="hoja-foto-camara"
+                type="file"
+                accept="image/*"
+                capture="environment"
                 onChange={(e) => setFoto(e.target.files?.[0] ?? null)}
                 className="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-white file:px-2.5 file:py-1 file:text-sm file:font-medium"
               />

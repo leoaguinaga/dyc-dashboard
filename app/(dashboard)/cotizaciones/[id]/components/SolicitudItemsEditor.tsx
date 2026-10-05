@@ -19,6 +19,7 @@ const ROLES_GERENCIA: Role[] = ['gerencia', 'administrador', 'admin_ti']
 const ROLES_EDITORES: Role[] = ['logistica', ...ROLES_GERENCIA]
 
 interface EditRow {
+  id?: string
   descripcion: string
   unidad: string
   cantidadTotal: string
@@ -27,6 +28,7 @@ interface EditRow {
 
 function toRows(items: SolicitudItem[]): EditRow[] {
   return items.map((i) => ({
+    id: i.id,
     descripcion: i.descripcion,
     unidad: i.unidad,
     cantidadTotal: i.cantidadTotal,
@@ -84,6 +86,7 @@ export function SolicitudItemsEditor({ solicitudId, estado, items, nota, role }:
       await api.patch(`/solicitudes-cotizacion/${solicitudId}`, {
         nota: notaEdit.trim() || undefined,
         items: rows.map((r) => ({
+          id: r.id,
           descripcion: r.descripcion.trim(),
           unidad: r.unidad,
           cantidadTotal: Number(r.cantidadTotal),
