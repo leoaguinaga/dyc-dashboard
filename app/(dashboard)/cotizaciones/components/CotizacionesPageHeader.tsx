@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Clock, History, Plus } from 'lucide-react'
 import Link from 'next/link'
+import { SiPuedeEditar } from '@/lib/accesos'
 
 export default function CotizacionesPageHeader() {
     return (
@@ -18,12 +19,14 @@ export default function CotizacionesPageHeader() {
                         Historial
                     </Button>
                 </Link>
-                <Link href="/cotizaciones/nueva">
-                    <Button>
-                        <Plus className="size-4" />
-                        Nueva solicitud
-                    </Button>
-                </Link>
+                <SiPuedeEditar modulo="cotizaciones">
+                  <Link href="/cotizaciones/nueva">
+                      <Button>
+                          <Plus className="size-4" />
+                          Nueva solicitud
+                      </Button>
+                  </Link>
+                </SiPuedeEditar>
             </div>
         </div>
     )

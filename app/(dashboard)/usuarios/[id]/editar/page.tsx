@@ -4,7 +4,8 @@ import { ArrowLeft } from 'lucide-react'
 import { serverFetch } from '@/lib/api/server'
 import { EditUsuarioForm } from './components/EditUsuarioForm'
 import { ImpersonateButtonHeader } from './components/ImpersonateButtonHeader'
-import type { User } from '@/types/api'
+import { AccesosUsuarioSection } from './components/AccesosUsuarioSection'
+import type { AccesosUsuario, User } from '@/types/api'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -12,7 +13,11 @@ interface Props {
 
 export default async function EditarUsuarioPage({ params }: Props) {
   const { id } = await params
-  const result = await serverFetch<User>(`/users/${id}`).catch((e: Error) => e)
+  const [result, accesos, me] = await Promise.all([
+    serverFetch<User>(`/users/${id}`).catch((e: Error) => e),
+    serverFetch<AccesosUsuario>(`/rbac/modulos/usuarios/${id}`).catch(() => null),
+    serverFetch<User>('/users/me').catch(() => null),
+  ])
 
   if (result instanceof Error) {
     if (result.message.includes('404')) notFound()
@@ -43,6 +48,18 @@ export default async function EditarUsuarioPage({ params }: Props) {
       <div className="max-w-lg rounded-xl border border-border bg-white p-4 sm:p-6">
         <EditUsuarioForm usuario={result} />
       </div>
+
+      {accesos && (
+        <section className="max-w-lg space-y-3 rounded-xl border border-border bg-white p-4 sm:p-6">
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold">Acceso por módulo</h2>
+            <p className="text-sm text-muted-foreground">
+              Excepciones solo para esta persona. Ganan sobre lo que tenga su rol.
+            </p>
+          </div>
+          <AccesosUsuarioSection initial={accesos} editable={me?.role === 'admin_ti'} />
+        </section>
+      )}
     </div>
   )
 }

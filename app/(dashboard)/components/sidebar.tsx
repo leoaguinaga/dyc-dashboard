@@ -7,6 +7,7 @@ import { useSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 import { Menu } from 'lucide-react'
 import { getVisibleGroups } from './routes-config'
+import { useExcepcionesModulo } from '@/lib/accesos'
 
 import UserButton from './user-button'
 import {
@@ -19,7 +20,8 @@ function SidebarLinks({ onLinkClick }: { onLinkClick?: () => void }) {
   const { data: session } = useSession()
   const pathname = usePathname()
   const role = session?.user?.role
-  const groups = getVisibleGroups(role)
+  const excepciones = useExcepcionesModulo()
+  const groups = getVisibleGroups(role, excepciones)
 
   return (
     <>

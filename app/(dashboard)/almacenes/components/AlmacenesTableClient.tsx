@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import type { Almacen } from '@/types/api'
+import { SiPuedeEditar } from '@/lib/accesos'
 
 const TIPO_LABELS = { fijo: 'Fijo', temporal: 'Temporal' } as const
 const TIPO_COLORS = {
@@ -88,12 +89,14 @@ export function AlmacenesTableClient({ initialAlmacenes }: AlmacenesTableClientP
             Ver catálogo de ítems
           </Link>
         </Button>
-        <Button>
-          <Link href="/almacenes/nuevo" className='flex gap-x-1'>
-            <Plus className="size-4 mt-0.5" />
-            Crear almacén
-          </Link>
-        </Button>
+        <SiPuedeEditar modulo="almacenes">
+          <Button>
+            <Link href="/almacenes/nuevo" className='flex gap-x-1'>
+              <Plus className="size-4 mt-0.5" />
+              Crear almacén
+            </Link>
+          </Button>
+        </SiPuedeEditar>
       </div>
 
       {/* Table Container */}

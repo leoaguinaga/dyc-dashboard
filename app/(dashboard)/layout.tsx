@@ -3,8 +3,10 @@ import { redirect } from 'next/navigation'
 import { SidebarNav } from './components/sidebar'
 import { Navbar } from './components/navbar'
 import { ImpersonationBanner, type ImpersonationInfo } from './components/ImpersonationBanner'
+import { ModuloGate } from './components/ModuloGate'
 import { serverFetch } from '@/lib/api/server'
-import type { User } from '@/types/api'
+import { AccesosProvider } from '@/lib/accesos'
+import type { MisModulos, User } from '@/types/api'
 
 export default async function DashboardLayout({
   children,
@@ -14,6 +16,9 @@ export default async function DashboardLayout({
   const user = await serverFetch<User>('/users/me').catch(() => null)
 
   if (!user) redirect('/login')
+
+  // Si falla, el menú cae en el filtro por rol de siempre.
+  const excepciones = await serverFetch<MisModulos>('/rbac/modulos/mios').catch(() => ({}))
 
   const cookieStore = await cookies()
   const impersonationCookie =
@@ -31,15 +36,19 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-dvh min-w-0 overflow-hidden">
-      <SidebarNav />
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Navbar />
-        {impersonationInfo && <ImpersonationBanner info={impersonationInfo} />}
-        <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain">
-          <div className="mx-auto w-full min-w-0 p-3 sm:p-5">{children}</div>
-        </main>
+    <AccesosProvider excepciones={excepciones}>
+      <div className="flex h-dvh min-w-0 overflow-hidden">
+        <SidebarNav />
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <Navbar />
+          {impersonationInfo && <ImpersonationBanner info={impersonationInfo} />}
+          <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain">
+            <div className="mx-auto w-full min-w-0 p-3 sm:p-5">
+              <ModuloGate>{children}</ModuloGate>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </AccesosProvider>
   )
 }

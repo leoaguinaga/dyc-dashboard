@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SiPuedeEditar } from '@/lib/accesos'
 
 export function ProveedoresPageHeader() {
   return (
@@ -11,12 +12,14 @@ export function ProveedoresPageHeader() {
           Directorio y desempeño de compras.
         </p>
       </div>
-      <Link href="/proveedores/nuevo">
-        <Button>
-          <Plus className="size-4" />
-          Nuevo proveedor
-        </Button>
-      </Link>
+      <SiPuedeEditar modulo="proveedores">
+        <Link href="/proveedores/nuevo">
+          <Button>
+            <Plus className="size-4" />
+            Nuevo proveedor
+          </Button>
+        </Link>
+      </SiPuedeEditar>
     </div>
   )
 }

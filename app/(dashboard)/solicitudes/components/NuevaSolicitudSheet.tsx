@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight, ClipboardList, Plus, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePuedeEditarModulo } from "@/lib/accesos";
 import {
   Sheet,
   SheetContent,
@@ -30,6 +31,7 @@ export function NuevaSolicitudSheet({
 }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const puedeEditar = usePuedeEditarModulo("solicitudes");
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -37,6 +39,8 @@ export function NuevaSolicitudSheet({
       router.replace("/solicitudes", { scroll: false });
     }
   }
+
+  if (!puedeEditar) return null;
 
   return (
     <Sheet open={open || defaultOpen} onOpenChange={handleOpenChange}>

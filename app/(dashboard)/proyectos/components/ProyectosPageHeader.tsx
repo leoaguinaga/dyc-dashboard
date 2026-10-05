@@ -1,6 +1,7 @@
 "use client"
 
 import { useSession } from '@/lib/auth/session'
+import { useNivelModulo } from '@/lib/accesos'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { History, Plus } from 'lucide-react'
@@ -9,7 +10,10 @@ const CON_ACCESO_CREACION = ['administrador', 'admin_ti', 'gerencia']
 
 export function ProyectosPageHeader() {
   const { data: session } = useSession()
-  const puedeCrear = !!session?.user?.role && CON_ACCESO_CREACION.includes(session.user.role)
+  const excepcion = useNivelModulo('proyectos')
+  const puedeCrear = excepcion
+    ? excepcion === 'editar'
+    : !!session?.user?.role && CON_ACCESO_CREACION.includes(session.user.role)
 
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">

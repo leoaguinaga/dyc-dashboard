@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SiPuedeEditar } from '@/lib/accesos'
 
 export function ClientesPageHeader() {
   return (
@@ -12,12 +13,14 @@ export function ClientesPageHeader() {
         </p>
       </div>
       <div className="flex flex-wrap gap-3 items-center">
-        <Link href="/clientes/nuevo">
-          <Button>
-            <Plus className="size-4" />
-            Registrar cliente
-          </Button>
-        </Link>
+        <SiPuedeEditar modulo="clientes">
+          <Link href="/clientes/nuevo">
+            <Button>
+              <Plus className="size-4" />
+              Registrar cliente
+            </Button>
+          </Link>
+        </SiPuedeEditar>
       </div>
     </div>
   )

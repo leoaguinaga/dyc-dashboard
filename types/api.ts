@@ -1478,3 +1478,55 @@ export interface Notificacion {
   leidaEn?: string | null;
   creadoEn: string;
 }
+
+// ── Acceso por módulo (RBAC) ────────────────────────────────────────────────
+
+export type ModuloKey =
+  | "proyectos"
+  | "asistencia"
+  | "solicitudes"
+  | "cotizaciones"
+  | "ordenes"
+  | "almacenes"
+  | "proveedores"
+  | "pagos"
+  | "cobros"
+  | "planilla"
+  | "clientes"
+  | "trabajadores"
+  | "reportes"
+  | "usuarios";
+
+export type NivelAcceso = "ninguno" | "ver" | "editar";
+
+/** Excepciones vigentes del usuario actual; null = manda su rol. */
+export type MisModulos = Record<ModuloKey, NivelAcceso | null>;
+
+export interface AccesoPorDefecto {
+  nivel: NivelAcceso;
+  parcial: boolean;
+}
+
+export interface MatrizAccesos {
+  modulos: { key: ModuloKey; label: string }[];
+  roles: Role[];
+  celdas: {
+    modulo: ModuloKey;
+    role: Role;
+    porDefecto: AccesoPorDefecto;
+    excepcion: NivelAcceso | null;
+  }[];
+}
+
+export interface AccesosUsuario {
+  userId: string;
+  role: Role;
+  accesoTotal: boolean;
+  modulos: {
+    modulo: ModuloKey;
+    label: string;
+    segunRol: AccesoPorDefecto;
+    excepcionRol: NivelAcceso | null;
+    excepcion: NivelAcceso | null;
+  }[];
+}
