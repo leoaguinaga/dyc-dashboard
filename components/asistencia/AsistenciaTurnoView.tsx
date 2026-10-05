@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CameraIcon, CheckCircle2Icon, ClockIcon, ImageOffIcon, LogOutIcon, RotateCcwIcon } from 'lucide-react'
+import { CameraIcon, CheckCircle2Icon, ClockIcon, ImageIcon, ImageOffIcon, LogOutIcon, RotateCcwIcon } from 'lucide-react'
 import { api, API_ORIGIN } from '@/lib/api/client'
 import { useSession } from '@/lib/auth/session'
 import { Button } from '@/components/ui/button'
@@ -290,6 +290,7 @@ function AbrirTurnoCard({ proyectoId }: { proyectoId: string }) {
 function EvidenciaYPresenciaGate({ proyectoId, turno }: { proyectoId: string; turno: TurnoDetalle }) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const camaraInputRef = useRef<HTMLInputElement>(null)
   const [modo, setModo] = useState<'subir' | 'omitir'>('subir')
   const [file, setFile] = useState<File | null>(null)
   const [motivo, setMotivo] = useState('')
@@ -367,12 +368,21 @@ function EvidenciaYPresenciaGate({ proyectoId, turno }: { proyectoId: string; tu
         </div>
 
         {modo === 'subir' ? (
-          <div>
+          <div className="space-y-2">
+            {/* capture abre la cámara en celulares/tablets; en escritorio se ignora y abre el selector de archivos */}
+            <input ref={camaraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
             <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFileChange} />
-            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full gap-1.5">
-              <CameraIcon className="size-4" />
-              {file ? file.name : 'Seleccionar foto grupal'}
-            </Button>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => camaraInputRef.current?.click()} className="flex-1 gap-1.5">
+                <CameraIcon className="size-4" />
+                Tomar foto
+              </Button>
+              <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="flex-1 gap-1.5">
+                <ImageIcon className="size-4" />
+                Subir desde galería
+              </Button>
+            </div>
+            {file && <p className="truncate text-xs text-muted-foreground">Foto seleccionada: {file.name}</p>}
           </div>
         ) : (
           <div className="space-y-2">

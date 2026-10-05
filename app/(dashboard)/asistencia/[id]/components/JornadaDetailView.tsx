@@ -500,7 +500,22 @@ export function JornadaDetailView({ turnoId }: Props) {
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
                   <label className={`${buttonVariants({ variant: 'outline', size: 'sm' })} cursor-pointer ${subiendoFoto ? 'pointer-events-none opacity-50' : ''} focus-within:ring-3 focus-within:ring-ring/50`}>
-                    {subiendoFoto ? 'Subiendo...' : jornada.fotoUrl ? 'Reemplazar foto' : 'Adjuntar foto'}
+                    {'Tomar foto'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="sr-only"
+                      disabled={subiendoFoto}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        e.target.value = ''
+                        if (file) void subirFoto(file)
+                      }}
+                    />
+                  </label>
+                  <label className={`${buttonVariants({ variant: 'outline', size: 'sm' })} cursor-pointer ${subiendoFoto ? 'pointer-events-none opacity-50' : ''} focus-within:ring-3 focus-within:ring-ring/50`}>
+                    {subiendoFoto ? 'Subiendo...' : jornada.fotoUrl ? 'Reemplazar con archivo' : 'Subir archivo'}
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
