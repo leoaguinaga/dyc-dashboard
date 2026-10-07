@@ -24,12 +24,13 @@ const TRANSICION: Partial<Record<EstadoSolicitud, { label: string; endpoint: str
     label: 'Aprobar (solicitante)',
     endpoint: 'aprobar-solicitante',
     // Debe coincidir con @Roles del endpoint POST .../aprobar-solicitante.
-    // supervisor/supervisor_civil/supervisor_electrico/pdr solo pueden aprobar
+    // los roles solicitantes (supervisores, pdr, ingenieros, jefe SIG, coord. SSOMA) solo pueden aprobar
     // su propio requerimiento (verificado en el backend); logística/gerencia/
     // admin pueden aprobar cualquiera, para no bloquear el flujo por premura.
     rolesPermitidos: [
       'administrador', 'admin_ti', 'logistica', 'gerencia',
       'supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr',
+      'ing_civil', 'ing_electrico', 'jefe_sig', 'coordinador_ssoma',
     ],
   },
   aprobada_solicitante: {
