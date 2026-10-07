@@ -275,7 +275,7 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
           />
 
           {/* Plan de pagos */}
-          <PagoPlanCard oc={oc} pagos={pagos} editable={oc.estado === 'borrador' || oc.estado === 'emitida'} />
+          <PagoPlanCard oc={oc} pagos={pagos} editable={oc.estado !== 'cancelada'} />
         </div>
       </div>
     </div>
