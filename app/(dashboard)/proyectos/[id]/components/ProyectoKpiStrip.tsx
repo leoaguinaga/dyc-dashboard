@@ -3,6 +3,9 @@ import { formatCurrency, formatPercent } from '@/lib/utils'
 import type { Proyecto, OrdenCompra, Pago } from '@/types/api'
 import { ocTotalConIgv } from '@/lib/ordenes'
 
+// Oculta temporalmente el KPI de hitos
+const MOSTRAR_HITOS = false
+
 interface Props {
   proyecto: Proyecto
   ordenes: OrdenCompra[]
@@ -34,7 +37,8 @@ export function ProyectoKpiStrip({ proyecto, ordenes, pagos }: Props) {
   const pagosVencidos = pagos.filter((p) => p.estadoEfectivo === 'vencido').length
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className={`grid grid-cols-2 gap-3 ${MOSTRAR_HITOS ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
+      {MOSTRAR_HITOS && (
       <KpiCard
         label="Avance de hitos"
         value={totalHitos > 0 ? formatPercent(pctHitos) : '0%'}
@@ -51,6 +55,7 @@ export function ProyectoKpiStrip({ proyecto, ordenes, pagos }: Props) {
               : undefined
         }
       />
+      )}
 
       <KpiCard
         label="Personal asignado"

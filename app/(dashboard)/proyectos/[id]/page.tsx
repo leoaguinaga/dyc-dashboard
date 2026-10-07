@@ -31,6 +31,9 @@ import {
 } from './components/ProyectoTabSkeletons'
 import type { Proyecto, Role, Trabajador, User, OrdenCompra, Pago } from '@/types/api'
 
+// Oculta temporalmente la pestaña de hitos (Planificación)
+const MOSTRAR_HITOS = false
+
 const CON_ACCESO_EDICION: Role[] = ['administrador', 'admin_ti', 'gerencia']
 
 interface Props {
@@ -173,7 +176,7 @@ export default async function ProyectoDetailPage({ params, searchParams }: Props
         </div>
       ),
     },
-  ]
+  ].filter((t) => MOSTRAR_HITOS || t.id !== 'planificacion')
 
   // Pestaña condicional de Cierre de Obra
   if (puedeCerrar || estaCerrada) {

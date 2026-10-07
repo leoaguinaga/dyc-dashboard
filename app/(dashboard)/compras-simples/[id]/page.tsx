@@ -182,7 +182,12 @@ export default async function CompraSimpleDetailPage({ params, searchParams }: P
             <div key={g.id} className="rounded-xl border border-border bg-white p-5 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="font-mono text-xs text-muted-foreground">{g.numero}</p>
+                  <Link
+                    href={`/ordenes-compra/${g.id}`}
+                    className="font-mono text-xs text-primary hover:underline"
+                  >
+                    {g.numero} · Ver OC, exportar y forma de pago →
+                  </Link>
                   <p className="font-medium">{g.proveedor?.razonSocial ?? g.proveedorNombreLibre}</p>
                   {!g.proveedor && (
                     <p className="text-xs text-amber-600">Sin proveedor registrado</p>

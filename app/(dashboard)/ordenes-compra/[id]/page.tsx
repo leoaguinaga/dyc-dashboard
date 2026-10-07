@@ -55,11 +55,11 @@ export default async function OrdenCompraDetailPage({ params }: Props) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-3">
         <div className="space-y-1">
           <Link
-            href="/ordenes"
+            href={oc.compraSimpleId ? `/compras-simples/${oc.compraSimpleId}` : '/ordenes'}
             className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="size-3.5" />
-            Órdenes C/S
+            {oc.compraSimpleId ? 'Volver a la compra simple' : 'Órdenes C/S'}
           </Link>
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">

@@ -167,7 +167,8 @@ export function OrdenesCompraTableClient({ ordenes }: Props) {
           oc.proveedorNombreLibre?.toLowerCase().includes(q) ||
           oc.proyecto.nombre.toLowerCase().includes(q) ||
           oc.proyecto.codigo?.toLowerCase().includes(q) ||
-          oc.solicitud?.codigo.toLowerCase().includes(q),
+          oc.solicitud?.codigo.toLowerCase().includes(q) ||
+          oc.compraSimple?.codigo.toLowerCase().includes(q),
       )
     }
     return result
@@ -232,17 +233,9 @@ export function OrdenesCompraTableClient({ ordenes }: Props) {
         return a.fechaEntrega.localeCompare(b.fechaEntrega) * dir
       })
     }
-    const rango = (oc: OrdenCompra) => {
-      if (esAtrasada(oc)) return 0
-      if (estaAbierta(oc)) return 1
-      if (oc.estado === 'borrador') return 2
-      if (estaPorPagar(oc, ocTotalConIgv(oc))) return 3
-      return 4
-    }
     return list.sort((a, b) => {
-      const r = rango(a) - rango(b)
-      if (r !== 0) return r
-      if (rango(a) <= 1) return (a.fechaEntrega ?? '9999').localeCompare(b.fechaEntrega ?? '9999')
+      const atrasadaA = esAtrasada(a)
+      if (atrasadaA !== esAtrasada(b)) return atrasadaA ? -1 : 1
       return b.creadoEn.localeCompare(a.creadoEn)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -446,6 +439,7 @@ export function OrdenesCompraTableClient({ ordenes }: Props) {
                       >
                         <span className="block font-mono font-medium tabular-nums">{oc.numero}</span>
                         {oc.nombre && <span className="block max-w-56 truncate text-xs text-muted-foreground">{oc.nombre}</span>}
+                        {oc.compraSimple && <span className="block font-mono text-xs text-muted-foreground">Compra simple · {oc.compraSimple.codigo}</span>}
                       </Link>
                     </td>
                     <td className="px-4 py-3 align-top">

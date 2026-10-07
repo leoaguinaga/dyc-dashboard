@@ -1134,6 +1134,7 @@ export interface OrdenCompra {
   origen: OrigenOrdenCompra;
   tipo: TipoOrdenCompra;
   compraSimpleId?: string | null;
+  compraSimple?: { id: string; codigo: string } | null;
   estadoAprobacion?: EstadoAprobacionCompra | null;
   aprobadoPorId?: string | null;
   aprobadoPor?: Pick<User, "id" | "name"> | null;

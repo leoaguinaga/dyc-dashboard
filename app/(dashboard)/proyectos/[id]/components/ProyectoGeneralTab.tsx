@@ -40,6 +40,9 @@ const AMBITO_LABELS: Record<string, string> = {
   internacional: 'Internacional',
 }
 
+// Oculta temporalmente el resumen de hitos
+const MOSTRAR_HITOS = false
+
 export function ProyectoGeneralTab({ proyecto: o }: Props) {
   const hitos = o.hitos ?? []
   // Obtenemos los próximos 3 hitos que aún no están cumplidos, o los primeros 3
@@ -212,6 +215,7 @@ export function ProyectoGeneralTab({ proyecto: o }: Props) {
         </div>
 
         {/* Resumen de Hitos Próximos */}
+        {MOSTRAR_HITOS && (
         <div className="rounded-xl border border-border bg-card p-5 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -267,6 +271,7 @@ export function ProyectoGeneralTab({ proyecto: o }: Props) {
             </div>
           )}
         </div>
+        )}
       </div>
     </div>
   )
