@@ -8,7 +8,7 @@ import type { Proyecto, Proveedor, User } from '@/types/api'
 // Debe coincidir con @Roles(...) en compras-simples.controller.ts
 const CON_ACCESO_CREACION = [
   'supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr',
-  'ing_civil', 'ing_electrico', 'jefe_sig',
+  'ing_civil', 'ing_electrico', 'jefe_sig', 'coordinador_ssoma',
   'logistica', 'gerencia', 'administrador', 'admin_ti',
 ]
 

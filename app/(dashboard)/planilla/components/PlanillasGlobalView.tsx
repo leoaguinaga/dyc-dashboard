@@ -31,7 +31,8 @@ function formatMonto(n: number) {
 export function PlanillasGlobalView({ proyectos }: Props) {
   const { data: session } = useSession()
   const role = session?.user?.role
-  const autorizado = role === 'administrador' || role === 'admin_ti' || role === 'gerencia'
+  const autorizado =
+    role === 'administrador' || role === 'admin_ti' || role === 'gerencia' || role === 'tesoreria'
 
   const [rango, setRango] = useState<DateRangeValue>({})
   const [proyectoId, setProyectoId] = useState('todos')
@@ -89,7 +90,7 @@ export function PlanillasGlobalView({ proyectos }: Props) {
     return (
       <div className="flex items-center gap-2 rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
         <LockIcon className="size-4 shrink-0" />
-        Solo Administración/Gerencia pueden ver las planillas.
+        Solo Administración, Gerencia y Tesorería pueden ver las planillas.
       </div>
     )
   }

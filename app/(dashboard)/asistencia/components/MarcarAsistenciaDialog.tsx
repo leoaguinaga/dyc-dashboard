@@ -44,7 +44,8 @@ export function MarcarAsistenciaDialog({ open, onOpenChange, data, loading, erro
   const router = useRouter()
   const { data: session } = useSession()
   const role = session?.user?.role
-  const esPdr = role === 'pdr'
+  // Sin acceso al detalle global de jornadas: operan desde la pantalla del turno.
+  const esPdr = role === 'pdr' || role === 'coordinador_ssoma'
   const puedeConfigurar = role === 'administrador' || role === 'admin_ti' || role === 'gerencia'
 
   const [consulta, setConsulta] = useState('')

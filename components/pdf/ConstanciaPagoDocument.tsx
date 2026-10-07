@@ -11,7 +11,15 @@ import {
   View,
 } from "@react-pdf/renderer";
 import type { Pago } from "@/types/api";
-import { getBeneficiario, getDestinoPago } from "@/lib/pagos-utils";
+import {
+  cuentaOrigenConstancia,
+  empresaDeConstancia,
+  getBeneficiario,
+  getDestinoPago,
+  referenciaConstancia,
+  responsableRegistroConstancia,
+  responsableRendicionConstancia,
+} from "@/lib/pagos-utils";
 
 const FIRMA_JEFE_ADMIN = fs.readFileSync(
   path.join(process.cwd(), "public", "signatures", "jefe-admin.jpg"),
@@ -19,13 +27,6 @@ const FIRMA_JEFE_ADMIN = fs.readFileSync(
 
 Font.register({ family: "Helvetica", fonts: [] });
 Font.registerHyphenationCallback((word) => [word]);
-
-const EMPRESA = {
-  razonSocial: "DIAZ & CASTILLO INGENIERÍA Y PROYECTOS SAC",
-  ruc: "20608745611",
-  direccion:
-    "Av. Francisco Bolognesi 342 Int. B, Chiclayo, Chiclayo, Lambayeque",
-};
 
 const C = {
   navy: "#1a3557",
@@ -230,10 +231,8 @@ export function ConstanciaPagoDocument({ pago, generadoEn }: Props) {
   const destino = getDestinoPago(pago);
   const proyecto = pago.proyecto ?? pago.ordenCompra?.proyecto;
   const cuenta = destino.numero ?? pago.numeroCuenta;
-  const referencia =
-    pago.codigoComprobante ||
-    pago.numeroOperacion ||
-    pago.id.slice(-8).toUpperCase();
+  const empresa = empresaDeConstancia(pago);
+  const referencia = referenciaConstancia(pago);
   const concepto =
     pago.concepto ?? pago.ordenCompra?.concepto ?? "Pago registrado";
 
@@ -245,9 +244,11 @@ export function ConstanciaPagoDocument({ pago, generadoEn }: Props) {
       <Page size="A4" style={s.page}>
         <View style={s.header}>
           <View style={s.company}>
-            <Text style={s.companyName}>{EMPRESA.razonSocial}</Text>
-            <Text style={s.companyDetail}>RUC N° {EMPRESA.ruc}</Text>
-            <Text style={s.companyDetail}>{EMPRESA.direccion}</Text>
+            <Text style={s.companyName}>{empresa.razonSocial}</Text>
+            <Text style={s.companyDetail}>RUC N° {empresa.ruc}</Text>
+            {empresa.direccion && (
+              <Text style={s.companyDetail}>{empresa.direccion}</Text>
+            )}
           </View>
           <View style={s.document}>
             <Text style={s.documentTitle}>CONSTANCIA DE PAGO</Text>
@@ -279,7 +280,7 @@ export function ConstanciaPagoDocument({ pago, generadoEn }: Props) {
                 value={referencia}
               />
               <Detail label="Tipo de gasto" value={value(pago.categoria)} />
-              <Detail label="Responsable" value={pago.registradoPor.name} />
+              <Detail label="Responsable" value={responsableRegistroConstancia(pago)} />
               <Detail label="Proveedor" value={beneficiario} />
             </View>
             <View style={s.box}>
@@ -321,6 +322,10 @@ export function ConstanciaPagoDocument({ pago, generadoEn }: Props) {
                 label="N° de operación"
                 value={value(pago.numeroOperacion)}
               />
+              <Detail
+                label="Cuenta de origen"
+                value={cuentaOrigenConstancia(pago)}
+              />
             </View>
             <View style={s.box}>
               <Detail
@@ -357,7 +362,7 @@ export function ConstanciaPagoDocument({ pago, generadoEn }: Props) {
           <View style={s.print}>
             <Text style={s.label}>Responsable de la rendición</Text>
             <Text style={s.rowValue}>
-              {pago.pagadoPor?.name ?? "No registrado"}
+              {responsableRendicionConstancia(pago)}
             </Text>
             <Text style={s.printText}>
               Fecha programada: {date(pago.fechaProgramada)}

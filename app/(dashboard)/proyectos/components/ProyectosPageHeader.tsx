@@ -1,40 +1,43 @@
 "use client"
 
 import { useSession } from '@/lib/auth/session'
+import { useNivelModulo } from '@/lib/accesos'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { History, Plus } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 const CON_ACCESO_CREACION = ['administrador', 'admin_ti', 'gerencia']
 
 export function ProyectosPageHeader() {
   const { data: session } = useSession()
-  const puedeCrear = !!session?.user?.role && CON_ACCESO_CREACION.includes(session.user.role)
+  const excepcion = useNivelModulo('proyectos')
+  const puedeCrear = excepcion
+    ? excepcion === 'editar'
+    : !!session?.user?.role && CON_ACCESO_CREACION.includes(session.user.role)
 
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Proyectos</h1>
-        <p className="text-sm text-muted-foreground">
-          Información general de los proyectos que se están ejecutando.
-        </p>
-      </div>
-      <div className='flex items-center gap-2'>
-        <Link href="/proyectos/historial">
-          <Button variant="outline">
-            <History className='size-4' />
-            Historial
-          </Button>
-        </Link>
-        {puedeCrear && (
-          <Link href="/proyectos/nuevo">
-            <Button>
-              <Plus className='size-4' />
-              Registrar Proyecto
+    <PageHeader
+      title="Proyectos"
+      description="Información general de los proyectos que se están ejecutando."
+      actions={
+        <>
+          <Link href="/proyectos/historial">
+            <Button variant="outline">
+              <History className="size-4" />
+              Historial
             </Button>
           </Link>
-        )}
-      </div>
-    </div>
+          {puedeCrear && (
+            <Link href="/proyectos/nuevo">
+              <Button>
+                <Plus className="size-4" />
+                Registrar Proyecto
+              </Button>
+            </Link>
+          )}
+        </>
+      }
+    />
   )
 }

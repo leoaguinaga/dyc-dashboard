@@ -112,7 +112,7 @@ function fmtFechaLarga(iso: string) {
 export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registradoPorFiltro }: Props) {
   const router = useRouter()
   const { data: session } = useSession()
-  const puedeDescargarReporte = ['administrador', 'gerencia', 'admin_ti'].includes(session?.user?.role ?? '')
+  const puedeDescargarReporte = ['administrador', 'gerencia', 'admin_ti', 'tesoreria'].includes(session?.user?.role ?? '')
   // Historial considera principalmente los registros cerrados (pagado y cancelado)
   const pagosHistorialBase = useMemo(() => {
     return todosLosPagos.filter((p) => p.estado === 'pagado' || p.estado === 'cancelado')
@@ -1202,6 +1202,10 @@ export function PagosHistorialClient({ pagos: todosLosPagos, proyectos, registra
     ) : p.origen === 'planilla_staff' ? (
       <span className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-[10px] font-medium bg-emerald-500/10 text-emerald-700">
         Planilla
+      </span>
+    ) : p.origen === 'importado' ? (
+      <span className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
+        Importado
       </span>
     ) : (
       <span className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">

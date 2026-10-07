@@ -1,0 +1,135 @@
+'use client'
+
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { useRouter } from 'next/navigation'
+import { signIn } from '@/lib/auth/session'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useState } from 'react'
+import { Eye, EyeClosed } from 'lucide-react'
+import { ForgotPasswordDialog } from './forgot-password-dialog'
+
+const schema = z.object({
+  email: z.string().email('Correo inválido'),
+  password: z.string().min(8, 'Mínimo 8 caracteres'),
+  rememberMe: z.boolean(),
+})
+
+type FormData = z.infer<typeof schema>
+
+export function LoginForm({ redirectTo }: { redirectTo: string }) {
+  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { rememberMe: false },
+  })
+
+  async function onSubmit(data: FormData) {
+    const result = await signIn.email({
+      email: data.email,
+      password: data.password,
+      rememberMe: data.rememberMe,
+      callbackURL: redirectTo,
+    })
+    if (result?.error) {
+      setError('root', { message: 'Credenciales incorrectas' })
+    } else {
+      router.push(redirectTo)
+    }
+  }
+
+  return (
+    <div className="w-full max-w-sm space-y-6 sm:space-y-8 [@media(max-height:500px)]:space-y-4">
+      <div className="lg:hidden [@media(max-height:500px)]:hidden">
+        <span className="text-sm font-semibold tracking-tight text-foreground/70">
+          D&C Ingeniería y Proyectos
+        </span>
+      </div>
+
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight">Bienvenido de nuevo!</h1>
+        <p className="text-sm text-muted-foreground">
+          Ingresa tus credenciales para continuar
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 [@media(max-height:500px)]:space-y-3">
+        <Field label="Correo electrónico" error={errors.email?.message}>
+          <Input
+            {...register('email')}
+            type="email"
+            autoComplete="email"
+            placeholder="usuario@empresa.cl"
+            aria-invalid={!!errors.email}
+          />
+        </Field>
+
+        <Field label="Contraseña" error={errors.password?.message}>
+          <div className="relative">
+            <Input
+              {...register('password')}
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              aria-invalid={!!errors.password}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPassword ? <EyeClosed className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          <div className="flex justify-end">
+            <ForgotPasswordDialog />
+          </div>
+        </Field>
+
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
+          <input
+            {...register('rememberMe')}
+            type="checkbox"
+            className="size-4 shrink-0 cursor-pointer rounded accent-primary"
+          />
+          Mantener sesión abierta por 30 días
+        </label>
+
+        {errors.root && (
+          <p className="text-sm text-destructive">{errors.root.message}</p>
+        )}
+
+        <Button type="submit" className="w-full h-10.5" disabled={isSubmitting}>
+          {isSubmitting ? 'Ingresando...' : 'Ingresar'}
+        </Button>
+      </form>
+    </div>
+  )
+}
+
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string
+  error?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">{label}</label>
+      {children}
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  )
+}

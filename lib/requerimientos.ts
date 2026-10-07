@@ -3,7 +3,7 @@ import type { Role, TipoRequerimiento } from '@/types/api'
 export const TIPO_APPROVERS: Record<TipoRequerimiento, Role[]> = {
   civil:          ['ing_civil', 'ing_electrico', 'jefe_sig', 'gerencia', 'administrador', 'admin_ti'],
   electrico:      ['ing_electrico', 'ing_civil', 'jefe_sig', 'gerencia', 'administrador', 'admin_ti'],
-  seguridad:      ['jefe_sig', 'ing_civil', 'ing_electrico', 'gerencia', 'administrador', 'admin_ti'],
+  seguridad:      ['jefe_sig', 'coordinador_ssoma', 'ing_civil', 'ing_electrico', 'gerencia', 'administrador', 'admin_ti'],
   administrativo: ['jefe_sig', 'logistica', 'ing_civil', 'ing_electrico', 'gerencia', 'administrador', 'admin_ti'],
 }
 
@@ -21,6 +21,7 @@ const TODOS_LOS_TIPOS: TipoRequerimiento[] = ['civil', 'electrico', 'seguridad',
 // (src/shared/alcance/tipos-creables.ts), que es quien lo hace cumplir.
 const TIPOS_CREABLES_POR_ROL: Partial<Record<Role, TipoRequerimiento[]>> = {
   jefe_sig:             ['seguridad'],
+  coordinador_ssoma:    ['seguridad'],
   pdr:                  ['seguridad'],
   ing_electrico:        ['electrico', 'seguridad'],
   supervisor_electrico: ['electrico', 'seguridad'],

@@ -14,8 +14,9 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import type { Pago } from '@/types/api'
-import { getDestinoPago } from '@/lib/pagos-utils'
+import { datosOrigenYRendicion, getDestinoPago, responsableRendicionInicial } from '@/lib/pagos-utils'
 import { MetodoPagoSelect } from './MetodoPagoSelect'
+import { CuentaOrigenSelect } from './CuentaOrigenSelect'
 
 function hoyISO() {
   const d = new Date()
@@ -45,6 +46,8 @@ export function MarcarPagadoDrawer({
   const [fechaPagoReal, setFechaPagoReal] = useState(hoyISO)
   const [metodoPago, setMetodoPago] = useState('Transferencia BCP')
   const [numeroOperacion, setNumeroOperacion] = useState('')
+  const [cuentaOrigenId, setCuentaOrigenId] = useState(pago?.cuentaOrigenId ?? '')
+  const [responsable, setResponsable] = useState(responsableRendicionInicial(pago))
   const [comprobanteNombre, setComprobanteNombre] = useState(pago?.comprobanteNombre ?? '')
   const [comprobanteUrl, setComprobanteUrl] = useState(pago?.comprobanteUrl ?? '')
   const [uploading, setUploading] = useState(false)
@@ -67,6 +70,8 @@ export function MarcarPagadoDrawer({
       }
 
       setNumeroOperacion('')
+      setCuentaOrigenId(pago.cuentaOrigenId ?? '')
+      setResponsable(responsableRendicionInicial(pago))
       setComprobanteNombre(pago.comprobanteNombre ?? '')
       setComprobanteUrl(pago.comprobanteUrl ?? '')
       setError(null)
@@ -128,6 +133,7 @@ export function MarcarPagadoDrawer({
         numeroOperacion: numeroOperacion.trim() || undefined,
         comprobanteNombre: comprobanteUrl ? comprobanteNombre : undefined,
         comprobanteUrl: comprobanteUrl || undefined,
+        ...datosOrigenYRendicion(pago!, cuentaOrigenId, responsable),
       })
 
       onOpenChange(false)
@@ -236,6 +242,25 @@ export function MarcarPagadoDrawer({
                 value={metodoPago}
                 onChange={setMetodoPago}
                 bancoSugerido={destino.bancoNorm !== 'Sin banco' ? destino.bancoNorm : undefined}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-foreground">
+                Cuenta de la empresa de la que sale el dinero
+              </label>
+              <CuentaOrigenSelect value={cuentaOrigenId} onChange={setCuentaOrigenId} />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-foreground">
+                Responsable de la rendición (opcional)
+              </label>
+              <Input
+                value={responsable}
+                onChange={(e) => setResponsable(e.target.value)}
+                placeholder="Quien sustentará el gasto, o ADMINISTRACION"
+                className="h-9 text-sm"
               />
             </div>
 

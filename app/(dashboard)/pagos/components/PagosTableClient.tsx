@@ -957,7 +957,9 @@ export function PagosTableClient({
         ? 'Pago fijo'
         : p.origen === 'planilla_staff'
           ? 'Planilla'
-          : 'Manual'
+          : p.origen === 'importado'
+            ? 'Importado'
+            : 'Manual'
 
     const urg = getUrgencia(p.fechaProgramada)
 

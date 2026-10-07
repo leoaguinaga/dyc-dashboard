@@ -6,9 +6,11 @@ export type Role =
   | "ing_civil"
   | "ing_electrico"
   | "jefe_sig"
+  | "coordinador_ssoma"
   | "logistica"
   | "gerencia"
   | "administrador"
+  | "tesoreria"
   | "admin_ti";
 
 export type TipoRequerimiento =
@@ -412,6 +414,7 @@ export interface TurnoConfig {
   cruzaMedianoche: boolean;
   toleranciaMinutos: number;
   toleranciaSalidaMinutos: number;
+  topeCierreHoras: number;
   activo: boolean;
 }
 
@@ -570,6 +573,7 @@ export interface JornadaDetalle {
   proyectoNombre: string;
   proyectoCodigo?: string;
   turnoNombre: string;
+  topeCierreHoras: number;
   abiertoPor?: Pick<User, "id" | "name">;
   cerradoPor?: Pick<User, "id" | "name">;
   corregidoPor?: Pick<User, "id" | "name">;
@@ -1011,7 +1015,21 @@ export interface Cotizacion {
 }
 
 export interface CotizacionConHistorial extends Cotizacion {
-  solicitud: { id: string; codigo: string };
+  solicitud: {
+    id: string;
+    codigo: string;
+    nota?: string | null;
+    requerimiento?: { id: string; codigo: string; nombre: string } | null;
+    proyecto?: { id: string; codigo: string; nombre: string } | null;
+    ordenes?: {
+      id: string;
+      numero: string;
+      nombre?: string | null;
+      concepto?: string | null;
+      estado: EstadoOrdenCompra;
+      montoTotal: string | number;
+    }[];
+  };
   archivos: CotizacionArchivo[];
 }
 
@@ -1273,6 +1291,18 @@ export interface Pago {
   comprobanteNombre?: string | null;
   comprobanteUrl?: string | null;
   codigoComprobante?: string | null;
+  /** Línea dentro de un mismo comprobante (26-2248.1, .2…). */
+  subNumero?: number;
+  empresaId?: string | null;
+  empresa?: Pick<Empresa, "id" | "razonSocial" | "ruc"> | null;
+  cuentaOrigenId?: string | null;
+  cuentaOrigen?: CuentaEmpresa | null;
+  responsableRendicionId?: string | null;
+  responsableRendicion?: { id: string; nombre: string } | null;
+  responsableRendicionNombre?: string | null;
+  importeRendido?: string | null;
+  estadoRendicion?: EstadoRendicion | null;
+  generadoPorNombre?: string | null;
   comprobantes: Comprobante[];
   registradoPorId: string;
   registradoPor: Pick<User, "id" | "name">;
@@ -1280,6 +1310,26 @@ export interface Pago {
   pagadoPor?: Pick<User, "id" | "name"> | null;
   creadoEn: string;
   actualizadoEn: string;
+}
+
+export type EstadoRendicion = "abierto" | "cerrado";
+
+/** Cuenta bancaria de la empresa de la que sale el dinero. */
+export interface CuentaEmpresa {
+  id: string;
+  /** Rótulo de tesorería: "BCP-D&C INGENIERIA Y PROYECTOS". */
+  banco: string;
+  numero: string;
+}
+
+export interface Empresa {
+  id: string;
+  razonSocial: string;
+  ruc: string;
+}
+
+export interface EmpresaConCuentas extends Empresa {
+  cuentas: CuentaEmpresa[];
 }
 
 export interface Comprobante {
@@ -1475,4 +1525,56 @@ export interface Notificacion {
   leida: boolean;
   leidaEn?: string | null;
   creadoEn: string;
+}
+
+// ── Acceso por módulo (RBAC) ────────────────────────────────────────────────
+
+export type ModuloKey =
+  | "proyectos"
+  | "asistencia"
+  | "solicitudes"
+  | "cotizaciones"
+  | "ordenes"
+  | "almacenes"
+  | "proveedores"
+  | "pagos"
+  | "cobros"
+  | "planilla"
+  | "clientes"
+  | "trabajadores"
+  | "reportes"
+  | "usuarios";
+
+export type NivelAcceso = "ninguno" | "ver" | "editar";
+
+/** Excepciones vigentes del usuario actual; null = manda su rol. */
+export type MisModulos = Record<ModuloKey, NivelAcceso | null>;
+
+export interface AccesoPorDefecto {
+  nivel: NivelAcceso;
+  parcial: boolean;
+}
+
+export interface MatrizAccesos {
+  modulos: { key: ModuloKey; label: string }[];
+  roles: Role[];
+  celdas: {
+    modulo: ModuloKey;
+    role: Role;
+    porDefecto: AccesoPorDefecto;
+    excepcion: NivelAcceso | null;
+  }[];
+}
+
+export interface AccesosUsuario {
+  userId: string;
+  role: Role;
+  accesoTotal: boolean;
+  modulos: {
+    modulo: ModuloKey;
+    label: string;
+    segunRol: AccesoPorDefecto;
+    excepcionRol: NivelAcceso | null;
+    excepcion: NivelAcceso | null;
+  }[];
 }

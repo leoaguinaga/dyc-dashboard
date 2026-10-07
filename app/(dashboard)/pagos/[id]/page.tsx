@@ -15,6 +15,7 @@ import { CopyButton } from "./components/CopyButton";
 import { CodigoComprobanteEditor } from "./components/CodigoComprobanteEditor";
 import { ComprobantePagoSection } from "./components/ComprobantePagoSection";
 import { MarcarPagadoCard } from "./components/MarcarPagadoCard";
+import { RendicionCard } from "./components/RendicionCard";
 
 const ESTADO_LABEL: Record<Pago["estadoEfectivo"], string> = {
   borrador: "Por completar",
@@ -112,6 +113,12 @@ export default async function PagoDetailPage({ params }: Props) {
               {pago.origen === "recurrente" && (
                 <span className="inline-flex items-center rounded border border-purple-200 bg-purple-50/50 px-2 py-0.5 text-xs text-purple-700">
                   Pago fijo
+                </span>
+              )}
+
+              {pago.origen === "importado" && (
+                <span className="inline-flex items-center rounded border border-border bg-muted/40 px-2 py-0.5 text-xs text-muted-foreground">
+                  Importado
                 </span>
               )}
 
@@ -421,8 +428,11 @@ export default async function PagoDetailPage({ params }: Props) {
             <CodigoComprobanteEditor
               pagoId={pago.id}
               codigo={pago.codigoComprobante}
+              subNumero={pago.subNumero}
             />
           )}
+
+          {pago.estado === "pagado" && <RendicionCard pago={pago} />}
 
           {/* Ficha 1: Comprobante de Pago */}
           <ComprobantePagoSection

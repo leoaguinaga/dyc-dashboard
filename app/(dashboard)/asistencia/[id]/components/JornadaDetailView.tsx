@@ -318,7 +318,7 @@ export function JornadaDetailView({ turnoId }: Props) {
             <div className="space-y-2">
               {sinCerrar && (
                 <div role="status" className="rounded-lg bg-amber-500/10 px-3.5 py-2.5 text-sm text-amber-800">
-                  <span className="font-medium">Esta jornada sigue abierta desde el {formatFechaCorta(jornada.fecha)}.</span> El sistema la cierra sola pasadas 4 horas de la hora fin del horario. También puedes cerrarla desde el turno.
+                  <span className="font-medium">Esta jornada sigue abierta desde el {formatFechaCorta(jornada.fecha)}.</span> El sistema la cierra sola pasadas {jornada.topeCierreHoras} horas de la hora fin del horario. También puedes cerrarla desde el turno.
                 </div>
               )}
               {porRevisar && (

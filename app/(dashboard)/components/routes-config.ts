@@ -16,13 +16,15 @@ import {
   type LucideIcon,
   Handshake,
 } from "lucide-react";
-import type { Role } from "@/types/api";
+import type { MisModulos, ModuloKey, Role } from "@/types/api";
 
 export interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
   roles: Role[];
+  /** Módulo cuyo acceso configurable controla este ítem (además de `roles`). */
+  modulo?: ModuloKey;
   disabled?: boolean;
   sprint?: string;
 }
@@ -54,6 +56,8 @@ export const NAV_GROUPS: NavGroup[] = [
           "ing_civil",
           "ing_electrico",
           "jefe_sig",
+          "coordinador_ssoma",
+          "tesoreria",
         ],
       },
     ],
@@ -63,6 +67,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         href: "/proyectos",
+        modulo: "proyectos",
         label: "Proyectos",
         icon: Building2,
         roles: [
@@ -70,6 +75,7 @@ export const NAV_GROUPS: NavGroup[] = [
           "ing_civil",
           "ing_electrico",
           "jefe_sig",
+          "coordinador_ssoma",
           "logistica",
           "gerencia",
           "administrador",
@@ -77,9 +83,10 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       {
         href: "/asistencia",
+        modulo: "asistencia",
         label: "Asistencia",
         icon: UserCheck,
-        roles: ["administrador", "gerencia", "jefe_sig", "pdr"],
+        roles: ["administrador", "gerencia", "jefe_sig", "pdr", "coordinador_ssoma"],
       },
     ],
   },
@@ -88,6 +95,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         href: "/solicitudes",
+        modulo: "solicitudes",
         label: "Solicitudes",
         icon: ClipboardList,
         roles: [
@@ -101,6 +109,7 @@ export const NAV_GROUPS: NavGroup[] = [
           "ing_civil",
           "ing_electrico",
           "jefe_sig",
+          "coordinador_ssoma",
         ],
       },
       // {
@@ -118,6 +127,7 @@ export const NAV_GROUPS: NavGroup[] = [
       // },
       {
         href: "/cotizaciones",
+        modulo: "cotizaciones",
         label: "Cotizaciones",
         icon: Handshake,
         roles: [
@@ -131,6 +141,7 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       {
         href: "/ordenes",
+        modulo: "ordenes",
         label: "Órdenes de C/S",
         icon: ShoppingCart,
         roles: ["administrador", "gerencia", "logistica"],
@@ -150,6 +161,7 @@ export const NAV_GROUPS: NavGroup[] = [
       // },
       {
         href: "/almacenes",
+        modulo: "almacenes",
         label: "Almacenes",
         icon: Warehouse,
         roles: [
@@ -163,6 +175,7 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       {
         href: "/proveedores",
+        modulo: "proveedores",
         label: "Proveedores",
         icon: Truck,
         roles: [
@@ -181,11 +194,13 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         href: "/pagos",
+        modulo: "pagos",
         label: "Pagos",
         icon: Wallet,
         roles: [
           "administrador",
           "gerencia",
+          "tesoreria",
           "logistica",
           "supervisor",
           "supervisor_civil",
@@ -194,19 +209,22 @@ export const NAV_GROUPS: NavGroup[] = [
           "ing_civil",
           "ing_electrico",
           "jefe_sig",
+          "coordinador_ssoma",
         ],
       },
       {
         href: "/cobros",
+        modulo: "cobros",
         label: "Cobros",
         icon: Landmark,
         roles: ["administrador", "gerencia"],
       },
       {
         href: "/planilla",
+        modulo: "planilla",
         label: "Planilla",
         icon: Receipt,
-        roles: ["administrador", "gerencia"],
+        roles: ["administrador", "gerencia", "tesoreria"],
       },
     ],
   },
@@ -215,6 +233,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         href: "/clientes",
+        modulo: "clientes",
         label: "Clientes",
         icon: Building,
         roles: [
@@ -228,6 +247,7 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       {
         href: "/trabajadores",
+        modulo: "trabajadores",
         label: "Trabajadores",
         icon: Users,
         roles: [
@@ -246,12 +266,14 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         href: "/reportes",
+        modulo: "reportes",
         label: "Reportes",
         icon: BarChart2,
         roles: ["administrador", "gerencia"],
       },
       {
         href: "/usuarios",
+        modulo: "usuarios",
         label: "Usuarios",
         icon: UserCog,
         roles: ["administrador", "gerencia", "admin_ti"],
@@ -260,14 +282,31 @@ export const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-export function getVisibleGroups(role: Role | undefined): NavGroup[] {
-  if (!role) return [];
+/**
+ * Un ítem se ve si su rol lo incluye, salvo que haya una excepción de acceso
+ * para su módulo: entonces manda la excepción (cualquier nivel salvo "ninguno").
+ */
+export function itemVisible(
+  item: NavItem,
+  role: Role,
+  excepciones: Partial<MisModulos> = {},
+): boolean {
   // TI es el rol maestro del sistema y necesita visibilidad operativa completa.
-  if (role === "admin_ti") return NAV_GROUPS;
+  if (role === "admin_ti") return true;
+  const excepcion = item.modulo ? excepciones[item.modulo] : null;
+  if (excepcion) return excepcion !== "ninguno";
+  return item.roles.includes(role);
+}
+
+export function getVisibleGroups(
+  role: Role | undefined,
+  excepciones: Partial<MisModulos> = {},
+): NavGroup[] {
+  if (!role) return [];
 
   return NAV_GROUPS.map((group) => ({
     ...group,
-    items: group.items.filter((item) => item.roles.includes(role)),
+    items: group.items.filter((item) => itemVisible(item, role, excepciones)),
   })).filter((group) => group.items.length > 0);
 }
 
