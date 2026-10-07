@@ -6,9 +6,11 @@ export type Role =
   | "ing_civil"
   | "ing_electrico"
   | "jefe_sig"
+  | "coordinador_ssoma"
   | "logistica"
   | "gerencia"
   | "administrador"
+  | "tesoreria"
   | "admin_ti";
 
 export type TipoRequerimiento =
@@ -1013,7 +1015,21 @@ export interface Cotizacion {
 }
 
 export interface CotizacionConHistorial extends Cotizacion {
-  solicitud: { id: string; codigo: string };
+  solicitud: {
+    id: string;
+    codigo: string;
+    nota?: string | null;
+    requerimiento?: { id: string; codigo: string; nombre: string } | null;
+    proyecto?: { id: string; codigo: string; nombre: string } | null;
+    ordenes?: {
+      id: string;
+      numero: string;
+      nombre?: string | null;
+      concepto?: string | null;
+      estado: EstadoOrdenCompra;
+      montoTotal: string | number;
+    }[];
+  };
   archivos: CotizacionArchivo[];
 }
 
@@ -1275,6 +1291,18 @@ export interface Pago {
   comprobanteNombre?: string | null;
   comprobanteUrl?: string | null;
   codigoComprobante?: string | null;
+  /** Línea dentro de un mismo comprobante (26-2248.1, .2…). */
+  subNumero?: number;
+  empresaId?: string | null;
+  empresa?: Pick<Empresa, "id" | "razonSocial" | "ruc"> | null;
+  cuentaOrigenId?: string | null;
+  cuentaOrigen?: CuentaEmpresa | null;
+  responsableRendicionId?: string | null;
+  responsableRendicion?: { id: string; nombre: string } | null;
+  responsableRendicionNombre?: string | null;
+  importeRendido?: string | null;
+  estadoRendicion?: EstadoRendicion | null;
+  generadoPorNombre?: string | null;
   comprobantes: Comprobante[];
   registradoPorId: string;
   registradoPor: Pick<User, "id" | "name">;
@@ -1282,6 +1310,26 @@ export interface Pago {
   pagadoPor?: Pick<User, "id" | "name"> | null;
   creadoEn: string;
   actualizadoEn: string;
+}
+
+export type EstadoRendicion = "abierto" | "cerrado";
+
+/** Cuenta bancaria de la empresa de la que sale el dinero. */
+export interface CuentaEmpresa {
+  id: string;
+  /** Rótulo de tesorería: "BCP-D&C INGENIERIA Y PROYECTOS". */
+  banco: string;
+  numero: string;
+}
+
+export interface Empresa {
+  id: string;
+  razonSocial: string;
+  ruc: string;
+}
+
+export interface EmpresaConCuentas extends Empresa {
+  cuentas: CuentaEmpresa[];
 }
 
 export interface Comprobante {

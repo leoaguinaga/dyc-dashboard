@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import type { Pago } from '@/types/api'
-import { getDestinoPago } from '@/lib/pagos-utils'
+import { datosOrigenYRendicion, getDestinoPago, responsableRendicionInicial } from '@/lib/pagos-utils'
 import { useSession } from '@/lib/auth/session'
 import { MetodoPagoSelect } from '../../components/MetodoPagoSelect'
+import { CuentaOrigenSelect } from '../../components/CuentaOrigenSelect'
 
 function hoyISO() {
   const d = new Date()
@@ -18,7 +19,7 @@ function hoyISO() {
 
 export function MarcarPagadoCard({ pago }: { pago: Pago }) {
   const { data: session } = useSession()
-  const puedePagar = ['administrador', 'gerencia', 'admin_ti'].includes(session?.user?.role ?? '')
+  const puedePagar = ['administrador', 'gerencia', 'admin_ti', 'tesoreria'].includes(session?.user?.role ?? '')
   const router = useRouter()
   const destino = getDestinoPago(pago)
 
@@ -34,6 +35,8 @@ export function MarcarPagadoCard({ pago }: { pago: Pago }) {
   const [metodoPago, setMetodoPago] = useState(metodoInicial)
   const [confirmarCancelar, setConfirmarCancelar] = useState(false)
   const [numeroOperacion, setNumeroOperacion] = useState('')
+  const [cuentaOrigenId, setCuentaOrigenId] = useState(pago.cuentaOrigenId ?? '')
+  const [responsable, setResponsable] = useState(responsableRendicionInicial(pago))
   const [saving, setSaving] = useState(false)
   const [cancelando, setCancelando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,6 +51,7 @@ export function MarcarPagadoCard({ pago }: { pago: Pago }) {
         fechaPagoReal,
         metodoPago: metodoPago.trim() || undefined,
         numeroOperacion: numeroOperacion.trim() || undefined,
+        ...datosOrigenYRendicion(pago, cuentaOrigenId, responsable),
       })
       router.refresh()
     } catch (e) {
@@ -96,6 +100,25 @@ export function MarcarPagadoCard({ pago }: { pago: Pago }) {
             value={metodoPago}
             onChange={setMetodoPago}
             bancoSugerido={destino.bancoNorm !== 'Sin banco' ? destino.bancoNorm : undefined}
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="mb-1 block text-xs font-medium text-foreground">
+            Cuenta de la empresa de la que sale el dinero
+          </label>
+          <CuentaOrigenSelect value={cuentaOrigenId} onChange={setCuentaOrigenId} />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="mb-1 block text-xs font-medium text-foreground">
+            Responsable de la rendición (opcional)
+          </label>
+          <Input
+            value={responsable}
+            onChange={(e) => setResponsable(e.target.value)}
+            className="h-9 text-xs"
+            placeholder="Quien sustentará el gasto, o ADMINISTRACION"
           />
         </div>
 

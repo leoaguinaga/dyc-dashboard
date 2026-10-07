@@ -10,7 +10,7 @@ import type { CompraSimple, TipoRequerimiento } from '@/types/api'
 import { HardDeleteCompraSimpleDialog } from './HardDeleteCompraSimpleDialog'
 
 // Debe coincidir con ROLES_CREACION en compras-simples.service.ts
-const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'administrador', 'admin_ti']
+const CON_ACCESO_CREACION = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr', 'coordinador_ssoma', 'administrador', 'admin_ti']
 
 const TIPO_LABEL: Record<TipoRequerimiento, string> = {
   civil: 'Civil',

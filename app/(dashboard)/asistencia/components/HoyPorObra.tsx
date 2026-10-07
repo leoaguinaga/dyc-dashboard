@@ -31,7 +31,8 @@ interface Props {
 export function HoyPorObra({ data, loading, error }: Props) {
   const { data: session } = useSession()
   const role = session?.user?.role
-  const esPdr = role === 'pdr'
+  // Sin acceso al detalle global de jornadas: operan desde la pantalla del turno.
+  const esPdr = role === 'pdr' || role === 'coordinador_ssoma'
   const puedeConfigurar = role === 'administrador' || role === 'admin_ti' || role === 'gerencia'
 
   const obras = useMemo(() => {
@@ -74,7 +75,9 @@ export function HoyPorObra({ data, loading, error }: Props) {
       {!loading && !error && obras.length === 0 && (
         <p className="rounded-xl border border-dashed border-border bg-white p-6 text-center text-sm text-muted-foreground">
           {esPdr
-            ? 'No tienes obras asignadas como prevencionista de riesgos.'
+            ? role === 'coordinador_ssoma'
+              ? 'No tienes obras asignadas.'
+              : 'No tienes obras asignadas como prevencionista de riesgos.'
             : 'No hay obras en planificación o ejecución.'}
         </p>
       )}

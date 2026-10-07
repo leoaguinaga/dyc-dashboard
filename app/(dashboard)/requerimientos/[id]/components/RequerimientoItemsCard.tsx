@@ -16,7 +16,7 @@ interface Props {
 }
 
 const ROLES_SOLICITANTE: Role[] = ['supervisor', 'supervisor_civil', 'supervisor_electrico', 'pdr']
-const ROLES_GRUPO_B: Role[] = ['ing_civil', 'ing_electrico', 'jefe_sig', 'logistica', 'gerencia', 'administrador', 'admin_ti']
+const ROLES_GRUPO_B: Role[] = ['ing_civil', 'ing_electrico', 'jefe_sig', 'coordinador_ssoma', 'logistica', 'gerencia', 'administrador', 'admin_ti']
 const ESTADOS_NO_APROBADO = ['borrador', 'enviado', 'observado']
 const ESTADOS_PRE_COTIZACION = ['borrador', 'enviado', 'observado', 'aprobado']
 

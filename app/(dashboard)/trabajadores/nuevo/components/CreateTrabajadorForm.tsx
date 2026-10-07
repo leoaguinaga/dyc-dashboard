@@ -65,9 +65,11 @@ const ROLES: { value: Role; label: string }[] = [
   { value: 'ing_civil', label: 'Ing. Civil' },
   { value: 'ing_electrico', label: 'Ing. Eléctrico' },
   { value: 'jefe_sig', label: 'Jefe SIG' },
+  { value: 'coordinador_ssoma', label: 'Coordinador SSOMA' },
   { value: 'logistica', label: 'Logística' },
   { value: 'gerencia', label: 'Gerencia' },
   { value: 'administrador', label: 'Administrador' },
+  { value: 'tesoreria', label: 'Tesorería' },
   { value: 'admin_ti', label: 'Admin TI' },
 ]
 

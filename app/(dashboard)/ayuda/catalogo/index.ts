@@ -27,6 +27,8 @@ export function nombreRolBiblioteca(rol?: Role) {
 
   const nombres: Partial<Record<Role, string>> = {
     pdr: 'Prevención y SSOMA',
+    coordinador_ssoma: 'Prevención y SSOMA',
+    tesoreria: 'Tesorería y pagos',
     logistica: 'Logística y abastecimiento',
     gerencia: 'Gerencia',
     administrador: 'Administración y finanzas',

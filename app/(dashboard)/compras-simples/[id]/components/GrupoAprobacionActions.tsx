@@ -12,7 +12,7 @@ import type { OrdenCompra, Role, TipoRequerimiento } from '@/types/api'
 const TIPO_APPROVERS_TECNICO: Record<TipoRequerimiento, Role[]> = {
   civil: ['ing_civil', 'ing_electrico', 'jefe_sig', 'administrador', 'admin_ti'],
   electrico: ['ing_civil', 'ing_electrico', 'jefe_sig', 'administrador', 'admin_ti'],
-  seguridad: ['ing_civil', 'ing_electrico', 'jefe_sig', 'administrador', 'admin_ti'],
+  seguridad: ['ing_civil', 'ing_electrico', 'jefe_sig', 'coordinador_ssoma', 'administrador', 'admin_ti'],
   administrativo: ['ing_civil', 'ing_electrico', 'jefe_sig', 'logistica', 'administrador', 'admin_ti'],
 }
 

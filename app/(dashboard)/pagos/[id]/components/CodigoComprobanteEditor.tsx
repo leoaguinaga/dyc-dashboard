@@ -11,10 +11,12 @@ const FORMATO = /^\d{2}-\d{4,6}$/
 interface Props {
   pagoId: string
   codigo: string | null | undefined
+  /** Línea dentro del comprobante (26-2248.2); solo se muestra si es mayor que 1. */
+  subNumero?: number
 }
 
 /** N° correlativo del comprobante (AA-NNNN). Editable: la empresa puede fijar desde qué número continuar. */
-export function CodigoComprobanteEditor({ pagoId, codigo }: Props) {
+export function CodigoComprobanteEditor({ pagoId, codigo, subNumero = 1 }: Props) {
   const router = useRouter()
   const [editando, setEditando] = useState(false)
   const [valor, setValor] = useState(codigo ?? '')
@@ -90,6 +92,7 @@ export function CodigoComprobanteEditor({ pagoId, codigo }: Props) {
         <div className="flex items-center gap-3">
           <span className="font-mono text-lg font-semibold text-foreground">
             {codigo ?? 'Sin asignar'}
+            {codigo && subNumero > 1 && <span className="text-muted-foreground">.{subNumero}</span>}
           </span>
           <button
             type="button"

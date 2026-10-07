@@ -12,6 +12,8 @@ export const ROLE_LABELS: Record<Role, string> = {
   ing_civil: 'Ing. Civil',
   ing_electrico: 'Ing. Eléctrico',
   jefe_sig: 'Jefe SIG',
+  coordinador_ssoma: 'Coordinador SSOMA',
+  tesoreria: 'Tesorería',
 }
 
 export const ROLE_COLORS: Record<Role, string> = {
@@ -26,4 +28,6 @@ export const ROLE_COLORS: Record<Role, string> = {
   ing_civil: 'bg-blue-500/10 text-blue-600',
   ing_electrico: 'bg-amber-500/10 text-amber-600',
   jefe_sig: 'bg-orange-500/10 text-orange-600',
+  coordinador_ssoma: 'bg-orange-500/10 text-orange-600',
+  tesoreria: 'bg-emerald-500/10 text-emerald-600',
 }

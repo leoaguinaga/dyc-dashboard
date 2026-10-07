@@ -184,7 +184,10 @@ export function PagosView({
   const { data: session } = useSession();
   const role = session?.user?.role;
   const puedePagar =
-    role === "administrador" || role === "gerencia" || role === "admin_ti";
+    role === "administrador" ||
+    role === "gerencia" ||
+    role === "admin_ti" ||
+    role === "tesoreria";
   const puedeCrearRecordatorio = [
     "supervisor_civil",
     "supervisor_electrico",
@@ -192,13 +195,18 @@ export function PagosView({
     "ing_civil",
     "ing_electrico",
     "jefe_sig",
+    "coordinador_ssoma",
     "logistica",
     "administrador",
     "gerencia",
+    "tesoreria",
     "admin_ti",
   ].includes(role ?? "");
   const puedeVerFijos =
-    role === "administrador" || role === "gerencia" || role === "admin_ti";
+    role === "administrador" ||
+    role === "gerencia" ||
+    role === "admin_ti" ||
+    role === "tesoreria";
   const puedeCrearFijos = role === "administrador" || role === "admin_ti";
   const [tab, setTab] = useState<
     "borradores" | "pendientes" | "pagados" | "fijos"

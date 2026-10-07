@@ -1,121 +1,18 @@
-'use client'
+import { redirect } from 'next/navigation'
+import { getSessionUser } from '@/lib/api/server'
+import { safeRedirectPath } from '@/lib/auth/redirect'
+import { LoginForm } from './login-form'
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useRouter } from 'next/navigation'
-import { signIn } from '@/lib/auth/session'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useState } from 'react'
-import { Eye, EyeClosed } from 'lucide-react'
-import { ForgotPasswordDialog } from './forgot-password-dialog'
-
-const schema = z.object({
-  email: z.string().email('Correo inválido'),
-  password: z.string().min(8, 'Mínimo 8 caracteres'),
-})
-
-type FormData = z.infer<typeof schema>
-
-export default function LoginPage() {
-  const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema) })
-
-  async function onSubmit(data: FormData) {
-    const result = await signIn.email({
-      email: data.email,
-      password: data.password,
-      callbackURL: '/dashboard',
-    })
-    if (result?.error) {
-      setError('root', { message: 'Credenciales incorrectas' })
-    } else {
-      router.push('/dashboard')
-    }
-  }
-
-  return (
-    <div className="w-full max-w-sm space-y-6 sm:space-y-8 [@media(max-height:500px)]:space-y-4">
-      <div className="lg:hidden [@media(max-height:500px)]:hidden">
-        <span className="text-sm font-semibold tracking-tight text-foreground/70">
-          D&C Ingeniería y Proyectos
-        </span>
-      </div>
-
-      <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">Bienvenido de nuevo!</h1>
-        <p className="text-sm text-muted-foreground">
-          Ingresa tus credenciales para continuar
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 [@media(max-height:500px)]:space-y-3">
-        <Field label="Correo electrónico" error={errors.email?.message}>
-          <Input
-            {...register('email')}
-            type="email"
-            autoComplete="email"
-            placeholder="usuario@empresa.cl"
-            aria-invalid={!!errors.email}
-          />
-        </Field>
-
-        <Field label="Contraseña" error={errors.password?.message}>
-          <div className="relative">
-            <Input
-              {...register('password')}
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="current-password"
-              aria-invalid={!!errors.password}
-              className="pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
-              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-            >
-              {showPassword ? <EyeClosed className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <div className="flex justify-end">
-            <ForgotPasswordDialog />
-          </div>
-        </Field>
-
-        {errors.root && (
-          <p className="text-sm text-destructive">{errors.root.message}</p>
-        )}
-
-        <Button type="submit" className="w-full h-10.5" disabled={isSubmitting}>
-          {isSubmitting ? 'Ingresando...' : 'Ingresar'}
-        </Button>
-      </form>
-    </div>
-  )
-}
-
-function Field({
-  label,
-  error,
-  children,
+export default async function LoginPage({
+  searchParams,
 }: {
-  label: string
-  error?: string
-  children: React.ReactNode
+  searchParams: Promise<{ redirect?: string | string[] }>
 }) {
-  return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium">{label}</label>
-      {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
-  )
+  const { redirect: requested } = await searchParams
+  const redirectTo = safeRedirectPath(Array.isArray(requested) ? requested[0] : requested)
+
+  // Con la sesión activa no tiene sentido mostrar el login: va directo al destino.
+  if (await getSessionUser()) redirect(redirectTo)
+
+  return <LoginForm redirectTo={redirectTo} />
 }

@@ -4,6 +4,7 @@ import React from "react";
 import { ConstanciaPagoDocument } from "@/components/pdf/ConstanciaPagoDocument";
 import { anexarAdjuntosPdf, cargarAdjuntos } from "@/lib/constancia-adjuntos";
 import type { Pago } from "@/types/api";
+import { referenciaConstancia } from "@/lib/pagos-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,11 +43,7 @@ export async function GET(
     buffer,
     await cargarAdjuntos(pago.comprobantes ?? []),
   );
-  const referencia = (
-    pago.codigoComprobante ||
-    pago.numeroOperacion ||
-    pago.id.slice(-8)
-  ).replace(
+  const referencia = referenciaConstancia(pago).replace(
     /[^a-zA-Z0-9-_]/g,
     "-",
   );

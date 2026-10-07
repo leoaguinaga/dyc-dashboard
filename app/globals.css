@@ -46,6 +46,22 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Escala de texto: usar estos pasos en lugar de text-[Npx] */
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-data: 0.8125rem;
+  --text-data--line-height: 1.25rem;
+
+  /* Estado semántico (texto sobre su tinte >= 4.5:1) */
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
 }
 
 /* ─── Motion tokens ─────────────────────────────────────── */
@@ -74,7 +90,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.13 0.006 250 / 11%);
   --input: oklch(0.13 0.006 250 / 13%);
-  --ring: oklch(0.52 0.22 250 / 50%);
+  --ring: oklch(0.52 0.22 250 / 85%);
   /* semantic chart tokens */
   --chart-1: oklch(0.52 0.22 250);
   /* azul — primary */
@@ -87,6 +103,14 @@
   --chart-5: oklch(0.65 0.15 300);
   /* violeta — info */
   --radius: 0.5rem;
+  --success: oklch(0.42 0.12 155);
+  --success-soft: oklch(0.67 0.18 155 / 14%);
+  --warning: oklch(0.45 0.11 65);
+  --warning-soft: oklch(0.75 0.17 65 / 18%);
+  --danger: oklch(0.46 0.19 27);
+  --danger-soft: oklch(0.63 0.23 25 / 12%);
+  --info: oklch(0.45 0.18 250);
+  --info-soft: oklch(0.52 0.22 250 / 10%);
   /* sidebar */
   --sidebar: oklch(0.97 0.002 250);
   --sidebar-foreground: oklch(0.13 0.006 250);
@@ -117,7 +141,15 @@
   --destructive: oklch(0.65 0.22 25);
   --border: oklch(1 0 0 / 9%);
   --input: oklch(1 0 0 / 13%);
-  --ring: oklch(0.62 0.18 250 / 40%);
+  --ring: oklch(0.62 0.18 250 / 70%);
+  --success: oklch(0.8 0.15 155);
+  --success-soft: oklch(0.72 0.15 155 / 16%);
+  --warning: oklch(0.85 0.14 70);
+  --warning-soft: oklch(0.8 0.16 65 / 16%);
+  --danger: oklch(0.76 0.15 25);
+  --danger-soft: oklch(0.68 0.22 25 / 16%);
+  --info: oklch(0.78 0.12 250);
+  --info-soft: oklch(0.62 0.18 250 / 16%);
   /* semantic chart tokens */
   --chart-1: oklch(0.62 0.18 250);
   /* azul — primary */
@@ -148,7 +180,7 @@
 
   body {
     @apply bg-background text-foreground;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     /* Lienzo claro: profundidad sutil sin competir con las superficies. */
     background: linear-gradient(135deg,
         oklch(0.995 0.001 250) 0%,
@@ -216,4 +248,24 @@
         border-color 120ms var(--ease-out);
     }
   }
+}
+
+/* Entrada escalonada del menú lateral: --nav-delay lo fija cada ítem */
+@keyframes nav-enter {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+.nav-enter {
+  animation: nav-enter 200ms var(--ease-out) both;
+  animation-delay: var(--nav-delay, 0ms);
+}
+
+/* Respetar preferencia de movimiento reducido en todo el producto */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  button:not(:disabled):active, [role="button"]:not(:disabled):active { transform: none; }
 }

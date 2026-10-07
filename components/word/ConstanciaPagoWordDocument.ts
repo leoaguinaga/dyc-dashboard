@@ -17,7 +17,15 @@ import {
   WidthType,
 } from "docx";
 import type { Pago } from "@/types/api";
-import { getBeneficiario, getDestinoPago } from "@/lib/pagos-utils";
+import {
+  cuentaOrigenConstancia,
+  empresaDeConstancia,
+  getBeneficiario,
+  getDestinoPago,
+  referenciaConstancia,
+  responsableRegistroConstancia,
+  responsableRendicionConstancia,
+} from "@/lib/pagos-utils";
 import type { ImagenAdjunta } from "@/lib/constancia-adjuntos";
 
 const C = {
@@ -45,13 +53,6 @@ const noBorders = {
   insideHorizontal: { style: BorderStyle.NONE, size: 0, color: C.white },
   insideVertical: { style: BorderStyle.NONE, size: 0, color: C.white },
 };
-const EMPRESA = {
-  razonSocial: "DIAZ & CASTILLO INGENIERÍA Y PROYECTOS SAC",
-  ruc: "20608745611",
-  direccion:
-    "Av. Francisco Bolognesi 342 Int. B, Chiclayo, Chiclayo, Lambayeque",
-};
-
 type Align = "left" | "center" | "right";
 
 function run(
@@ -192,10 +193,8 @@ export async function renderConstanciaPagoWord(
   const beneficiario = getBeneficiario(pago);
   const destino = getDestinoPago(pago);
   const proyecto = pago.proyecto ?? pago.ordenCompra?.proyecto;
-  const referencia =
-    pago.codigoComprobante ||
-    pago.numeroOperacion ||
-    pago.id.slice(-8).toUpperCase();
+  const empresa = empresaDeConstancia(pago);
+  const referencia = referenciaConstancia(pago);
   const concepto =
     pago.concepto ?? pago.ordenCompra?.concepto ?? "Pago registrado";
   const cuenta = destino.numero ?? pago.numeroCuenta;
@@ -249,18 +248,20 @@ export async function renderConstanciaPagoWord(
                   new TableCell({
                     borders: noBorders,
                     children: [
-                      para(EMPRESA.razonSocial, {
+                      para(empresa.razonSocial, {
                         bold: true,
                         size: 27,
                         color: C.navy,
                         after: 30,
                       }),
-                      para(`RUC N° ${EMPRESA.ruc}`, {
+                      para(`RUC N° ${empresa.ruc}`, {
                         size: 14,
                         color: C.muted,
                         after: 20,
                       }),
-                      para(EMPRESA.direccion, { size: 14, color: C.muted }),
+                      ...(empresa.direccion
+                        ? [para(empresa.direccion, { size: 14, color: C.muted })]
+                        : []),
                     ],
                   }),
                   new TableCell({
@@ -401,7 +402,7 @@ export async function renderConstanciaPagoWord(
                   detailCell("Información de la obligación", [
                     ["N° de comprobante", referencia],
                     ["Tipo de gasto", value(pago.categoria)],
-                    ["Responsable", pago.registradoPor.name],
+                    ["Responsable", responsableRegistroConstancia(pago)],
                     ["Proveedor", beneficiario],
                   ]),
                   detailCell("Centro de costo y sustento", [
@@ -429,6 +430,7 @@ export async function renderConstanciaPagoWord(
                     ["Tipo de operación", value(pago.metodoPago)],
                     ["Fecha de pago", date(pago.fechaPagoReal)],
                     ["N° de operación", value(pago.numeroOperacion)],
+                    ["Cuenta de origen", cuentaOrigenConstancia(pago)],
                   ]),
                   detailCell("Datos bancarios", [
                     ["Banco / billetera", value(destino.bancoNorm)],
@@ -524,7 +526,7 @@ export async function renderConstanciaPagoWord(
                         color: C.muted,
                         after: 70,
                       }),
-                      para(pago.pagadoPor?.name ?? "No registrado", {
+                      para(responsableRendicionConstancia(pago), {
                         bold: true,
                         size: 17,
                         color: C.text,

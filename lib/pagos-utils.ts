@@ -208,3 +208,83 @@ export function getUrgencia(fechaProgramada: string) {
     badgeClass: 'bg-muted/50 text-muted-foreground border-border/40',
   }
 }
+
+/** Nombre del trabajador beneficiario cuando el pago va a una persona del sistema. */
+function trabajadorBeneficiario(pago: Pago): string | null {
+  return pago.tipoBeneficiario === 'trabajador' && pago.beneficiarioTrabajadorId
+    ? (pago.beneficiarioTrabajador?.nombre ?? null)
+    : null
+}
+
+/** Quien sustenta el gasto por defecto: lo ya registrado o, si el pago va a un trabajador, ese trabajador. */
+export function responsableRendicionInicial(pago: Pago | null): string {
+  if (!pago) return ''
+  return pago.responsableRendicionNombre ?? trabajadorBeneficiario(pago) ?? ''
+}
+
+/**
+ * Parte del cuerpo de `marcar-pagado` con la cuenta de origen y el responsable
+ * de la rendición. Si el responsable es el trabajador beneficiario se vincula a él;
+ * si no, queda solo el nombre escrito.
+ */
+export function datosOrigenYRendicion(pago: Pago, cuentaOrigenId: string, responsable: string) {
+  const nombre = responsable.trim()
+  const trabajador = trabajadorBeneficiario(pago)
+  return {
+    cuentaOrigenId: cuentaOrigenId || undefined,
+    ...(trabajador && nombre === trabajador
+      ? { responsableRendicionId: pago.beneficiarioTrabajadorId ?? undefined }
+      : nombre
+        ? { responsableRendicionNombre: nombre }
+        : {}),
+  }
+}
+
+const EMPRESA_DYC = {
+  razonSocial: 'DIAZ & CASTILLO INGENIERÍA Y PROYECTOS SAC',
+  ruc: '20608745611',
+  direccion: 'Av. Francisco Bolognesi 342 Int. B, Chiclayo, Chiclayo, Lambayeque',
+}
+
+/** Empresa que emite la constancia: la del pago; sin ella, D&C. La dirección solo se conoce para D&C. */
+export function empresaDeConstancia(pago: Pago) {
+  if (!pago.empresa) return EMPRESA_DYC
+  return {
+    razonSocial: pago.empresa.razonSocial,
+    ruc: pago.empresa.ruc,
+    direccion: pago.empresa.ruc === EMPRESA_DYC.ruc ? EMPRESA_DYC.direccion : null,
+  }
+}
+
+/** N° que identifica la constancia: AA-NNNN (con la línea si el comprobante se reparte: 26-2248.2). */
+export function referenciaConstancia(pago: Pago): string {
+  if (pago.codigoComprobante) {
+    const linea = pago.subNumero && pago.subNumero > 1 ? `.${pago.subNumero}` : ''
+    return `${pago.codigoComprobante}${linea}`
+  }
+  return pago.numeroOperacion || pago.id.slice(-8).toUpperCase()
+}
+
+/** Responsable de la rendición; para pagos anteriores a registrarlo, quien ejecutó el pago. */
+export function responsableRendicionConstancia(pago: Pago): string {
+  return (
+    pago.responsableRendicionNombre ??
+    pago.responsableRendicion?.nombre ??
+    pago.pagadoPor?.name ??
+    'No registrado'
+  )
+}
+
+/** Cuenta de la empresa de la que salió el dinero, para la constancia. */
+export function cuentaOrigenConstancia(pago: Pago): string {
+  return pago.cuentaOrigen ? `${pago.cuentaOrigen.banco} · ${pago.cuentaOrigen.numero}` : 'No registrado'
+}
+
+/**
+ * "Responsable" del registro en la constancia. En pagos importados, `registradoPor`
+ * es quien ejecutó la carga, no quien gestionó el pago: se usa quien generó el comprobante.
+ */
+export function responsableRegistroConstancia(pago: Pago): string {
+  if (pago.origen === 'importado') return pago.pagadoPor?.name ?? pago.generadoPorNombre ?? 'No registrado'
+  return pago.registradoPor.name
+}

@@ -5,6 +5,7 @@ import {
   cargarAdjuntos,
 } from "@/lib/constancia-adjuntos";
 import type { Pago } from "@/types/api";
+import { referenciaConstancia } from "@/lib/pagos-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,11 +36,7 @@ export async function GET(
     await cargarAdjuntos(pago.comprobantes ?? []),
   );
   const buffer = await renderConstanciaPagoWord(pago, adjuntos);
-  const referencia = (
-    pago.codigoComprobante ||
-    pago.numeroOperacion ||
-    pago.id.slice(-8)
-  ).replace(
+  const referencia = referenciaConstancia(pago).replace(
     /[^a-zA-Z0-9-_]/g,
     "-",
   );
