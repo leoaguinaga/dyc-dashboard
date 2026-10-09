@@ -818,7 +818,6 @@ export type ColumnaKanbanSolicitud =
   | "cotizacion_seleccion"
   | "aprobacion_gerencia"
   | "por_emitir"
-  | "compra_curso"
   | "recepcion_conformidad";
 
 export interface ConteoEstados<T extends string> {

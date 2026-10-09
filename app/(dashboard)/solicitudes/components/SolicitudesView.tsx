@@ -138,11 +138,6 @@ const KANBAN_COLUMNS: Array<{
       colorClass: "bg-cyan-500/10 text-cyan-800",
     },
     {
-      key: "compra_curso",
-      label: "Compra en curso",
-      colorClass: "bg-sky-500/10 text-sky-700",
-    },
-    {
       key: "recepcion_conformidad",
       label: "Recepción y conformidad",
       colorClass: "bg-amber-500/10 text-amber-800",
