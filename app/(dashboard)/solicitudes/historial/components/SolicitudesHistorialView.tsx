@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
+  ChevronsUp,
   AlertTriangle,
   Check,
   ChevronRight,
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils";
 import type {
   FlujoMacroSolicitud,
   FlujoPrecotizadoSolicitud,
+  PrioridadRequerimiento,
   SolicitudResumen,
   TipoRequerimiento,
 } from "@/types/api";
@@ -113,7 +115,7 @@ interface FilaMacro {
   totalSc: number;
   totalOc: number;
   conforme: boolean;
-  urgente: boolean;
+  prioridad: PrioridadRequerimiento;
 }
 
 function filaMacro(s: SolicitudResumen): FilaMacro {
@@ -149,7 +151,7 @@ function filaMacro(s: SolicitudResumen): FilaMacro {
     totalSc,
     totalOc,
     conforme: req.conformidad,
-    urgente: req.urgente,
+    prioridad: req.prioridad,
   };
 }
 
@@ -748,10 +750,16 @@ function TablaMacro({ filas }: { filas: FilaMacro[] }) {
                     >
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="font-mono text-[13px] font-medium">{f.s.codigo}</span>
-                        {f.urgente && (
+                        {f.prioridad === 'urgente' && (
                           <Chip className="bg-destructive/10 text-destructive">
                             <Zap className="size-3" />
                             Urgente
+                          </Chip>
+                        )}
+                        {f.prioridad === 'alta' && (
+                          <Chip className="bg-amber-100 text-amber-900">
+                            <ChevronsUp className="size-3" />
+                            Prioridad alta
                           </Chip>
                         )}
                       </span>

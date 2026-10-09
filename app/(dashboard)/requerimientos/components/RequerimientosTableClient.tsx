@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { AlertTriangle } from 'lucide-react'
+import { PrioridadMarca } from '@/components/requerimientos/PrioridadMarca'
 import { cn } from '@/lib/utils'
 import type { Requerimiento, EstadoRequerimiento, TipoRequerimiento } from '@/types/api'
 
@@ -89,7 +89,7 @@ export function RequerimientosTableClient({ requerimientos, emptyMessage }: Prop
                 <Link href={`/requerimientos/${r.id}`} className="hover:underline underline-offset-4">
                   <span className="flex items-center gap-1.5 font-mono text-sm font-medium tabular-nums">
                     {r.codigo}
-                    {r.urgente && <AlertTriangle className="size-3.75 text-amber-500 shrink-0" />}
+                    <PrioridadMarca r={r} />
                   </span>
                   <span className="block text-xs text-muted-foreground">{r.nombre}</span>
                 </Link>

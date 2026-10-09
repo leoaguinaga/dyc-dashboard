@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ADJUDICACION_MATRIX_ID, useAdjudicacion } from './AdjudicacionProvider'
 import { Check, Download, ShoppingCart, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { SolicitudItem, Cotizacion, EstadoSolicitud, OrdenCompra } from '@/types/api'
@@ -40,18 +42,9 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
 
   const received = cotizaciones.filter((c) => c.items.length > 0)
 
-  // ── selection state ──────────────────────────────────────────────────────
-  const [selections, setSelections] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {}
-    for (const cot of received) {
-      for (const item of cot.items) {
-        if (item.seleccionado && item.solicitudItemId) {
-          init[item.solicitudItemId] = item.id
-        }
-      }
-    }
-    return init
-  })
+  // ── selection state (compartida con las tarjetas de cotización) ──────────
+  const { selections, setSelections } = useAdjudicacion()
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -97,6 +90,9 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
     }
   }
 
+  const proveedoresGanadores = new Set(summary.keys())
+  const cotizacionesARechazar = received.filter((c) => !proveedoresGanadores.has(c.proveedorId)).length
+
   // Se puede adjudicar parcialmente: los ítems sin oferta o no seleccionados
   // no deben impedir comprar los que sí fueron adjudicados.
   const puedeSeleccionar = canAct && (estado === 'cotizada' || estado === 'aprobada_gerencia')
@@ -112,6 +108,7 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
         cotizacionItemId,
       }))
       await api.patch(`/solicitudes-cotizacion/${solicitudId}/adjudicar`, { adjudicaciones })
+      setConfirmOpen(false)
       router.refresh()
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Error al adjudicar')
@@ -121,7 +118,7 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
   }
 
   return (
-    <div className="rounded-xl border border-border bg-white p-5 space-y-5 col-span-full">
+    <div id={ADJUDICACION_MATRIX_ID} className="rounded-xl border border-border bg-white p-5 space-y-5 col-span-full scroll-mt-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Trophy className="size-4 text-muted-foreground" />
@@ -144,14 +141,9 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
                 ? `${selectedCount} ${selectedCount === 1 ? 'ítem adjudicado' : 'ítems adjudicados'} · los demás pueden quedar pendientes`
                 : 'Selecciona al menos un ítem para adjudicar'}
             </p>
-            <Button onClick={adjudicar} disabled={selectedCount === 0 || submitting} size="sm">
-              {submitting
-                ? 'Guardando…'
-                : estado === 'aprobada_gerencia'
-                  ? 'Guardar adjudicación'
-                  : 'Confirmar adjudicación'}
+            <Button onClick={() => { setErr(null); setConfirmOpen(true) }} disabled={selectedCount === 0 || submitting} size="sm">
+              {estado === 'aprobada_gerencia' ? 'Guardar adjudicación' : 'Confirmar adjudicación'}
             </Button>
-            {err && <p className="text-xs text-destructive">{err}</p>}
           </div>
         ) : estado === 'orden_generada' ? (
           <div className="flex items-center gap-1.5 text-xs font-medium text-chart-2 bg-chart-2/10 px-2.5 py-1 rounded-md border border-chart-2/30">
@@ -333,6 +325,43 @@ export function AdjudicacionMatrix({ solicitudId, solicitudItems, cotizaciones, 
           ))}
         </div>
       )}
+
+      <Dialog open={confirmOpen} onOpenChange={(open) => !submitting && setConfirmOpen(open)}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>{estado === 'aprobada_gerencia' ? 'Guardar adjudicación' : 'Confirmar adjudicación'}</DialogTitle>
+            <DialogDescription>
+              {estado === 'aprobada_gerencia'
+                ? 'Se actualizarán los ítems adjudicados de esta solicitud.'
+                : 'Las cotizaciones sin ítems adjudicados quedarán rechazadas. Puedes revertir la adjudicación mientras no exista una orden de compra.'}
+            </DialogDescription>
+          </DialogHeader>
+          <ul className="divide-y divide-border border-y border-border text-sm">
+            {[...summary.values()].map((entry) => (
+              <li key={entry.nombre} className="flex items-center justify-between gap-3 py-2">
+                <span className="min-w-0 truncate">
+                  {entry.nombre}
+                  <span className="text-xs text-muted-foreground"> · {entry.items.length} {entry.items.length === 1 ? 'ítem' : 'ítems'}</span>
+                </span>
+                <span className="font-medium tabular-nums shrink-0">{fmt(entry.subtotal)}</span>
+              </li>
+            ))}
+            <li className="flex items-center justify-between py-2 text-muted-foreground">
+              <span>Cotizaciones que se rechazarán</span>
+              <span className="tabular-nums">{cotizacionesARechazar}</span>
+            </li>
+            <li className="flex items-center justify-between py-2 text-muted-foreground">
+              <span>Ítems sin adjudicar</span>
+              <span className="tabular-nums">{solicitudItems.length - selectedCount}</span>
+            </li>
+          </ul>
+          {err && <p role="alert" className="text-xs text-destructive">{err}</p>}
+          <DialogFooter>
+            <Button variant="outline" disabled={submitting} onClick={() => setConfirmOpen(false)}>Volver</Button>
+            <Button disabled={submitting} onClick={() => void adjudicar()}>{submitting ? 'Guardando…' : 'Adjudicar'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   )

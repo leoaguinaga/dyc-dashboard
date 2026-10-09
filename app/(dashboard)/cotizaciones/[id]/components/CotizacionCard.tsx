@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, ClipboardEdit, UserX, FileText, ExternalLink } from 'lucide-react'
+import { Trophy, ClipboardEdit, UserX, FileText, ExternalLink } from 'lucide-react'
 import { api, API_ORIGIN } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { cn, formatDateOnly } from '@/lib/utils'
 import { ReceiveCotizacionForm } from './ReceiveCotizacionForm'
+import { ADJUDICACION_MATRIX_ID, useAdjudicacion } from './AdjudicacionProvider'
 import type { Cotizacion, SolicitudItem, EstadoCotizacion, EstadoSolicitud, Role } from '@/types/api'
 
 const ESTADO_LABEL: Record<EstadoCotizacion, string> = {
@@ -52,7 +53,7 @@ interface Props {
 export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicitudEstado, role }: Props) {
   const router = useRouter()
   const [showReceive, setShowReceive] = useState(false)
-  const [approving, setApproving] = useState(false)
+  const { preseleccionarProveedor } = useAdjudicacion()
   const [markingNoResponse, setMarkingNoResponse] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -73,17 +74,10 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
     solicitudEstado !== 'orden_generada' && solicitudEstado !== 'cancelada' &&
     (solicitudEstado !== 'aprobada_gerencia' || ROLES_GERENCIA.includes(role))
 
-  async function handleAprobar() {
-    setApproving(true)
-    setError(null)
-    try {
-      await api.patch(`/solicitudes-cotizacion/cotizaciones/${cotizacion.id}/aprobar`, {})
-      router.refresh()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al aprobar')
-    } finally {
-      setApproving(false)
-    }
+  // Solo preselecciona en la matriz: guardar la adjudicación exige confirmarla allí.
+  function handleAdjudicarTodo() {
+    preseleccionarProveedor(cotizacion)
+    document.getElementById(ADJUDICACION_MATRIX_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   async function handleNoRespondio() {
@@ -269,9 +263,9 @@ export function CotizacionCard({ cotizacion, solicitudItems, canApprove, solicit
           </Button>
         )}
         {cotizacion.estado === 'recibida' && canApprove && (
-          <Button size="sm" onClick={handleAprobar} disabled={approving}>
-            <CheckCircle2 className="size-3.5" />
-            {approving ? 'Aprobando…' : 'Aprobar cotización'}
+          <Button size="sm" onClick={handleAdjudicarTodo}>
+            <Trophy className="size-3.5" />
+            Adjudicar todo a este proveedor
           </Button>
         )}
         {puedeEditarRespuesta && !showReceive && (

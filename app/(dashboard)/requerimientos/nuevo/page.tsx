@@ -15,17 +15,15 @@ export default async function NuevoRequerimientoPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-[120ms] hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" />
-          Volver a requerimientos
+          Volver a solicitudes
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Nuevo requerimiento</h1>
-        <p className="text-sm text-muted-foreground">
-          Describe los materiales o equipos que necesitas para el proyecto.
-        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-semibold tracking-tight">Nuevo requerimiento</h1>
+          <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">Borrador</span>
+        </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
-        <CreateRequerimientoForm proyectos={proyectos} />
-      </div>
+      <CreateRequerimientoForm proyectos={proyectos} />
     </div>
   )
 }

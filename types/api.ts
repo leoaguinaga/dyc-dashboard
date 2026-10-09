@@ -18,6 +18,7 @@ export type TipoRequerimiento =
   | "civil"
   | "seguridad"
   | "administrativo";
+export type PrioridadRequerimiento = "normal" | "alta" | "urgente";
 export type EstadoProyecto =
   | "planificacion"
   | "ejecucion"
@@ -777,6 +778,7 @@ export interface Requerimiento {
   estado: EstadoRequerimiento;
   tipo: TipoRequerimiento;
   urgente: boolean;
+  prioridad: PrioridadRequerimiento;
   nota?: string;
   notaRevision?: string;
   fechaEntregaRequerida?: string;
@@ -829,6 +831,7 @@ export interface FlujoMacroSolicitud {
   requerimiento: {
     estado: EstadoRequerimiento;
     urgente: boolean;
+    prioridad: PrioridadRequerimiento;
     notaRevision: string | null;
     fechaEntregaRequerida: string | null;
     items: number;

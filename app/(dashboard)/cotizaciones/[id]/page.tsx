@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { InviteProveedorForm } from './components/InviteProveedorForm'
 import { CotizacionesTabs } from './components/CotizacionesTabs'
 import { AdjudicacionMatrix } from './components/AdjudicacionMatrix'
+import { AdjudicacionProvider } from './components/AdjudicacionProvider'
 import { SolicitudActions } from './components/SolicitudActions'
 import { MaterialesSolicitadosCard } from './components/MaterialesSolicitadosCard'
 import { OrdenesGeneradasCard } from './components/OrdenesGeneradasCard'
@@ -16,8 +17,8 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-// Debe coincidir con @Roles del endpoint PATCH .../cotizaciones/:id/aprobar
-const CON_ACCESO_APROBAR_COTIZACION = ['administrador', 'admin_ti', 'gerencia']
+// Debe coincidir con @Roles del endpoint PATCH .../:id/adjudicar (el mismo gate de la matriz)
+const CON_ACCESO_APROBAR_COTIZACION = ['administrador', 'admin_ti', 'logistica', 'gerencia']
 
 const ESTADO_LABEL: Record<EstadoSolicitud, string> = {
   borrador: 'Borrador',
@@ -76,6 +77,7 @@ export default async function SolicitudDetailPage({ params }: Props) {
   const puedeEmitirOrden = s.estado === 'aprobada_gerencia' && ordenesExistentes.length === 0 && tieneAdjudicacion
 
   return (
+    <AdjudicacionProvider cotizaciones={receivedCotizaciones}>
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-1">
@@ -285,5 +287,6 @@ export default async function SolicitudDetailPage({ params }: Props) {
         />
       )}
     </div>
+    </AdjudicacionProvider>
   )
 }
