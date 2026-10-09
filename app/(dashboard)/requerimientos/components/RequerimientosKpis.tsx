@@ -7,7 +7,7 @@ export async function RequerimientosKpis() {
   if (!result) return null
 
   const total = result.length
-  const urgentes = result.filter((r) => r.urgente).length
+  const urgentes = result.filter((r) => r.prioridad === 'urgente').length
   const enviados = result.filter((r) => r.estado === 'enviado').length
   const aprobados = result.filter((r) => r.estado === 'aprobado').length
 

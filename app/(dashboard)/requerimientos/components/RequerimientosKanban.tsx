@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import Link from 'next/link'
-import { AlertTriangle } from 'lucide-react'
+import { PrioridadMarca } from '@/components/requerimientos/PrioridadMarca'
 import { cn } from '@/lib/utils'
 import { KanbanBoard } from '@/components/shared/KanbanBoard'
 import { ESTADO_LABEL, ESTADO_CLASS, TIPO_COLOR, fmt } from './RequerimientosTableClient'
@@ -59,7 +59,7 @@ export function RequerimientosKanban({ requerimientos, emptyMessage }: Props) {
               <div className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-1.5 font-mono text-xs font-medium tabular-nums">
                   {r.codigo}
-                  {r.urgente && <AlertTriangle className="size-3.5 shrink-0 text-amber-500" />}
+                  <PrioridadMarca r={r} />
                 </span>
               </div>
               <p className="mt-1 line-clamp-2 font-medium">{r.nombre}</p>

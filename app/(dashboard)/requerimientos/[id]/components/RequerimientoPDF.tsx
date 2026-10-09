@@ -109,9 +109,14 @@ function RequerimientoDocument({ r }: { r: Requerimiento }) {
             )}
           </View>
 
-          {r.urgente && (
+          {r.prioridad === 'urgente' && (
             <View style={[s.alertBox, { backgroundColor: '#fef2f2', borderColor: '#fca5a5' }]}>
               <Text style={[s.alertText, { color: '#991b1b' }]}>⚠  Requerimiento urgente — se requiere cotización a la brevedad</Text>
+            </View>
+          )}
+          {r.prioridad === 'alta' && (
+            <View style={[s.alertBox, { backgroundColor: '#fffbeb', borderColor: '#fcd34d' }]}>
+              <Text style={[s.alertText, { color: '#92400e' }]}>Prioridad alta — atender antes que los requerimientos normales</Text>
             </View>
           )}
         </View>

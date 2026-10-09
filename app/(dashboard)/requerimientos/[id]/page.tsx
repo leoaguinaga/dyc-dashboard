@@ -122,7 +122,7 @@ export default async function RequerimientoDetailPage({ params }: Props) {
       </div>
 
       {/* Alerta principal: lo más urgente va primero, no perdido entre badges */}
-      {(r.urgente || entregaVencida) && (
+      {(r.prioridad === 'urgente' || entregaVencida) && (
         <div className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-600">
             <AlertTriangle className="size-4.5" />

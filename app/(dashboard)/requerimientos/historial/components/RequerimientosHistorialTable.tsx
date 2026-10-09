@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
+import { PrioridadMarca } from '@/components/requerimientos/PrioridadMarca'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
@@ -151,7 +152,7 @@ export function RequerimientosHistorialTable({ initial }: Props) {
                     <Link href={`/requerimientos/${r.id}`} className="hover:underline underline-offset-4">
                       <span className="flex items-center gap-1.5 font-mono text-sm font-medium tabular-nums">
                         {r.codigo}
-                        {r.urgente && <AlertTriangle className="size-3.75 text-amber-500 shrink-0" />}
+                        <PrioridadMarca r={r} />
                       </span>
                       <span className="block text-xs text-muted-foreground">{r.nombre}</span>
                     </Link>

@@ -271,20 +271,20 @@ export const GUIAS_PROCESOS: GuiaProceso[] = [
       },
       {
         numero: 2,
-        titulo: 'Seleccionar Proyecto, Tipo y Sustento',
-        descripcion: 'Elige el proyecto al cual se imputará el gasto. Selecciona el tipo de requerimiento correcto:',
+        titulo: 'Completar la información general',
+        descripcion: 'Tu nombre aparece como solicitante. Elige el proyecto o centro de costos al cual se imputará el gasto, la fecha en que se necesita (obligatoria para enviar) y la prioridad: Normal, Alta o Urgente. Selecciona el tipo de requerimiento correcto:',
         detalle: [
           'Civil: Materiales de construcción, agregados, fierro, encofrados (Revisado por Ing. Civil).',
           'Eléctrico: Cables, tableros, transformadores, luminarias (Revisado por Ing. Eléctrico).',
-          'Seguridad: EPPs, señalética, conos, botiquines, líneas de vida (Revisado por Jefe SIG).',
+          'SSOMA (seguridad): EPPs, señalética, conos, botiquines, líneas de vida (Revisado por Jefe SIG).',
           'Administrativo: Útiles de oficina, suministros generales (Revisado por Logística).',
         ],
-        tip: 'Escribe un sustento claro explicando para qué actividad del cronograma o frente de trabajo se usarán estos materiales.',
+        tip: 'En "Observaciones generales / Justificación" explica para qué actividad del cronograma o frente de trabajo se usarán estos materiales. El requerimiento toma su nombre del primer ítem.',
       },
       {
         numero: 3,
         titulo: 'Agregar Ítems y Especificaciones Técnicas',
-        descripcion: 'Haz clic en "+ Agregar ítem". Completa la descripción exacta del material, la cantidad solicitada y la unidad de medida normalizada (und, kg, m, bolsa, gal, etc.).',
+        descripcion: 'Haz clic en "Agregar fila" (o pulsa Enter en la última celda; también puedes pegar desde Excel). Completa la descripción exacta del material, la cantidad solicitada y la unidad de medida normalizada (und, kg, m, bolsa, gal, etc.).',
         detalle: [
           'Puedes indicar marca de referencia o especificación obligatoria (ej: "Cable THW 4mm2 marca Indeco").',
           'Si el ítem requiere ficha técnica o plano, puedes adjuntarlo en el campo de observaciones o archivos.',
@@ -294,7 +294,7 @@ export const GUIAS_PROCESOS: GuiaProceso[] = [
       {
         numero: 4,
         titulo: 'Guardar como Borrador o Enviar a Revisión',
-        descripcion: 'Si aún estás recopilando datos, puedes guardarlo como "Borrador". Cuando esté completo, presiona "Enviar a revisión". El requerimiento pasará al estado "Enviado" y notificará al aprobador correspondiente.',
+        descripcion: 'Si aún estás recopilando datos, puedes guardarlo como "Borrador". Cuando esté completo, presiona "Confirmar y enviar requerimiento". El requerimiento pasará al estado "Enviado" y notificará al aprobador correspondiente.',
       },
     ],
     estados: [

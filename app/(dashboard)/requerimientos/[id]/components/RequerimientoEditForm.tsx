@@ -10,7 +10,9 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { UNIDAD_OPTIONS } from '@/lib/inventario'
-import type { Proyecto, Requerimiento, TipoRequerimiento } from '@/types/api'
+import { prioridadDe } from '@/lib/prioridad'
+import { PrioridadSegmentada } from '@/components/requerimientos/PrioridadSegmentada'
+import type { PrioridadRequerimiento, Proyecto, Requerimiento, TipoRequerimiento } from '@/types/api'
 
 interface LineaItem {
   descripcion: string
@@ -59,7 +61,7 @@ export function RequerimientoEditForm({
   const [nombre, setNombre] = useState(r.nombre)
   const [proyectoId, setProyectoId] = useState(r.proyectoId)
   const [tipo, setTipo] = useState<TipoRequerimiento>(r.tipo)
-  const [urgente, setUrgente] = useState(r.urgente)
+  const [prioridad, setPrioridad] = useState<PrioridadRequerimiento>(prioridadDe(r))
   const [nota, setNota] = useState(r.nota ?? '')
   const [fechaEntregaRequerida, setFechaEntregaRequerida] = useState(
     r.fechaEntregaRequerida ? r.fechaEntregaRequerida.slice(0, 10) : '',
@@ -96,7 +98,7 @@ export function RequerimientoEditForm({
         nombre: nombre.trim(),
         tipo: mode === 'admin_ti' ? tipo : undefined,
         proyectoId: canChangeObra && proyectoId !== r.proyectoId ? proyectoId : undefined,
-        urgente,
+        prioridad,
         nota: nota.trim() || undefined,
         fechaEntregaRequerida: fechaEntregaRequerida || undefined,
         items: lineas.map((l) => ({
@@ -208,7 +210,7 @@ export function RequerimientoEditForm({
         )}
 
         <div>
-          <label className={labelCn}>Fecha máx. de entrega</label>
+          <label className={labelCn}>Fecha requerida</label>
           <DatePicker
             value={fechaEntregaRequerida}
             onValueChange={setFechaEntregaRequerida}
@@ -226,15 +228,10 @@ export function RequerimientoEditForm({
         </div>
       </div>
 
-      <label className="flex items-center gap-2 cursor-pointer w-fit">
-        <input
-          type="checkbox"
-          checked={urgente}
-          onChange={(e) => setUrgente(e.target.checked)}
-          className="size-4 rounded border-border accent-primary"
-        />
-        <span className="text-sm font-medium">Marcar como urgente</span>
-      </label>
+      <div className="max-w-sm">
+        <p id="edit-prioridad-label" className="mb-1.5 text-[13px] font-medium">Prioridad</p>
+        <PrioridadSegmentada value={prioridad} onChange={setPrioridad} labelledBy="edit-prioridad-label" />
+      </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
