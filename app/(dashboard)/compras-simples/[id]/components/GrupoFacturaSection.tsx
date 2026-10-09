@@ -51,17 +51,42 @@ export function GrupoFacturaSection({ grupoId, archivos, estadoAprobacion, cread
     }
   }
 
+  const cotizaciones = archivos.filter((a) => a.tipo === 'cotizacion')
+  const facturas = archivos.filter((a) => a.tipo !== 'cotizacion')
+
   if (archivos.length === 0 && !puedeSubir) return null
 
   return (
+    <>
+      {cotizaciones.length > 0 && (
+        <div className="border-t border-border pt-3 space-y-2">
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Cotización o proforma</h3>
+          <ul className="space-y-1.5">
+            {cotizaciones.map((a) => (
+              <li key={a.id}>
+                <a
+                  href={`${API_ORIGIN}${a.url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline underline-offset-2"
+                >
+                  <FileText className="size-3.5 shrink-0" />
+                  {a.nombreOriginal}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {(facturas.length > 0 || puedeSubir) && (
     <div className="border-t border-border pt-3 space-y-2">
       <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {esRendicion ? 'Comprobante de compra' : 'Factura'}
       </h3>
 
-      {archivos.length > 0 && (
+      {facturas.length > 0 && (
         <ul className="space-y-1.5">
-          {archivos.map((a) => (
+          {facturas.map((a) => (
             <li key={a.id}>
               <a
                 href={`${API_ORIGIN}${a.url}`}
@@ -103,5 +128,7 @@ export function GrupoFacturaSection({ grupoId, archivos, estadoAprobacion, cread
         </div>
       )}
     </div>
+      )}
+    </>
   )
 }

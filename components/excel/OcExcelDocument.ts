@@ -143,7 +143,9 @@ export async function renderOcExcel(oc: OrdenCompra) {
   )
   dateCell.font = { name: 'Arial', size: 8, color: { argb: COLORS.gray } }
   dateCell.alignment = { horizontal: 'right', vertical: 'middle' }
+  sheet.getRow(1).height = 6
   sheet.getRow(7).height = 6
+  sheet.getRow(8).height = 6
   sheet.getCell('A7').border = { bottom: { style: 'medium', color: { argb: COLORS.navy } } }
   sheet.mergeCells('A7:F7')
 
@@ -177,10 +179,11 @@ export async function renderOcExcel(oc: OrdenCompra) {
   styleSectionBox(sheet, 'A9:C16')
   styleSectionBox(sheet, 'D9:F16')
 
+  sheet.getRow(17).height = 8
   const itemHeaderRow = 18
   const headers = ['Cod.', 'Cant.', 'U.D.M', 'Descripción', 'P. Unitario', 'P. Total']
   sheet.getRow(itemHeaderRow).values = headers
-  sheet.getRow(itemHeaderRow).height = 24
+  sheet.getRow(itemHeaderRow).height = 20
   sheet.getRow(itemHeaderRow).eachCell((cell, column) => {
     cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: COLORS.white } }
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.navy } }
@@ -198,7 +201,7 @@ export async function renderOcExcel(oc: OrdenCompra) {
       number(item.precioUnitario),
       number(item.precioTotal),
     ]
-    row.height = 22
+    row.height = 18
     row.eachCell((cell, column) => {
       cell.font = { name: 'Arial', size: 9, color: { argb: COLORS.text } }
       cell.alignment = {
@@ -362,6 +365,8 @@ export async function renderOcExcel(oc: OrdenCompra) {
   )
   reserveCell.font = { name: 'Arial', size: 8, italic: true, color: { argb: COLORS.gray } }
 
+  // Firmas: Administración y Logística juntas a la izquierda; a la derecha, espacio vacío para quien Recibe.
+  // Tres espacios: A:C, D y E:F.
   const signatureRow = lastRow + 3
   const adminImage = workbook.addImage({
     filename: path.join(process.cwd(), 'public', 'signatures', 'jefe-admin.jpg'),
@@ -371,17 +376,64 @@ export async function renderOcExcel(oc: OrdenCompra) {
     filename: path.join(process.cwd(), 'public', 'signatures', 'logistica.jpg'),
     extension: 'jpeg',
   })
-  sheet.addImage(adminImage, { tl: { col: 0.8, row: signatureRow - 1 }, ext: { width: 180, height: 78 } })
-  sheet.addImage(logisticsImage, { tl: { col: 4.15, row: signatureRow - 1 }, ext: { width: 180, height: 78 } })
+  // Anchos aproximados en px: A:C ≈ 302, D ≈ 341. Las imágenes (180 px) se centran en su espacio.
+  sheet.addImage(adminImage, { tl: { col: 0.69, row: signatureRow - 1 }, ext: { width: 180, height: 78 } })
+  sheet.addImage(logisticsImage, { tl: { col: 3.235, row: signatureRow - 1 }, ext: { width: 180, height: 78 } })
   sheet.getRow(signatureRow).height = 62
-  const adminLabel = mergeValue(sheet, `A${signatureRow + 1}:C${signatureRow + 1}`, 'Jefe de Administración')
-  const logisticsLabel = mergeValue(sheet, `D${signatureRow + 1}:F${signatureRow + 1}`, 'Logística')
-  for (const cell of [adminLabel, logisticsLabel]) {
-    cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: COLORS.navy } }
-    cell.alignment = { horizontal: 'center', vertical: 'middle' }
-    cell.border = { top: { style: 'thin', color: { argb: COLORS.text } } }
+  // La línea de firma es texto (no borde de celda) para que cada espacio tenga su propia línea separada.
+  const lineRow = signatureRow + 1
+  const labelRow = signatureRow + 2
+  const slots: Array<[string, string]> = [
+    ['A:C', 'Jefe de Administración'],
+    ['D:D', 'Logística'],
+    ['E:F', 'Recibe'],
+  ]
+  sheet.getRow(lineRow).height = 12
+  for (const [range, label] of slots) {
+    const [from, to] = range.split(':')
+    const line = mergeValue(sheet, `${from}${lineRow}:${to}${lineRow}`, '_'.repeat(34))
+    line.font = { name: 'Arial', size: 10, color: { argb: COLORS.text } }
+    line.alignment = { horizontal: 'center', vertical: 'bottom' }
+    const text = mergeValue(sheet, `${from}${labelRow}:${to}${labelRow}`, label)
+    text.font = { name: 'Arial', size: 9, bold: true, color: { argb: COLORS.navy } }
+    text.alignment = { horizontal: 'center', vertical: 'middle' }
   }
-  lastRow = signatureRow + 1
+  lastRow = labelRow
+
+  // ── Paginación ───────────────────────────────────────────────────────────
+  // Cuando todo cabe en una hoja (aun reduciendo la escala hasta ~65 %), se imprime en una sola. Si no,
+  // se mantiene la escala por ancho, se repite la cabecera de ítems y el bloque de cierre (totales,
+  // pago, contactos y firmas) se mueve completo a la última hoja en lugar de partirse.
+  const rowHeights: number[] = []
+  for (let rowNumber = 1; rowNumber <= lastRow; rowNumber += 1) {
+    rowHeights[rowNumber] = sheet.getRow(rowNumber).height ?? 15
+  }
+  const sumRows = (from: number, to: number) => {
+    let total = 0
+    for (let rowNumber = from; rowNumber <= to; rowNumber += 1) total += rowHeights[rowNumber]
+    return total
+  }
+  const WIDTH_SCALE = 0.78
+  const PAGE_HEIGHT_PT = 842 - 0.9 * 72
+  const pageCapacity = PAGE_HEIGHT_PT / WIDTH_SCALE
+  const totalHeight = sumRows(1, lastRow)
+  const MIN_SCALE_FACTOR = 0.83 // 0.78 × 0.83 ≈ 65 % de escala mínima aceptable
+
+  if (totalHeight <= pageCapacity / MIN_SCALE_FACTOR) {
+    sheet.pageSetup.fitToPage = true
+    sheet.pageSetup.fitToWidth = 1
+    sheet.pageSetup.fitToHeight = 1
+  } else {
+    sheet.pageSetup.fitToPage = false
+    sheet.pageSetup.scale = Math.round(WIDTH_SCALE * 100)
+    sheet.pageSetup.printTitlesRow = `${itemHeaderRow}:${itemHeaderRow}`
+    const closingStart = totalsStart
+    const closingHeight = sumRows(closingStart, lastRow)
+    const usedOnLastPage = sumRows(1, closingStart - 1) % pageCapacity
+    if (usedOnLastPage + closingHeight > pageCapacity) {
+      sheet.getRow(closingStart - 1).addPageBreak()
+    }
+  }
 
   sheet.eachRow((row) => {
     row.eachCell((cell) => {

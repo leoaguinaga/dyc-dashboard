@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
-import { Pencil, Check, X } from 'lucide-react'
+import { Check, X, MapPin } from 'lucide-react'
+import { EditButton } from './EditButton'
 
 interface Props {
   ocId: string
@@ -22,7 +23,7 @@ export function LugarEntregaEditor({ ocId, lugarEntrega, editable = true }: Prop
   const [err, setErr] = useState<string | null>(null)
 
   const role = session?.user?.role
-  const canEdit = editable && (role === 'administrador' || role === 'admin_ti' || role === 'logistica')
+  const canEdit = editable && (role === 'administrador' || role === 'admin_ti' || role === 'logistica' || role === 'gerencia')
 
   async function save() {
     setSaving(true)
@@ -44,27 +45,39 @@ export function LugarEntregaEditor({ ocId, lugarEntrega, editable = true }: Prop
     setErr(null)
   }
 
+  const label = (
+    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+      <MapPin className="size-3.5" aria-hidden="true" />
+      Lugar de entrega
+    </span>
+  )
+
   if (!editing) {
+    if (!lugarEntrega) {
+      return (
+        <div className="flex items-center justify-between gap-3">
+          <span className="flex flex-wrap items-center gap-x-1.5 text-sm">
+            {label}
+            <span className="text-muted-foreground italic">· Sin definir</span>
+          </span>
+          {canEdit && <EditButton variant="definir" target="el lugar de entrega" onClick={() => setEditing(true)} />}
+        </div>
+      )
+    }
     return (
-      <div className="flex items-center justify-between gap-3">
-        <span className={lugarEntrega ? 'text-sm font-medium text-foreground' : 'text-sm text-muted-foreground italic'}>
-          {lugarEntrega ?? 'Sin definir'}
-        </span>
-        {canEdit && (
-          <button
-            onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer shrink-0"
-          >
-            <Pencil className="size-3" />
-            Editar
-          </button>
-        )}
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-0.5">
+          {label}
+          <p className="text-sm font-medium text-foreground">{lugarEntrega}</p>
+        </div>
+        {canEdit && <EditButton target="el lugar de entrega" onClick={() => setEditing(true)} />}
       </div>
     )
   }
 
   return (
     <div className="space-y-1.5">
+      {label}
       <input
         type="text"
         value={value}
@@ -73,9 +86,10 @@ export function LugarEntregaEditor({ ocId, lugarEntrega, editable = true }: Prop
           if (e.key === 'Enter') save()
           if (e.key === 'Escape') cancel()
         }}
+        aria-label="Lugar de entrega"
         placeholder="Ej: Av. Industrial 123, Ate, Lima"
         autoFocus
-        className="w-full rounded-md border border-border bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        className="w-full rounded-md border border-border bg-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
       />
       <div className="flex items-center gap-1.5">
         <Button size="sm" onClick={save} disabled={saving} className="h-7 px-3 text-xs gap-1">

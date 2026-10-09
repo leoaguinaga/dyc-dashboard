@@ -1,6 +1,5 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { RegistroHeader } from '@/components/registro/RegistroHeader'
 import { serverFetch } from '@/lib/api/server'
 import { CreateCompraSimpleForm } from './components/CreateCompraSimpleForm'
 import type { Proyecto, Proveedor, User } from '@/types/api'
@@ -23,23 +22,8 @@ export default async function NuevaCompraSimplePage() {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-1">
-        <Link
-          href="/compras-simples"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-[120ms] hover:text-foreground"
-        >
-          <ArrowLeft className="size-3.5" />
-          Volver a compras simples
-        </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Nueva compra simple</h1>
-        <p className="text-sm text-muted-foreground">
-          Registra una compra ya cotizada o realizada en campo, agrupada por empresa.
-        </p>
-      </div>
-
-      <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
-        <CreateCompraSimpleForm proyectos={proyectos} proveedores={proveedores} />
-      </div>
+      <RegistroHeader backHref="/compras-simples" backLabel="Volver a compras simples" title="Nueva compra simple" estado="Sin registrar" />
+      <CreateCompraSimpleForm proyectos={proyectos} proveedores={proveedores} />
     </div>
   )
 }

@@ -818,7 +818,6 @@ export type ColumnaKanbanSolicitud =
   | "cotizacion_seleccion"
   | "aprobacion_gerencia"
   | "por_emitir"
-  | "compra_curso"
   | "recepcion_conformidad";
 
 export interface ConteoEstados<T extends string> {
@@ -1209,7 +1208,7 @@ export interface CompraSimple {
   grupos: OrdenCompra[];
 }
 
-export type TipoArchivoCompraSimple = "comprobante" | "foto_producto";
+export type TipoArchivoCompraSimple = "comprobante" | "foto_producto" | "cotizacion";
 
 export interface CompraSimpleGrupoArchivo {
   id: string;

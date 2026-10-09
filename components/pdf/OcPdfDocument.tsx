@@ -53,115 +53,126 @@ const s = StyleSheet.create({
     fontFamily: 'Helvetica',
     fontSize: 9,
     color: C.text,
-    paddingTop: 40,
-    paddingBottom: 60,
-    paddingHorizontal: 44,
+    paddingTop: 28,
+    paddingBottom: 38,
+    paddingHorizontal: 40,
     backgroundColor: C.white,
   },
+
+  // ── Barra de continuación (solo páginas 2+) ─────────────────────────────
+  contBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1.5,
+    borderBottomColor: C.navy,
+    paddingBottom: 5,
+    marginBottom: 8,
+  },
+  contBarText: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: C.navy },
+  contBarMuted: { fontSize: 8, color: C.muted },
 
   // ── Header ──────────────────────────────────────────────────────────────
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   companyBlock: { gap: 2, maxWidth: 300 },
-  companyName: { fontSize: 15, fontFamily: 'Helvetica-Bold', color: C.navy, letterSpacing: 0.3 },
+  companyName: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: C.navy, letterSpacing: 0.2 },
   companyTagline: { fontSize: 7, color: C.muted, marginTop: 2 },
-  companyRuc: { fontSize: 8, color: C.muted },
-  companyAddress: { fontSize: 8, color: C.muted },
-  docBlock: { alignItems: 'flex-end', gap: 3 },
+  docBlock: { alignItems: 'flex-end', gap: 2 },
   docLabel: { fontSize: 11, fontFamily: 'Helvetica-Bold', color: C.blue, letterSpacing: 0.5, textAlign: 'right' },
-  docSubLabel: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: C.muted, letterSpacing: 0.4, textAlign: 'right' },
+  docSubLabel: { fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: C.muted, letterSpacing: 0.4, textAlign: 'right' },
   docNumero: { fontSize: 13, fontFamily: 'Helvetica-Bold', color: C.navy },
-  docNombre: { fontSize: 9, color: C.text, textAlign: 'right' },
+  docNombre: { fontSize: 8.5, color: C.text, textAlign: 'right' },
   docFecha: { fontSize: 8, color: C.muted },
 
   // ── Divider ──────────────────────────────────────────────────────────────
-  divider: { borderBottomWidth: 2, borderBottomColor: C.navy, marginBottom: 14 },
-  dividerThin: { borderBottomWidth: 0.5, borderBottomColor: C.border, marginVertical: 10 },
+  divider: { borderBottomWidth: 2, borderBottomColor: C.navy, marginBottom: 6 },
+  dividerThin: { borderBottomWidth: 0.5, borderBottomColor: C.border, marginVertical: 3 },
 
   // ── Info row ─────────────────────────────────────────────────────────────
-  infoRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
+  infoRow: { flexDirection: 'row', gap: 10, marginBottom: 6 },
   infoBox: {
     flex: 1,
     borderWidth: 0.5,
     borderColor: C.border,
     borderRadius: 4,
-    padding: 8,
-    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    gap: 2.5,
   },
-  infoBoxTitle: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: C.blue, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
+  infoBoxTitle: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: C.blue, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 1 },
   infoLine: { flexDirection: 'row', gap: 4 },
-  infoLabel: { fontSize: 8, color: C.muted, width: 68 },
+  infoLabel: { fontSize: 8, color: C.muted, width: 72 },
   infoValue: { fontSize: 8, fontFamily: 'Helvetica-Bold', flex: 1 },
-
-  // ── Delivery ─────────────────────────────────────────────────────────────
-  deliveryRow: {
-    flexDirection: 'row',
-    gap: 12,
-    backgroundColor: C.lightGray,
-    borderRadius: 4,
-    padding: 8,
-    marginBottom: 14,
-  },
-  deliveryItem: { flex: 1, gap: 2 },
-  deliveryLabel: { fontSize: 7, color: C.muted, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase', letterSpacing: 0.3 },
-  deliveryValue: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: C.navy },
 
   // ── Table ─────────────────────────────────────────────────────────────────
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: C.navy,
-    borderRadius: 4,
-    paddingVertical: 6,
+    borderRadius: 3,
+    paddingVertical: 5,
     paddingHorizontal: 4,
     marginBottom: 1,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 5,
+    paddingVertical: 2.5,
     paddingHorizontal: 4,
     borderBottomWidth: 0.5,
     borderBottomColor: C.border,
   },
   tableRowAlt: { backgroundColor: C.lightGray },
   thText: { fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: C.white, textTransform: 'uppercase', letterSpacing: 0.3 },
-  tdText: { fontSize: 8.5 },
+  tdText: { fontSize: 8 },
   colCod: { width: 46 },
   colCant: { width: 42, textAlign: 'right' },
   colUnid: { width: 40, textAlign: 'center' },
-  colDesc: { flex: 1 },
-  colPUnit: { width: 62, textAlign: 'right' },
-  colTotal: { width: 66, textAlign: 'right' },
+  colDesc: { flex: 1, paddingHorizontal: 4 },
+  colPUnit: { width: 66, textAlign: 'right' },
+  colTotal: { width: 70, textAlign: 'right' },
 
-  // ── Forma de pago / Banca ────────────────────────────────────────────────
-  paymentRow: { flexDirection: 'row', gap: 12, marginTop: 14 },
+  // ── Cierre: lo que debe permanecer junto con las firmas ─────────────────
+  closing: { flexGrow: 1 },
+  closingBlock: { marginTop: 6 },
+  summaryRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  summaryLeft: { flex: 1, gap: 6 },
+  paymentBoxStack: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto' },
+  summaryRight: { width: 180, gap: 3 },
+
+  // ── Monto en letras ──────────────────────────────────────────────────────
+  sonText: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: C.navy },
+
+  // ── Forma de pago / contactos ────────────────────────────────────────────
+  paymentRow: { flexDirection: 'row', gap: 10 },
   paymentBox: {
     flex: 1,
     borderWidth: 0.5,
     borderColor: C.border,
     borderRadius: 4,
-    padding: 8,
-    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    gap: 2.5,
   },
-  paymentBoxNarrow: { flex: 0.75 },
-  paymentTitle: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: C.blue, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
+  paymentTitle: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: C.blue, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 1 },
+  paymentTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  paymentCondicion: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: C.text },
   paymentLine: { flexDirection: 'row', gap: 4 },
-  paymentLabel: { fontSize: 8, color: C.muted, width: 92 },
+  paymentLabel: { fontSize: 8, color: C.muted, width: 72 },
   paymentValue: { fontSize: 8, fontFamily: 'Helvetica-Bold', flex: 1 },
 
   // ── Forma de pago (tabla de tramos) ─────────────────────────────────────
   formaPagoTableHeader: {
     flexDirection: 'row',
     backgroundColor: C.lightGray,
-    paddingVertical: 4,
+    paddingVertical: 3,
     paddingHorizontal: 4,
   },
   formaPagoRow: {
     flexDirection: 'row',
-    paddingVertical: 4,
+    paddingVertical: 3,
     paddingHorizontal: 4,
     borderBottomWidth: 0.5,
     borderBottomColor: C.border,
@@ -170,63 +181,61 @@ const s = StyleSheet.create({
   fpTdText: { fontSize: 8 },
   fpColConcepto: { flex: 1.3 },
   fpColPct: { width: 28, textAlign: 'right' },
-  fpColBruto: { width: 56, textAlign: 'right' },
-  fpColDetraccion: { width: 56, textAlign: 'right' },
-  fpColNeto: { width: 60, textAlign: 'right' },
-
-  // ── Monto en letras ──────────────────────────────────────────────────────
-  sonRow: { marginTop: 8, padding: 6 },
-  sonText: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: C.navy },
-
-  // ── Firma (no absoluta, dos columnas) ───────────────────────────────────
-  signatureRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 30, gap: 24 },
-  signatureCol: { flex: 1, alignItems: 'center', gap: 4 },
+  fpColBruto: { width: 58, textAlign: 'right' },
+  fpColDetraccion: { width: 54, textAlign: 'right' },
+  fpColNeto: { width: 58, textAlign: 'right' },
 
   // ── Totals ─────────────────────────────────────────────────────────────────
-  totalsBlock: {
-    alignItems: 'flex-end',
-    marginTop: 10,
-    gap: 3,
-  },
-  totalRow: { flexDirection: 'row', gap: 8 },
-  totalLabel: { fontSize: 8, color: C.muted, width: 100, textAlign: 'right' },
-  totalValue: { fontSize: 8, width: 80, textAlign: 'right', fontFamily: 'Helvetica-Bold' },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8 },
+  totalLabel: { fontSize: 8, color: C.muted },
+  totalValue: { fontSize: 8, fontFamily: 'Helvetica-Bold' },
   grandTotalRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: C.navy,
     borderRadius: 4,
-    paddingVertical: 5,
+    paddingVertical: 6,
     paddingHorizontal: 8,
-    marginTop: 2,
-    gap: 8,
   },
-  grandTotalLabel: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: C.white, width: 100, textAlign: 'right' },
-  grandTotalValue: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: C.white, width: 80, textAlign: 'right' },
-
-  // ── Notes ──────────────────────────────────────────────────────────────────
-  notesBlock: { marginTop: 10, padding: 8, borderWidth: 0.5, borderColor: C.border, borderRadius: 4, gap: 3 },
-  notesLabel: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.3 },
-  notesText: { fontSize: 8, color: C.text },
-
-  // ── Reserva de derecho ──────────────────────────────────────────────────
-  reserveText: { fontSize: 7.5, color: C.muted, marginTop: 10, lineHeight: 1.4 },
-
-  // ── Signature ──────────────────────────────────────────────────────────────
-  signatureImage: { width: 140, height: 60, objectFit: 'contain' },
-  signatureLine: { borderBottomWidth: 1, borderBottomColor: C.text, width: 160, marginBottom: 4 },
-  signatureTitle: { fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: C.navy, textAlign: 'center' },
-
-  // ── Footer ──────────────────────────────────────────────────────────────────
-  footer: {
-    position: 'absolute',
-    bottom: 24,
-    left: 44,
-    right: 44,
+  grandTotalLabel: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: C.white },
+  grandTotalValue: { fontSize: 11, fontFamily: 'Helvetica-Bold', color: C.white },
+  netoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderTopWidth: 0.5,
     borderTopColor: C.border,
-    paddingTop: 6,
+    paddingTop: 3,
+    paddingHorizontal: 8,
+  },
+
+  // ── Notes ──────────────────────────────────────────────────────────────────
+  notesBlock: { paddingVertical: 5, paddingHorizontal: 8, borderWidth: 0.5, borderColor: C.border, borderRadius: 4, gap: 2 },
+  notesLabel: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.3 },
+  notesText: { fontSize: 8, color: C.text },
+
+  // ── Reserva de derecho ──────────────────────────────────────────────────
+  reserveText: { fontSize: 7, color: C.muted, lineHeight: 1.35 },
+
+  // ── Firmas: Administración y Logística juntas a la izquierda, Recibe a la derecha
+  signatureRow: { flexDirection: 'row', gap: 20, marginTop: 'auto', paddingTop: 8 },
+  signatureCol: { flex: 1, alignItems: 'center' },
+  signatureImage: { width: 120, height: 40, objectFit: 'contain' },
+  signatureSpace: { width: 120, height: 40 },
+  signatureLine: { borderBottomWidth: 1, borderBottomColor: C.text, alignSelf: 'stretch', marginTop: 2, marginBottom: 3 },
+  signatureTitle: { fontSize: 8.5, fontFamily: 'Helvetica-Bold', color: C.navy, textAlign: 'center' },
+
+  // ── Footer (fijo en todas las páginas) ───────────────────────────────────
+  footer: {
+    position: 'absolute',
+    bottom: 14,
+    left: 40,
+    right: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 0.5,
+    borderTopColor: C.border,
+    paddingTop: 5,
   },
   footerText: { fontSize: 7, color: C.muted },
 })
@@ -310,12 +319,59 @@ export function OcPdfDocument({ oc }: Props) {
 
   const docLabel = oc.tipo === 'servicio' ? 'Orden de Servicio' : 'Orden de Compra'
 
+  const mostrarNeto = tieneFiscal || descuentoMonto > 0
+  const tipoCambio = oc.tipoCambio ? Number(oc.tipoCambio) : 0
+
+  const colHeader = (
+    <View style={s.tableHeader}>
+      <Text style={[s.thText, s.colCod]}>Cod.</Text>
+      <Text style={[s.thText, s.colCant]}>Cant.</Text>
+      <Text style={[s.thText, s.colUnid]}>U.D.M</Text>
+      <Text style={[s.thText, s.colDesc]}>Descripción</Text>
+      <Text style={[s.thText, s.colPUnit]}>P. Unitario</Text>
+      <Text style={[s.thText, s.colTotal]}>P. Total</Text>
+    </View>
+  )
+
+  const FILAS_CON_EL_CIERRE = 3
+  const itemsCuerpo = oc.items.slice(0, Math.max(0, oc.items.length - FILAS_CON_EL_CIERRE))
+  const itemsCola = oc.items.slice(itemsCuerpo.length)
+
+  const renderFila = (item: (typeof oc.items)[number], idx: number) => (
+    <View key={item.id} wrap={false} style={[s.tableRow, idx % 2 !== 0 ? s.tableRowAlt : {}]}>
+      <Text style={[s.tdText, s.colCod]}>{item.codigo ?? String(idx + 1)}</Text>
+      <Text style={[s.tdText, s.colCant]}>{parseFloat(item.cantidad).toLocaleString('es-PE')}</Text>
+      <Text style={[s.tdText, s.colUnid]}>{item.unidad}</Text>
+      <Text style={[s.tdText, s.colDesc]}>{item.descripcion}</Text>
+      <Text style={[s.tdText, s.colPUnit]}>{fmtMoney(item.precioUnitario, 4)}</Text>
+      <Text style={[s.tdText, s.colTotal]}>{fmtMoney(item.precioTotal)}</Text>
+    </View>
+  )
+
   return (
     <Document
       title={`${oc.numero} - ${docLabel}`}
       author="D&C Ingeniería y Proyectos"
     >
       <Page size="A4" style={s.page}>
+
+        {/* ── Continuación: barra + cabecera de columnas en las páginas 2+ ───── */}
+        <View
+          fixed
+          render={({ pageNumber }) =>
+            pageNumber > 1 ? (
+              <View>
+                <View style={s.contBar}>
+                  <Text style={s.contBarText}>
+                    {docLabel.toUpperCase()} N° {oc.numero} · {proveedor.razonSocial}
+                  </Text>
+                  <Text style={s.contBarMuted}>Continuación</Text>
+                </View>
+                {colHeader}
+              </View>
+            ) : null
+          }
+        />
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <View style={s.header}>
@@ -336,7 +392,7 @@ export function OcPdfDocument({ oc }: Props) {
 
         <View style={s.divider} />
 
-        {/* ── Señores (Proveedor) ───────────────────────────────────────────── */}
+        {/* ── Señores (Proveedor) / Facturar a ──────────────────────────────── */}
         <View style={s.infoRow}>
           <View style={s.infoBox}>
             <Text style={s.infoBoxTitle}>Señores</Text>
@@ -407,195 +463,184 @@ export function OcPdfDocument({ oc }: Props) {
                 </Text>
               </View>
             )}
+            <View style={s.infoLine}>
+              <Text style={s.infoLabel}>Tiempo de entrega</Text>
+              <Text style={s.infoValue}>{oc.tiempoEntrega ?? 'Por coordinar'}</Text>
+            </View>
+            <View style={s.infoLine}>
+              <Text style={s.infoLabel}>Fecha de entrega</Text>
+              <Text style={s.infoValue}>{oc.fechaEntrega ? fmtDate(oc.fechaEntrega) : 'Por coordinar'}</Text>
+            </View>
           </View>
         </View>
 
-        {/* ── Tabla de ítems ──────────────────────────────────────────────── */}
-        <View style={s.tableHeader}>
-          <Text style={[s.thText, s.colCod]}>Cod.</Text>
-          <Text style={[s.thText, s.colCant]}>Cant.</Text>
-          <Text style={[s.thText, s.colUnid]}>U.D.M</Text>
-          <Text style={[s.thText, s.colDesc]}>Descripción</Text>
-          <Text style={[s.thText, s.colPUnit]}>P. Unitario</Text>
-          <Text style={[s.thText, s.colTotal]}>P. Total</Text>
-        </View>
+        {/* ── Tabla de ítems: la cabecera se repite si la lista pasa de página ── */}
+        {colHeader}
 
-        {oc.items.map((item, idx) => (
-          <View key={item.id} style={[s.tableRow, idx % 2 !== 0 ? s.tableRowAlt : {}]}>
-            <Text style={[s.tdText, s.colCod]}>{item.codigo ?? String(idx + 1)}</Text>
-            <Text style={[s.tdText, s.colCant]}>
-              {parseFloat(item.cantidad).toLocaleString('es-PE')}
-            </Text>
-            <Text style={[s.tdText, s.colUnid]}>{item.unidad}</Text>
-            <Text style={[s.tdText, s.colDesc]}>{item.descripcion}</Text>
-            <Text style={[s.tdText, s.colPUnit]}>{fmtMoney(item.precioUnitario, 4)}</Text>
-            <Text style={[s.tdText, s.colTotal]}>{fmtMoney(item.precioTotal)}</Text>
-          </View>
-        ))}
+        {itemsCuerpo.map((item, idx) => renderFila(item, idx))}
 
-        {/* ── Totales (V. Compra / IGV / Total) ────────────────────────────── */}
-        <View style={s.totalsBlock}>
-          <View style={s.totalRow}>
-            <Text style={s.totalLabel}>V. Compra (sin IGV)</Text>
-            <Text style={s.totalValue}>{fmtMoney(subtotal)}</Text>
-          </View>
-          <View style={s.totalRow}>
-            <Text style={s.totalLabel}>IGV (18%)</Text>
-            <Text style={s.totalValue}>{fmtMoney(igv)}</Text>
-          </View>
-          <View style={s.grandTotalRow}>
-            <Text style={s.grandTotalLabel}>TOTAL</Text>
-            <Text style={s.grandTotalValue}>{fmtMoney(total)}</Text>
-          </View>
-        </View>
+        {/* ── Cierre: totales, pago, contactos y firmas — siempre en la misma página ── */}
+        <View wrap={false} style={s.closing}>
+          {/* Las últimas filas viajan con el cierre: nunca queda una página solo de totales y firmas */}
+          {itemsCola.map((item, idx) => renderFila(item, itemsCuerpo.length + idx))}
+          <View style={[s.summaryRow, s.closingBlock]}>
+            <View style={s.summaryLeft}>
+              <Text style={s.sonText}>SON: {numeroALetras(total, proveedor.moneda)}</Text>
 
-        {/* ── Monto en letras ─────────────────────────────────────────────── */}
-        <View style={s.sonRow}>
-          <Text style={s.sonText}>SON: {numeroALetras(total, proveedor.moneda)}</Text>
-        </View>
-
-        {/* ── Forma de pago (tramos) / Tipo de cambio ──────────────────────── */}
-        <View style={s.paymentRow}>
-          <View style={[s.paymentBox, { flex: 1.4 }]}>
-            <Text style={s.paymentTitle}>Forma de pago</Text>
-            {oc.condicionPago && (
-              <View style={s.paymentLine}>
-                <Text style={s.paymentLabel}>Condición</Text>
-                <Text style={s.paymentValue}>{oc.condicionPago}</Text>
+              <View style={[s.paymentBox, s.paymentBoxStack]}>
+                <View style={s.paymentTitleRow}>
+                  <Text style={s.paymentTitle}>Forma de pago</Text>
+                  {oc.condicionPago && <Text style={s.paymentCondicion}>Condición: {oc.condicionPago}</Text>}
+                </View>
+                <View style={s.formaPagoTableHeader}>
+                  <Text style={[s.fpThText, s.fpColConcepto]}>Concepto</Text>
+                  <Text style={[s.fpThText, s.fpColPct]}>%</Text>
+                  <Text style={[s.fpThText, s.fpColBruto]}>Bruto</Text>
+                  {tieneFiscal && <Text style={[s.fpThText, s.fpColDetraccion]}>{fiscalLabel}</Text>}
+                  <Text style={[s.fpThText, s.fpColNeto]}>Neto</Text>
+                </View>
+                {filasPago.map((fila, index) => (
+                  <View key={index} style={s.formaPagoRow}>
+                    <Text style={[s.fpTdText, s.fpColConcepto]}>{fila.concepto}</Text>
+                    <Text style={[s.fpTdText, s.fpColPct]}>{fmtPercent(fila.porcentaje)}</Text>
+                    <Text style={[s.fpTdText, s.fpColBruto]}>{fmtMoney(fila.bruto)}</Text>
+                    {tieneFiscal && <Text style={[s.fpTdText, s.fpColDetraccion]}>{fmtMoney(fila.detraccion)}</Text>}
+                    <Text style={[s.fpTdText, s.fpColNeto]}>{fmtMoney(fila.neto)}</Text>
+                  </View>
+                ))}
               </View>
-            )}
-            <View style={s.formaPagoTableHeader}>
-              <Text style={[s.fpThText, s.fpColConcepto]}>Concepto</Text>
-              <Text style={[s.fpThText, s.fpColPct]}>%</Text>
-              <Text style={[s.fpThText, s.fpColBruto]}>Bruto</Text>
-              {tieneFiscal && <Text style={[s.fpThText, s.fpColDetraccion]}>{fiscalLabel}</Text>}
-              <Text style={[s.fpThText, s.fpColNeto]}>Neto</Text>
             </View>
-            {filasPago.map((fila, index) => (
-              <View key={index} style={s.formaPagoRow}>
-                <Text style={[s.fpTdText, s.fpColConcepto]}>{fila.concepto}</Text>
-                <Text style={[s.fpTdText, s.fpColPct]}>{fmtPercent(fila.porcentaje)}</Text>
-                <Text style={[s.fpTdText, s.fpColBruto]}>{fmtMoney(fila.bruto)}</Text>
-                {tieneFiscal && <Text style={[s.fpTdText, s.fpColDetraccion]}>{fmtMoney(fila.detraccion)}</Text>}
-                <Text style={[s.fpTdText, s.fpColNeto]}>{fmtMoney(fila.neto)}</Text>
+
+            <View style={s.summaryRight}>
+              <View style={s.totalRow}>
+                <Text style={s.totalLabel}>V. Compra (sin IGV)</Text>
+                <Text style={s.totalValue}>{fmtMoney(subtotal)}</Text>
               </View>
-            ))}
+              <View style={s.totalRow}>
+                <Text style={s.totalLabel}>IGV (18%)</Text>
+                <Text style={s.totalValue}>{fmtMoney(igv)}</Text>
+              </View>
+              <View style={s.grandTotalRow}>
+                <Text style={s.grandTotalLabel}>TOTAL</Text>
+                <Text style={s.grandTotalValue}>{fmtMoney(total)}</Text>
+              </View>
+              {tipoCambio > 0 && (
+                <View style={s.totalRow}>
+                  <Text style={s.totalLabel}>Tipo de cambio</Text>
+                  <Text style={s.totalValue}>
+                    {tipoCambio.toLocaleString('es-PE', { maximumFractionDigits: 4 })}
+                  </Text>
+                </View>
+              )}
+              {descuentoMonto > 0 && (
+                <View style={s.totalRow}>
+                  <Text style={s.totalLabel}>Descuento</Text>
+                  <Text style={s.totalValue}>− {fmtMoney(descuentoMonto)}</Text>
+                </View>
+              )}
+              {mostrarNeto && (
+                <View style={s.netoRow}>
+                  <Text style={[s.totalLabel, { fontFamily: 'Helvetica-Bold', color: C.navy }]}>Neto a pagar</Text>
+                  <Text style={[s.totalValue, { color: C.navy }]}>{fmtMoney(totalNetoAPagar)}</Text>
+                </View>
+              )}
+            </View>
           </View>
 
-          <View style={[s.paymentBox, s.paymentBoxNarrow]}>
-            <Text style={s.paymentTitle}>Tipo de cambio</Text>
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Total</Text>
-              <Text style={s.paymentValue}>
-                {oc.tipoCambio ? Number(oc.tipoCambio).toLocaleString('es-PE', { maximumFractionDigits: 4 }) : '0'}
-              </Text>
-            </View>
-            <Text style={[s.paymentTitle, { marginTop: 8 }]}>Descuento</Text>
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Ajuste</Text>
-              <Text style={s.paymentValue}>{fmtMoney(descuentoMonto)}</Text>
-            </View>
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Total neto</Text>
-              <Text style={s.paymentValue}>{fmtMoney(totalNetoAPagar)}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ── Contacto proveedor / Contacto D&C ────────────────────────────── */}
-        <View style={s.paymentRow}>
-          <View style={s.paymentBox}>
-            <Text style={s.paymentTitle}>Contacto proveedor</Text>
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Contacto</Text>
-              <Text style={s.paymentValue}>
-                {oc.contactoProveedorNombre ?? contactoProveedor?.nombre ?? '—'}
-              </Text>
-            </View>
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Teléfono</Text>
-              <Text style={s.paymentValue}>
-                {oc.contactoProveedorTelefono ?? contactoProveedor?.telefono ?? '—'}
-              </Text>
-            </View>
-            {(proveedor.banco || proveedor.numeroCuenta) && (
+          {/* ── Contacto proveedor / Contacto D&C ──────────────────────────── */}
+          <View style={[s.paymentRow, s.closingBlock]}>
+            <View style={s.paymentBox}>
+              <Text style={s.paymentTitle}>Contacto proveedor</Text>
               <View style={s.paymentLine}>
-                <Text style={s.paymentLabel}>Cta / CCI</Text>
+                <Text style={s.paymentLabel}>Contacto</Text>
                 <Text style={s.paymentValue}>
-                  {proveedor.banco && `${proveedor.banco} · `}
-                  {proveedor.numeroCuenta ?? '—'}
+                  {oc.contactoProveedorNombre ?? contactoProveedor?.nombre ?? '—'}
                 </Text>
               </View>
-            )}
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Moneda</Text>
-              <Text style={s.paymentValue}>{proveedor.moneda ?? 'Soles'}</Text>
+              <View style={s.paymentLine}>
+                <Text style={s.paymentLabel}>Teléfono</Text>
+                <Text style={s.paymentValue}>
+                  {oc.contactoProveedorTelefono ?? contactoProveedor?.telefono ?? '—'}
+                </Text>
+              </View>
+              {(proveedor.banco || proveedor.numeroCuenta) && (
+                <View style={s.paymentLine}>
+                  <Text style={s.paymentLabel}>Cta / CCI</Text>
+                  <Text style={s.paymentValue}>
+                    {proveedor.banco && `${proveedor.banco} · `}
+                    {proveedor.numeroCuenta ?? '—'}
+                  </Text>
+                </View>
+              )}
+              <View style={s.paymentLine}>
+                <Text style={s.paymentLabel}>Moneda</Text>
+                <Text style={s.paymentValue}>{proveedor.moneda ?? 'Soles'}</Text>
+              </View>
             </View>
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Tiempo de entrega</Text>
-              <Text style={s.paymentValue}>{oc.tiempoEntrega ?? 'Por coordinar'}</Text>
-            </View>
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Fecha de entrega</Text>
-              <Text style={s.paymentValue}>{oc.fechaEntrega ? fmtDate(oc.fechaEntrega) : 'Por coordinar'}</Text>
+
+            <View style={s.paymentBox}>
+              <Text style={s.paymentTitle}>Contacto D&amp;C</Text>
+              <View style={s.paymentLine}>
+                <Text style={s.paymentLabel}>Contacto</Text>
+                <Text style={s.paymentValue}>{oc.contactoDycNombre ?? 'Ruben Soplapuco Garcia'}</Text>
+              </View>
+              <View style={s.paymentLine}>
+                <Text style={s.paymentLabel}>Área</Text>
+                <Text style={s.paymentValue}>{oc.contactoDycArea ?? 'ADMINISTRACIÓN'}</Text>
+              </View>
+              <View style={s.paymentLine}>
+                <Text style={s.paymentLabel}>Celular</Text>
+                <Text style={s.paymentValue}>{oc.contactoDycCelular ?? '979228332'}</Text>
+              </View>
+              <View style={s.paymentLine}>
+                <Text style={s.paymentLabel}>Teléfono D&amp;C</Text>
+                <Text style={s.paymentValue}>{oc.contactoDycTelefono ?? '074-238554'}</Text>
+              </View>
             </View>
           </View>
 
-          <View style={s.paymentBox}>
-            <Text style={s.paymentTitle}>Contacto D&amp;C</Text>
-            {/* TODO: hardcodeado hasta que la OC tenga un contacto D&C configurable */}
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Contacto</Text>
-              <Text style={s.paymentValue}>Ruben Soplapuco Garcia</Text>
+          {/* ── Notas ───────────────────────────────────────────────────────── */}
+          {oc.nota && (
+            <View style={[s.notesBlock, s.closingBlock]}>
+              <Text style={s.notesLabel}>Notas</Text>
+              <Text style={s.notesText}>{oc.nota}</Text>
             </View>
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Área</Text>
-              <Text style={s.paymentValue}>ADMINISTRACIÓN</Text>
+          )}
+
+          {/* ── Reserva de derecho ───────────────────────────────────────────── */}
+          <Text style={[s.reserveText, s.closingBlock]}>
+            Nos reservamos el derecho de devolver la mercadería que no esté de acuerdo con nuestras especificaciones.
+          </Text>
+
+          {/* ── Firmas: Administración y Logística juntas a la izquierda; a la derecha, espacio para quien Recibe ── */}
+          <View style={s.signatureRow}>
+            <View style={s.signatureCol}>
+              <Image src={FIRMA_JEFE_ADMIN} style={s.signatureImage} />
+              <View style={s.signatureLine} />
+              <Text style={s.signatureTitle}>Jefe de Administración</Text>
             </View>
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Celular</Text>
-              <Text style={s.paymentValue}>979228332</Text>
+            <View style={s.signatureCol}>
+              <Image src={FIRMA_LOGISTICA} style={s.signatureImage} />
+              <View style={s.signatureLine} />
+              <Text style={s.signatureTitle}>Logística</Text>
             </View>
-            <View style={s.paymentLine}>
-              <Text style={s.paymentLabel}>Teléfono D&amp;C</Text>
-              <Text style={s.paymentValue}>074-238554</Text>
+            <View style={s.signatureCol}>
+              <View style={s.signatureSpace} />
+              <View style={s.signatureLine} />
+              <Text style={s.signatureTitle}>Recibe</Text>
             </View>
           </View>
         </View>
 
-        {/* ── Notas ───────────────────────────────────────────────────────── */}
-        {oc.nota && (
-          <View style={s.notesBlock}>
-            <Text style={s.notesLabel}>Notas</Text>
-            <Text style={s.notesText}>{oc.nota}</Text>
-          </View>
-        )}
-
-        {/* ── Reserva de derecho ───────────────────────────────────────────── */}
-        <Text style={s.reserveText}>
-          Nos reservamos el derecho de devolver la mercadería que no esté de acuerdo con nuestras especificaciones.
-        </Text>
-
-        {/* ── Firma ───────────────────────────────────────────────────────── */}
-        <View style={s.signatureRow}>
-          <View style={s.signatureCol}>
-            <Image src={FIRMA_JEFE_ADMIN} style={s.signatureImage} />
-            <View style={s.signatureLine} />
-            <Text style={s.signatureTitle}>Jefe de Administración</Text>
-          </View>
-          <View style={s.signatureCol}>
-            <Image src={FIRMA_LOGISTICA} style={s.signatureImage} />
-            <View style={s.signatureLine} />
-            <Text style={s.signatureTitle}>Logística</Text>
-          </View>
-        </View>
-
-        {/* ── Footer ──────────────────────────────────────────────────────── */}
-        <View style={s.footer}>
+        {/* ── Footer fijo ─────────────────────────────────────────────────── */}
+        <View fixed style={s.footer}>
           <Text style={s.footerText}>
             Generado por DyC ERP · {new Date().toLocaleDateString('es-PE')}
           </Text>
-          <Text style={s.footerText}>{oc.numero}</Text>
+          <Text
+            style={s.footerText}
+            render={({ pageNumber, totalPages }) => `${oc.numero} · Página ${pageNumber} de ${totalPages}`}
+          />
         </View>
       </Page>
     </Document>
