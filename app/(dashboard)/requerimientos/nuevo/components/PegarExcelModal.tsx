@@ -11,25 +11,27 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: (filas: FilaPegada[]) => void
+  /** Muestra el P.U. pegado (compras ya cotizadas). */
+  conPrecio?: boolean
 }
 
-export function PegarExcelModal({ open, onOpenChange, onConfirm }: Props) {
+export function PegarExcelModal({ open, onOpenChange, onConfirm, conPrecio = false }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Pegar desde Excel</DialogTitle>
           <DialogDescription>
-            Copia las celdas en este orden: descripción, cantidad, unidad y observaciones. Revisa la vista previa antes de agregarlas.
+            Copia las filas del formato de requerimiento (Cant., U.D.M., Concepto, P.U., Total, Observación), con o sin la columna Ítem. Revisa la vista previa antes de agregarlas.
           </DialogDescription>
         </DialogHeader>
-        {open && <PegarForm onCancel={() => onOpenChange(false)} onConfirm={onConfirm} />}
+        {open && <PegarForm onCancel={() => onOpenChange(false)} onConfirm={onConfirm} conPrecio={conPrecio} />}
       </DialogContent>
     </Dialog>
   )
 }
 
-function PegarForm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (filas: FilaPegada[]) => void }) {
+function PegarForm({ onCancel, onConfirm, conPrecio }: { onCancel: () => void; onConfirm: (filas: FilaPegada[]) => void; conPrecio: boolean }) {
   const [texto, setTexto] = useState('')
   const filas = useMemo(() => parsearPegado(texto).filter((f) => f.descripcion), [texto])
   const sinUnidad = filas.filter((f) => f.unidad === null).length
@@ -50,16 +52,19 @@ function PegarForm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-muted text-left text-xs text-muted-foreground">
               <tr>
-                <th className="px-2 py-1.5 font-medium">Descripción</th>
                 <th className="px-2 py-1.5 font-medium">Cant.</th>
                 <th className="px-2 py-1.5 font-medium">Unidad</th>
-                <th className="px-2 py-1.5 font-medium">Observaciones</th>
+                <th className="px-2 py-1.5 font-medium">Descripción</th>
+                {conPrecio ? (
+                  <th className="px-2 py-1.5 text-right font-medium">P. unitario</th>
+                ) : (
+                  <th className="px-2 py-1.5 font-medium">Observaciones</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {filas.map((f, i) => (
                 <tr key={i} className="border-t border-border">
-                  <td className="px-2 py-1.5">{f.descripcion}</td>
                   <td className="px-2 py-1.5 font-mono tabular-nums">{f.cantidad || '—'}</td>
                   <td className="px-2 py-1.5">
                     {f.unidad ? (
@@ -70,7 +75,12 @@ function PegarForm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (
                       </span>
                     )}
                   </td>
-                  <td className="px-2 py-1.5 text-muted-foreground">{f.observacion}</td>
+                  <td className="px-2 py-1.5">{f.descripcion}</td>
+                  {conPrecio ? (
+                    <td className="px-2 py-1.5 text-right font-mono tabular-nums">{f.precio || '—'}</td>
+                  ) : (
+                    <td className="px-2 py-1.5 text-muted-foreground">{f.observacion}</td>
+                  )}
                 </tr>
               ))}
             </tbody>

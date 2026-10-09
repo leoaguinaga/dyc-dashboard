@@ -7,6 +7,8 @@ export interface FilaPegada {
   unidad: UnidadMedida | null
   unidadOriginal: string
   observacion: string
+  /** Precio unitario (P.U.); vacío si no viene o no es un número. */
+  precio: string
 }
 
 const ALIASES: Record<UnidadMedida, string[]> = {
@@ -66,26 +68,72 @@ function normalizarCantidad(valor: string) {
   return /^\d*\.?\d+$|^\d+\.$/.test(limpio) ? limpio : ''
 }
 
-/** Convierte texto copiado desde Excel (TSV) en filas. Orden esperado: descripción, cantidad, unidad, observaciones. */
-export function parsearPegado(texto: string): FilaPegada[] {
-  const lineas = texto
-    .replace(/\r/g, '')
-    .split('\n')
-    .map((l) => l.split('\t'))
-    .filter((celdas) => celdas.some((c) => c.trim()))
+/**
+ * Divide TSV de Excel en filas de celdas. Excel envuelve entre comillas las celdas con saltos de línea,
+ * tabs o comillas (y duplica las comillas internas), así que no basta con separar por `\n`.
+ */
+function dividirTsv(texto: string): string[][] {
+  const filas: string[][] = []
+  let fila: string[] = []
+  let celda = ''
+  let entreComillas = false
+  const src = texto.replace(/\r\n?/g, '\n')
 
-  const esEncabezado =
-    lineas.length > 1 && /descrip|material|item|ítem/i.test(lineas[0][0] ?? '') && !normalizarCantidad(lineas[0][1] ?? '')
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i]
+    if (entreComillas) {
+      if (c === '"' && src[i + 1] === '"') {
+        celda += '"'
+        i++
+      } else if (c === '"') entreComillas = false
+      else celda += c
+    } else if (c === '"' && celda === '') entreComillas = true
+    else if (c === '\t') {
+      fila.push(celda)
+      celda = ''
+    } else if (c === '\n') {
+      fila.push(celda)
+      filas.push(fila)
+      fila = []
+      celda = ''
+    } else celda += c
+  }
+  if (celda !== '' || fila.length > 0) {
+    fila.push(celda)
+    filas.push(fila)
+  }
+  return filas.filter((celdas) => celdas.some((c) => c.trim()))
+}
+
+const unaLinea = (valor: string | undefined, separador: string) =>
+  (valor ?? '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .join(separador)
+
+/**
+ * Convierte texto copiado desde Excel (TSV) en filas, con el orden del formato FR-LOG-001:
+ * CANT., U.D.M., CONCEPTO/CARACTERÍSTICA, P.U., TOTAL, OBSERVACIÓN. El P.U. se conserva (lo usan las compras ya cotizadas); TOTAL se ignora.
+ * Si la selección incluye la columna ITEM (7 columnas), se descarta.
+ */
+export function parsearPegado(texto: string): FilaPegada[] {
+  const lineas = dividirTsv(texto)
+  const ancho = Math.max(0, ...lineas.map((l) => l.length))
+  const desfase = ancho >= 7 ? 1 : 0
+
+  const esEncabezado = lineas.length > 0 && lineas[0].some((c) => /concepto|caracter[ií]stica|^\s*u\.?\s?d\.?\s?m\.?\s*$/i.test(c))
   const datos = esEncabezado ? lineas.slice(1) : lineas
 
   return datos.map((celdas) => {
-    const unidadOriginal = (celdas[2] ?? '').trim()
+    const unidadOriginal = (celdas[desfase + 1] ?? '').trim()
     return {
-      descripcion: (celdas[0] ?? '').trim(),
-      cantidad: normalizarCantidad(celdas[1] ?? ''),
+      descripcion: unaLinea(celdas[desfase + 2], ' '),
+      cantidad: normalizarCantidad(celdas[desfase] ?? ''),
       unidad: unidadOriginal ? normalizarUnidad(unidadOriginal) : 'und',
       unidadOriginal,
-      observacion: (celdas[3] ?? '').trim(),
+      precio: normalizarCantidad(celdas[desfase + 3] ?? ''),
+      observacion: unaLinea(celdas[desfase + 5], '; '),
     }
   })
 }

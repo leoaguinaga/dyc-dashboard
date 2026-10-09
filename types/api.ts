@@ -1209,7 +1209,7 @@ export interface CompraSimple {
   grupos: OrdenCompra[];
 }
 
-export type TipoArchivoCompraSimple = "comprobante" | "foto_producto";
+export type TipoArchivoCompraSimple = "comprobante" | "foto_producto" | "cotizacion";
 
 export interface CompraSimpleGrupoArchivo {
   id: string;
