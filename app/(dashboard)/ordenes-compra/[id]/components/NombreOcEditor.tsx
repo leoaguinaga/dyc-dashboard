@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
-import { Pencil, Check, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
+import { EditButton } from './EditButton'
 
 interface Props {
   ocId: string
@@ -51,13 +52,7 @@ export function NombreOcEditor({ ocId, nombre, editable = true }: Props) {
           {nombre ?? 'Sin nombre'}
         </span>
         {canEdit && (
-          <button
-            onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
-          >
-            <Pencil className="size-3" />
-            Editar
-          </button>
+          <EditButton target="el nombre de la orden" onClick={() => setEditing(true)} />
         )}
       </div>
     )
@@ -73,6 +68,7 @@ export function NombreOcEditor({ ocId, nombre, editable = true }: Props) {
           if (e.key === 'Enter') save()
           if (e.key === 'Escape') cancel()
         }}
+        aria-label="Nombre de la orden"
         placeholder="Ej: Pintura para fachada principal"
         autoFocus
         className="w-64 rounded-md border border-border bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"

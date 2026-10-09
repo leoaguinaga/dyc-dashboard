@@ -6,7 +6,8 @@ import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
-import { Pencil, Check, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
+import { EditButton } from './EditButton'
 import type { TipoOrdenCompra } from '@/types/api'
 
 interface Props {
@@ -54,13 +55,7 @@ export function NumeroTipoEditor({ ocId, numero, tipo, editable = true }: Props)
       <div className="flex items-center gap-1.5 group">
         <h1 className="text-2xl font-semibold tracking-tight font-mono">{numero}</h1>
         {canEdit && (
-          <button
-            onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
-          >
-            <Pencil className="size-3" />
-            Editar
-          </button>
+          <EditButton target="el número y tipo de la orden" onClick={() => setEditing(true)} />
         )}
       </div>
     )
@@ -77,12 +72,13 @@ export function NumeroTipoEditor({ ocId, numero, tipo, editable = true }: Props)
             if (e.key === 'Enter') save()
             if (e.key === 'Escape') cancel()
           }}
+          aria-label="Número de la orden"
           placeholder="Ej: OC-2026-0001"
           autoFocus
           className="w-40 rounded-md border border-border bg-white px-2 py-1 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <Select value={tipoValue} onValueChange={(v) => setTipoValue(v as TipoOrdenCompra)}>
-          <SelectTrigger className="w-44 h-8">
+          <SelectTrigger className="w-44 h-8" aria-label="Tipo de orden">
             {tipoValue === 'servicio' ? 'Orden de Servicio' : 'Orden de Compra'}
           </SelectTrigger>
           <SelectContent>

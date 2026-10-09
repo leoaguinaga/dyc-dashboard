@@ -6,7 +6,8 @@ import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Pencil, Check, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
+import { EditButton } from './EditButton'
 import type { OrdenCompra } from '@/types/api'
 
 interface Props {
@@ -51,12 +52,26 @@ export function ReferenciaConceptoEditor({ ocId, oc, editable = true }: Props) {
     setErr(null)
   }
 
+  const label = <span className="text-xs text-muted-foreground">Concepto y referencia</span>
+
   if (!editing) {
     const hasData = oc.referencia || oc.concepto
+    if (!hasData) {
+      return (
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="flex flex-wrap items-center gap-x-1.5">
+            {label}
+            <span className="text-muted-foreground italic">· Sin definir</span>
+          </span>
+          {canEdit && <EditButton variant="definir" target="el concepto y la referencia" onClick={() => setEditing(true)} />}
+        </div>
+      )
+    }
     return (
-      <div className="flex items-start justify-between gap-2 group">
-        {hasData ? (
-          <dl className="grid gap-2 text-sm flex-1">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 space-y-1.5">
+          {label}
+          <dl className="grid gap-2 text-sm">
             {oc.concepto && (
               <div>
                 <dt className="text-xs text-muted-foreground">Lo siguiente (concepto)</dt>
@@ -70,24 +85,15 @@ export function ReferenciaConceptoEditor({ ocId, oc, editable = true }: Props) {
               </div>
             )}
           </dl>
-        ) : (
-          <span className="text-sm text-muted-foreground italic">Sin definir</span>
-        )}
-        {canEdit && (
-          <button
-            onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer shrink-0"
-          >
-            <Pencil className="size-3" />
-            Editar
-          </button>
-        )}
+        </div>
+        {canEdit && <EditButton target="el concepto y la referencia" onClick={() => setEditing(true)} />}
       </div>
     )
   }
 
   return (
     <div className="space-y-2">
+      {label}
       <div>
         <label className="mb-1 block text-xs text-muted-foreground">Lo siguiente (concepto)</label>
         <Input

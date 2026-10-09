@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Trash2, Pencil, Check, X } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useSession } from '@/lib/auth/session'
 import { api } from '@/lib/api/client'
 import { Input } from '@/components/ui/input'
@@ -30,8 +31,12 @@ type LineaItem = {
 
 const emptyLinea = (): LineaItem => ({ codigo: '', descripcion: '', cantidad: '', unidad: 'und', precioUnitario: '' })
 
-const GRID_WITH_ACTIONS = 'sm:grid-cols-[70px_1fr_70px_100px_90px_90px_64px]'
-const GRID_SIN_ACTIONS = 'sm:grid-cols-[70px_1fr_70px_100px_90px_90px]'
+// Descripción toma el espacio sobrante; código va como línea secundaria bajo la
+// descripción (no como columna) y unidad se une a la cantidad. Las columnas
+// responden al ancho de la tarjeta, no al de la ventana.
+const GRID_WITH_ACTIONS = '@lg:grid-cols-[minmax(0,1fr)_88px_92px_104px_60px]'
+const GRID_SIN_ACTIONS = '@lg:grid-cols-[minmax(0,1fr)_88px_92px_104px]'
+const FORM_GRID = 'grid grid-cols-2 gap-2 @lg:grid-cols-[96px_minmax(0,1fr)_84px_104px_96px_92px_60px] @lg:items-center'
 
 export function OcItemsTable({ ocId, items, montoTotal, incluyeIgv, editable }: Props) {
   const { data: session } = useSession()
@@ -46,6 +51,7 @@ export function OcItemsTable({ ocId, items, montoTotal, incluyeIgv, editable }: 
   const [nueva, setNueva] = useState<LineaItem>(emptyLinea())
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [porEliminar, setPorEliminar] = useState<OrdenCompraItem | null>(null)
 
   function startEdit(item: OrdenCompraItem) {
     setEditingId(item.id)
@@ -92,8 +98,10 @@ export function OcItemsTable({ ocId, items, montoTotal, incluyeIgv, editable }: 
     setError(null)
     try {
       await api.delete(`/ordenes-compra/${ocId}/items/${itemId}`)
+      setPorEliminar(null)
       router.refresh()
     } catch (e) {
+      setPorEliminar(null)
       setError(e instanceof Error ? e.message : 'Error al eliminar el ítem')
     } finally {
       setSaving(false)
@@ -123,91 +131,99 @@ export function OcItemsTable({ ocId, items, montoTotal, incluyeIgv, editable }: 
     }
   }
 
+  const iconBtn = 'flex size-9 @lg:size-7 items-center justify-center rounded text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+
+  function lineaForm(linea: LineaItem, setLinea: (fn: (p: LineaItem) => LineaItem) => void, opts: { onSave: () => void; onCancel: () => void; descPlaceholder: string; autoFocus?: boolean }) {
+    const total = (parseFloat(linea.cantidad) || 0) * (parseFloat(linea.precioUnitario) || 0)
+    return (
+      <div className={cn('bg-muted/20 p-3', FORM_GRID)}>
+        <Input aria-label="Código" value={linea.codigo} onChange={(e) => setLinea((p) => ({ ...p, codigo: e.target.value }))} className="h-8 text-xs" placeholder="Cód. (opcional)" />
+        <Input aria-label="Descripción" value={linea.descripcion} onChange={(e) => setLinea((p) => ({ ...p, descripcion: e.target.value }))} className="col-span-2 h-8 text-sm @lg:col-span-1" placeholder={opts.descPlaceholder} autoFocus={opts.autoFocus} />
+        <Input aria-label="Cantidad" type="number" min="0.01" step="0.01" value={linea.cantidad} onChange={(e) => setLinea((p) => ({ ...p, cantidad: e.target.value }))} className="h-8 text-sm text-right" placeholder="Cant." />
+        <Select value={linea.unidad} onValueChange={(v) => setLinea((p) => ({ ...p, unidad: (v ?? 'und') as UnidadMedida }))}>
+          <SelectTrigger aria-label="Unidad" className="h-8 text-sm"><SelectValue /></SelectTrigger>
+          <SelectContent>{UNIDAD_OPTIONS.map(([u, label]) => <SelectItem key={u} value={u}>{label}</SelectItem>)}</SelectContent>
+        </Select>
+        <Input aria-label="Precio unitario" type="number" min="0" step="0.01" value={linea.precioUnitario} onChange={(e) => setLinea((p) => ({ ...p, precioUnitario: e.target.value }))} className="h-8 text-sm text-right" placeholder="P. unit" />
+        <div className="flex h-8 items-center justify-end gap-2 text-sm tabular-nums text-muted-foreground">
+          <span className="@lg:hidden text-[11px]">Total:</span>
+          {formatCurrency(total)}
+        </div>
+        <div className="col-span-2 flex items-center justify-end gap-1 @lg:col-span-1 @lg:justify-center">
+          <button type="button" aria-label="Guardar ítem" onClick={opts.onSave} disabled={saving} className={cn(iconBtn, 'text-success hover:bg-success-soft')}>
+            <Check className="size-3.5" />
+          </button>
+          <button type="button" aria-label="Cancelar" onClick={opts.onCancel} disabled={saving} className={cn(iconBtn, 'hover:bg-muted')}>
+            <X className="size-3.5" />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="rounded-xl border border-border bg-white h-fit">
+    <div className="@container h-fit rounded-xl border border-border bg-card text-sm">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Ítems</h2>
         {canEdit && !adding && (
           <button
+            type="button"
             onClick={() => setAdding(true)}
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors duration-[120ms]"
+            className="inline-flex items-center gap-1 rounded text-xs text-muted-foreground transition-colors duration-[120ms] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-3.5" aria-hidden="true" />
             Agregar ítem (ej. transporte)
           </button>
         )}
       </div>
 
-      <div className={cn('hidden bg-muted/30 px-4 py-2.5 text-xs font-medium text-muted-foreground sm:grid gap-2', gridCols)}>
-        <span>Cód.</span>
+      <div className={cn('hidden gap-2 bg-muted/30 px-4 py-2.5 text-xs font-medium text-muted-foreground @lg:grid', gridCols)}>
         <span>Descripción</span>
         <span className="text-right">Cant.</span>
-        <span>Unidad</span>
         <span className="text-right">P. unit</span>
         <span className="text-right">Total</span>
-        {canEdit && <span />}
+        {canEdit && <span className="sr-only">Acciones</span>}
       </div>
 
-      <div className="divide-y divide-border sm:divide-y-0">
+      <div className="divide-y divide-border @lg:divide-y-0">
         {items.map((item) => {
           if (editingId === item.id) {
             return (
-              <div key={item.id} className={cn('grid grid-cols-1 gap-2 bg-muted/20 p-3 sm:items-center sm:py-2', gridCols)}>
-                <Input value={editLinea.codigo} onChange={(e) => setEditLinea((p) => ({ ...p, codigo: e.target.value }))} className="h-8 text-xs" placeholder="Cód." />
-                <Input value={editLinea.descripcion} onChange={(e) => setEditLinea((p) => ({ ...p, descripcion: e.target.value }))} className="h-8 text-sm" placeholder="Descripción" />
-                <Input type="number" min="0.01" step="0.01" value={editLinea.cantidad} onChange={(e) => setEditLinea((p) => ({ ...p, cantidad: e.target.value }))} className="h-8 text-sm text-right" placeholder="Cant." />
-                <Select value={editLinea.unidad} onValueChange={(v) => setEditLinea((p) => ({ ...p, unidad: (v ?? 'und') as UnidadMedida }))}>
-                  <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>{UNIDAD_OPTIONS.map(([u, label]) => <SelectItem key={u} value={u}>{label}</SelectItem>)}</SelectContent>
-                </Select>
-                <Input type="number" min="0" step="0.01" value={editLinea.precioUnitario} onChange={(e) => setEditLinea((p) => ({ ...p, precioUnitario: e.target.value }))} className="h-8 text-sm text-right" placeholder="P. unit" />
-                <div className="flex items-center h-8 justify-end text-sm tabular-nums text-muted-foreground">
-                  <span className="sm:hidden text-muted-foreground mr-auto text-[11px]">Total:</span>
-                  {formatCurrency((parseFloat(editLinea.cantidad) || 0) * (parseFloat(editLinea.precioUnitario) || 0))}
-                </div>
-                <div className="flex items-center gap-1 justify-end sm:justify-center">
-                  <button onClick={() => saveEdit(item.id)} disabled={saving} className="flex size-7 items-center justify-center rounded text-chart-2 hover:bg-chart-2/10">
-                    <Check className="size-3.5" />
-                  </button>
-                  <button onClick={() => setEditingId(null)} disabled={saving} className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-muted">
-                    <X className="size-3.5" />
-                  </button>
-                </div>
+              <div key={item.id} className="@lg:border-t @lg:border-border">
+                {lineaForm(editLinea, setEditLinea, { onSave: () => saveEdit(item.id), onCancel: () => setEditingId(null), descPlaceholder: 'Descripción' })}
               </div>
             )
           }
           return (
-            <div key={item.id} className={cn('group grid grid-cols-1 gap-1.5 p-3 sm:items-center sm:gap-2 sm:py-3', gridCols)}>
-              <div className="text-muted-foreground font-mono text-xs">
-                <span className="sm:hidden text-muted-foreground/70 mr-1">Cód.:</span>
-                {item.codigo ?? '—'}
+            <div key={item.id} className={cn('group grid grid-cols-1 gap-1.5 p-3 @lg:items-center @lg:gap-2 @lg:border-t @lg:border-border @lg:py-2.5', gridCols)}>
+              <div className="min-w-0">
+                <p className="font-medium text-foreground">{item.descripcion}</p>
+                {item.codigo && <p className="font-mono text-xs text-muted-foreground">{item.codigo}</p>}
               </div>
-              <div className="font-medium text-foreground">{item.descripcion}</div>
               <div className="text-right tabular-nums">
-                <span className="sm:hidden text-muted-foreground mr-1 text-[11px]">Cant.:</span>
+                <span className="@lg:hidden text-muted-foreground mr-1 text-[11px]">Cant.:</span>
                 {Number(item.cantidad).toLocaleString('es-PE')}
-              </div>
-              <div className="text-muted-foreground">
-                <span className="sm:hidden text-muted-foreground/70 mr-1">Unidad:</span>
-                {item.unidad}
+                <span className="ml-1 text-muted-foreground">{item.unidad}</span>
               </div>
               <div className="text-right tabular-nums">
-                <span className="sm:hidden text-muted-foreground mr-1 text-[11px]">P. unit:</span>
+                <span className="@lg:hidden text-muted-foreground mr-1 text-[11px]">P. unit:</span>
                 {formatCurrency(item.precioUnitario)}
               </div>
               <div className="text-right tabular-nums font-medium text-foreground">
-                <span className="sm:hidden text-muted-foreground mr-1 text-[11px] font-normal">Total:</span>
+                <span className="@lg:hidden text-muted-foreground mr-1 text-[11px] font-normal">Total:</span>
                 {formatCurrency(item.precioTotal)}
               </div>
               {canEdit && (
-                <div className="flex items-center gap-1 justify-end sm:justify-center">
-                  <button onClick={() => startEdit(item)} className="flex size-7 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted">
+                <div className="flex items-center justify-end gap-1 @lg:justify-center [@media(hover:hover)]:opacity-50 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100">
+                  <button type="button" aria-label={`Editar ítem ${item.descripcion}`} onClick={() => startEdit(item)} className={cn(iconBtn, 'hover:bg-muted hover:text-foreground')}>
                     <Pencil className="size-3.5" />
                   </button>
                   <button
-                    onClick={() => removeItem(item.id)}
+                    type="button"
+                    aria-label={`Eliminar ítem ${item.descripcion}`}
+                    onClick={() => setPorEliminar(item)}
                     disabled={saving || items.length === 1}
-                    className="flex size-7 items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/5 disabled:pointer-events-none disabled:opacity-30"
+                    className={cn(iconBtn, 'hover:bg-danger-soft hover:text-danger disabled:pointer-events-none disabled:opacity-30')}
                   >
                     <Trash2 className="size-3.5" />
                   </button>
@@ -218,27 +234,13 @@ export function OcItemsTable({ ocId, items, montoTotal, incluyeIgv, editable }: 
         })}
 
         {adding && (
-          <div className={cn('grid grid-cols-1 gap-2 bg-muted/20 p-3 sm:items-center sm:py-2', gridCols)}>
-            <Input value={nueva.codigo} onChange={(e) => setNueva((p) => ({ ...p, codigo: e.target.value }))} className="h-8 text-xs" placeholder="Cód. (opcional)" />
-            <Input value={nueva.descripcion} onChange={(e) => setNueva((p) => ({ ...p, descripcion: e.target.value }))} className="h-8 text-sm" placeholder="Ej. Transporte a obra" autoFocus />
-            <Input type="number" min="0.01" step="0.01" value={nueva.cantidad} onChange={(e) => setNueva((p) => ({ ...p, cantidad: e.target.value }))} className="h-8 text-sm text-right" placeholder="1" />
-            <Select value={nueva.unidad} onValueChange={(v) => setNueva((p) => ({ ...p, unidad: (v ?? 'und') as UnidadMedida }))}>
-              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent>{UNIDAD_OPTIONS.map(([u, label]) => <SelectItem key={u} value={u}>{label}</SelectItem>)}</SelectContent>
-            </Select>
-            <Input type="number" min="0" step="0.01" value={nueva.precioUnitario} onChange={(e) => setNueva((p) => ({ ...p, precioUnitario: e.target.value }))} className="h-8 text-sm text-right" placeholder="0.00" />
-            <div className="flex items-center h-8 justify-end text-sm tabular-nums text-muted-foreground">
-              <span className="sm:hidden text-muted-foreground mr-auto text-[11px]">Total:</span>
-              {formatCurrency((parseFloat(nueva.cantidad) || 0) * (parseFloat(nueva.precioUnitario) || 0))}
-            </div>
-            <div className="flex items-center gap-1 justify-end sm:justify-center">
-              <button onClick={addItem} disabled={saving} className="flex size-7 items-center justify-center rounded text-chart-2 hover:bg-chart-2/10">
-                <Check className="size-3.5" />
-              </button>
-              <button onClick={() => { setAdding(false); setNueva(emptyLinea()); setError(null) }} disabled={saving} className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-muted">
-                <X className="size-3.5" />
-              </button>
-            </div>
+          <div className="@lg:border-t @lg:border-border">
+            {lineaForm(nueva, setNueva, {
+              onSave: addItem,
+              onCancel: () => { setAdding(false); setNueva(emptyLinea()); setError(null) },
+              descPlaceholder: 'Ej. Transporte a obra',
+              autoFocus: true,
+            })}
           </div>
         )}
       </div>
@@ -248,15 +250,15 @@ export function OcItemsTable({ ocId, items, montoTotal, incluyeIgv, editable }: 
           const d = ocDesglose({ montoTotal, incluyeIgv })
           return (
             <>
-              <div className="flex items-center justify-between sm:justify-end sm:gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center justify-between @lg:justify-end @lg:gap-4 text-sm text-muted-foreground">
                 <span>Subtotal</span>
                 <span className="tabular-nums">{formatCurrency(d.subtotal)}</span>
               </div>
-              <div className="flex items-center justify-between sm:justify-end sm:gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center justify-between @lg:justify-end @lg:gap-4 text-sm text-muted-foreground">
                 <span>IGV (18%){incluyeIgv ? ' incluido' : ''}</span>
                 <span className="tabular-nums">{formatCurrency(d.igv)}</span>
               </div>
-              <div className="flex items-center justify-between sm:justify-end sm:gap-4">
+              <div className="flex items-center justify-between @lg:justify-end @lg:gap-4">
                 <span className="text-sm font-medium">Total</span>
                 <span className="tabular-nums font-bold">{formatCurrency(d.total)}</span>
               </div>
@@ -266,8 +268,24 @@ export function OcItemsTable({ ocId, items, montoTotal, incluyeIgv, editable }: 
       </div>
 
       {error && (
-        <p className={cn('px-5 py-2 text-xs text-destructive border-t border-border')}>{error}</p>
+        <p role="alert" className="px-5 py-2 text-xs text-destructive border-t border-border">{error}</p>
       )}
+
+      <ConfirmDialog
+        open={porEliminar !== null}
+        onOpenChange={(open) => { if (!open) setPorEliminar(null) }}
+        title="¿Eliminar este ítem?"
+        description={
+          porEliminar
+            ? `Se quitará «${porEliminar.descripcion}» (${formatCurrency(porEliminar.precioTotal)}) de la orden. El monto total y el plan de pagos se recalcularán.`
+            : undefined
+        }
+        confirmLabel="Eliminar ítem"
+        cancelLabel="Conservar"
+        destructive
+        loading={saving}
+        onConfirm={() => (porEliminar ? removeItem(porEliminar.id) : undefined)}
+      />
     </div>
   )
 }
