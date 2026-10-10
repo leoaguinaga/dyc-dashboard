@@ -78,7 +78,7 @@ export function RequerimientoEditForm({
 
   function validate() {
     const next: Record<string, string> = {}
-    if (!nombre.trim()) next.nombre = 'Ingresa un nombre'
+    if (!nombre.trim()) next.nombre = 'Ingresa el concepto'
     lineas.forEach((l, i) => {
       if (!l.descripcion.trim()) next[`linea_${i}_descripcion`] = 'Ingresa una descripción'
       const qty = parseFloat(l.cantidad)
@@ -152,7 +152,7 @@ export function RequerimientoEditForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className={labelCn}>
-            Nombre <span className="text-destructive">*</span>
+            Concepto <span className="text-destructive">*</span>
           </label>
           <Input
             value={nombre}

@@ -81,7 +81,7 @@ const emptyGrupo = (): Grupo => ({
 const DRAFT_KEY = 'compras-simples-nueva-draft'
 
 interface Draft {
-  /** Los borradores anteriores guardaban el nombre; ahora se genera solo. */
+  /** Concepto de la compra. */
   nombre?: string
   tipo: TipoRequerimiento | null
   esRendicion: boolean
@@ -123,14 +123,6 @@ const DESTINOS: Array<{ value: DestinoPago; label: string }> = [
   { value: 'trabajador', label: 'Mí (solicitante)' },
 ]
 
-/** Mismo criterio que el requerimiento: «primer ítem (+N más)», máximo 80 caracteres. */
-function nombreAutomatico(grupos: Grupo[]): string {
-  const descripciones = grupos.flatMap((g) => g.items.map((it) => it.descripcion.trim()).filter(Boolean))
-  if (descripciones.length === 0) return ''
-  const nombre = descripciones.length > 1 ? `${descripciones[0]} (+${descripciones.length - 1} más)` : descripciones[0]
-  return nombre.length > 80 ? `${nombre.slice(0, 79)}…` : nombre
-}
-
 function fmtMoney(v: number) {
   return `S/ ${v.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
@@ -145,6 +137,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
   const [esRendicion, setEsRendicion] = useState(false)
   const [comprobante, setComprobante] = useState<File | null>(null)
   const [fotoProducto, setFotoProducto] = useState<File | null>(null)
+  const [nombre, setNombre] = useState('')
   const [proyectoId, setProyectoId] = useState('')
   const [nota, setNota] = useState('')
   const [grupos, setGrupos] = useState<Grupo[]>([emptyGrupo()])
@@ -163,6 +156,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
     if (draft) {
       setTipoElegido(draft.tipo)
       setEsRendicion(draft.esRendicion)
+      setNombre(draft.nombre ?? '')
       setProyectoId(draft.proyectoId)
       setNota(draft.nota)
       setGrupos(draft.grupos.map((g) => ({ ...g, cotizacion: null })))
@@ -174,14 +168,15 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
 
   useEffect(() => {
     if (!draftReady.current) return
-    const draft: Draft = { tipo, esRendicion, proyectoId, nota, grupos: grupos.map((g) => ({ ...g, cotizacion: null })), aprobadoInformalPorId }
+    const draft: Draft = { nombre, tipo, esRendicion, proyectoId, nota, grupos: grupos.map((g) => ({ ...g, cotizacion: null })), aprobadoInformalPorId }
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
-  }, [tipo, esRendicion, proyectoId, nota, grupos, aprobadoInformalPorId])
+  }, [nombre, tipo, esRendicion, proyectoId, nota, grupos, aprobadoInformalPorId])
 
   function discardDraft() {
     clearDraft()
     setTipoElegido(null)
     setEsRendicion(false)
+    setNombre('')
     setProyectoId('')
     setNota('')
     setGrupos([emptyGrupo()])
@@ -261,6 +256,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
 
   function validate() {
     const next: Record<string, string> = {}
+    if (!nombre.trim()) next.nombre = 'Ingresa el concepto'
     if (!proyectoId) next.proyectoId = 'Selecciona un proyecto'
     if (!tipo) next.tipo = 'Tu rol no puede crear este tipo de compra'
     grupos.forEach((g, gi) => Object.assign(next, erroresGrupo(g, gi)))
@@ -288,7 +284,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
     let result: { id: string; grupos: { id: string }[] } | null = null
     try {
       result = await api.post<{ id: string; grupos: { id: string }[] }>('/compras-simples', {
-        nombre: nombreAutomatico(grupos),
+        nombre: nombre.trim(),
         tipo,
         esRendicion,
         aprobadoInformalPorId: esRendicion ? aprobadoInformalPorId : undefined,
@@ -359,7 +355,6 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
   const errorCount = Object.keys(errors).length
   const proyectoSel = proyectos.find((p) => p.id === proyectoId)
   const proyectoResumen = proyectoSel ? `${proyectoSel.codigo ? `${proyectoSel.codigo} · ` : ''}${proyectoSel.nombre}` : ''
-  const nombreAuto = nombreAutomatico(grupos)
   const modo = esRendicion ? 'rendicion' : 'pagar'
 
   function cambiarModo(next: 'pagar' | 'rendicion') {
@@ -390,6 +385,21 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
       )}
 
       <RegistroSection id="cs-general" title="Información general">
+        <div className="mb-4">
+          <label htmlFor="cs-concepto" className={labelCn}>
+            Concepto <span className="text-destructive">*</span>
+          </label>
+          <Input
+            id="cs-concepto"
+            value={nombre}
+            maxLength={120}
+            placeholder="Ej. Materiales de ferretería para el bloque B"
+            aria-invalid={!!errors.nombre}
+            onChange={(e) => { setNombre(e.target.value); setErrors((p) => { const n = { ...p }; delete n.nombre; return n }) }}
+            className={cn(errors.nombre && 'border-destructive')}
+          />
+          {errors.nombre && <p className="mt-1 text-xs text-destructive">{errors.nombre}</p>}
+        </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-3">
             <label htmlFor="cs-solicitante" className={labelCn}>Solicitante</label>
@@ -576,6 +586,7 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
         <ResumenCard
           filas={[
             { label: 'Solicitante', value: session?.user?.name ?? '—', title: session?.user?.name ?? undefined },
+            { label: 'Concepto', value: nombre.trim() || '—', title: nombre.trim() || undefined },
             { label: 'Empresas', value: grupos.length },
             { label: 'Ítems', value: itemsCount },
             { label: 'Tipo', value: tipo ? TIPO_LABELS[tipo] : '—' },
@@ -599,10 +610,6 @@ export function CreateCompraSimpleForm({ proyectos, proveedores }: Props) {
           <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
             <span className="text-sm text-muted-foreground">Total</span>
             <span className="text-xl font-semibold tabular-nums">{fmtMoney(totalGeneral)}</span>
-          </div>
-          <div className="mt-3 rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
-            Se registrará como
-            <span className="block truncate text-sm font-medium text-foreground" title={nombreAuto}>{nombreAuto || '—'}</span>
           </div>
         </ResumenCard>
       </div>

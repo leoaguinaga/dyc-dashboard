@@ -62,7 +62,7 @@ interface Draft {
   proyectoId: string
   tipo: TipoRequerimiento | null
   prioridad?: PrioridadRequerimiento
-  /** Borradores anteriores a la prioridad guardaban un booleano; `nombre` ya no se pide. */
+  /** Borradores anteriores a la prioridad guardaban un booleano; `nombre` (Concepto) volvió a pedirse. */
   urgente?: boolean
   nombre?: string
   nota: string
@@ -122,6 +122,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
   const [tipoElegido, setTipoElegido] = useState<TipoRequerimiento | null>(null)
   const tipo = tipoEfectivo(tipoElegido, allowedTipos)
   const router = useRouter()
+  const [nombre, setNombre] = useState('')
   const [proyectoId, setProyectoId] = useState('')
   const [prioridad, setPrioridad] = useState<PrioridadRequerimiento>('normal')
   const [nota, setNota] = useState('')
@@ -141,6 +142,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
   useEffect(() => {
     const draft = loadDraft()
     if (draft) {
+      if (draft.nombre) setNombre(draft.nombre)
       if (draft.proyectoId) setProyectoId(draft.proyectoId)
       if (draft.tipo) setTipoElegido(draft.tipo)
       setPrioridad(draft.prioridad ?? (draft.urgente ? 'urgente' : 'normal'))
@@ -149,6 +151,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
       if (draft.lineas && draft.lineas.length > 0) setLineas(draft.lineas.map(lineaDesdeDraft))
 
       const hasContent = !!(
+        draft.nombre ||
         draft.proyectoId ||
         draft.nota ||
         draft.fechaEntregaRequerida ||
@@ -164,6 +167,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
   useEffect(() => {
     if (!draftReady.current) return
     const hasContent = !!(
+      nombre ||
       proyectoId ||
       nota ||
       fechaEntregaRequerida ||
@@ -175,6 +179,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
       return
     }
     const draft: Draft = {
+      nombre,
       proyectoId,
       tipo,
       prioridad,
@@ -183,7 +188,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
       lineas,
     }
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
-  }, [proyectoId, tipo, prioridad, nota, fechaEntregaRequerida, lineas])
+  }, [nombre, proyectoId, tipo, prioridad, nota, fechaEntregaRequerida, lineas])
 
   // Mueve el foco a la celda pedida una vez que React pintó las filas nuevas.
   useEffect(() => {
@@ -201,6 +206,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
 
   function discardDraft() {
     clearDraft()
+    setNombre('')
     setProyectoId('')
     setTipoElegido(null)
     setPrioridad('normal')
@@ -271,6 +277,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
 
   function validate(sendNow: boolean) {
     const next: Record<string, string> = {}
+    if (!nombre.trim()) next.nombre = 'Ingresa el concepto'
     if (!proyectoId) next.proyectoId = 'Selecciona un proyecto'
     if (!tipo) next.tipo = 'Selecciona el tipo de requerimiento'
     // El borrador puede guardarse sin fecha; enviarlo no.
@@ -300,6 +307,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
 
     try {
       const result = await api.post<{ id: string }>('/requerimientos', {
+        nombre: nombre.trim(),
         proyectoId,
         tipo,
         prioridad,
@@ -354,6 +362,24 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
       {/* Información general */}
       <section aria-labelledby="req-general" className="rounded-xl border border-border bg-white p-4 sm:p-5">
         <h2 id="req-general" className="mb-4 text-sm font-medium">Información general</h2>
+        <div className="mb-4">
+          <label htmlFor="req-concepto" className={labelCn}>
+            Concepto <span className="text-destructive">*</span>
+          </label>
+          <Input
+            id="req-concepto"
+            value={nombre}
+            maxLength={120}
+            placeholder="Ej. Cemento y fierro para losa del bloque B"
+            aria-invalid={errors.nombre ? true : undefined}
+            onChange={(e) => {
+              setNombre(e.target.value)
+              clearError('nombre')
+            }}
+            className={cn(errors.nombre && 'border-destructive')}
+          />
+          {errors.nombre && <p className="mt-1 text-xs text-destructive">{errors.nombre}</p>}
+        </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-3">
             <label htmlFor="req-solicitante" className={labelCn}>Solicitante</label>
@@ -520,6 +546,7 @@ export function CreateRequerimientoForm({ proyectos }: Props) {
         <ResumenCard
           filas={[
             { label: 'Solicitante', value: session?.user?.name ?? '—', title: session?.user?.name ?? undefined },
+            { label: 'Concepto', value: nombre.trim() || '—', title: nombre.trim() || undefined },
             { label: 'Ítems', value: itemsLlenos },
             { label: 'Tipo', value: tipo ? TIPO_LABELS[tipo] : '—' },
             { label: 'Prioridad', value: PRIORIDAD_LABEL[prioridad] },
